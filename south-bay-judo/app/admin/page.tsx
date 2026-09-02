@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
+import { GI_SIZES } from "@/lib/sessions";
 
 function isExpired(dateStr: string): boolean {
   if (!dateStr) return false;
@@ -275,6 +276,7 @@ export default function AdminPage() {
                   r.membershipStatus !== "current" ||
                   !r.membershipIdNumber ||
                   (r.membershipExpires && isExpired(r.membershipExpires));
+                const giPrice = GI_SIZES.find((gi) => gi.label === r.giSize)?.price;
                 return (
                 <div key={r.rowNumber} className={`border p-4 ${hasInsuranceIssue ? "bg-belt/10 border-belt/30" : "bg-card border-ink/15"}`}>
                   <div className="flex justify-between items-start gap-4 mb-3">
@@ -355,12 +357,22 @@ export default function AdminPage() {
                       <span className="text-ink/50">Photo consent:</span>{" "}
                       {r.photoConsent === "yes" ? "Yes" : r.photoConsent === "no" ? "No" : "Not recorded"}
                     </p>
-                    {r.giSize && (
-                      <p>
-                        <span className="text-ink/50">Gi ordered:</span> {r.giSize}
-                      </p>
-                    )}
                   </div>
+                  {(r.giSize || r.familyExtrasNote) && (
+                    <div className="bg-gold/20 border border-gold/40 p-3 mt-3">
+                      <p className="font-display text-lg mb-1">Purchases</p>
+                      {r.giSize && (
+                        <p className="text-sm">
+                          <strong>Gi:</strong> {r.giSize}{typeof giPrice === "number" ? ` — $${giPrice}` : ""}
+                        </p>
+                      )}
+                      {r.familyExtrasNote && (
+                        <p className="text-sm">
+                          <strong>Family items:</strong> {r.familyExtrasNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {r.hasMedicalConditions === "Yes" && r.medicalNotes && (
                     <p className="text-sm bg-belt/10 border border-belt/30 p-2 mt-2">
                       <span className="text-belt">Medical notes:</span> {r.medicalNotes}
@@ -371,11 +383,6 @@ export default function AdminPage() {
                   )}
                   {!r.hasMedicalConditions && (
                     <p className="text-xs text-ink/40 mt-2">Medical question not answered (registered before this was added)</p>
-                  )}
-                  {r.familyExtrasNote && (
-                    <p className="text-sm bg-gold/20 p-2 mt-2">
-                      <span className="text-ink/50">Family extras:</span> {r.familyExtrasNote}
-                    </p>
                   )}
                   {r.autoRenew && <p className="text-xs text-belt mt-2">Auto-renew enabled for next quarter</p>}
                 </div>

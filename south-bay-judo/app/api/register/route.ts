@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { appendRegistration, sheetsConfigured } from "@/lib/sheets";
+import {
+  emailConfigured,
+  sendRegistrationConfirmationEmail,
+  type RegistrationReceipt,
+  type RegistrationReceiptItem,
+} from "@/lib/email";
 
 /**
  * Body: { guardian: {...}, students: [...], familyExtras: {...} }
@@ -20,6 +26,10 @@ export async function POST(req: NextRequest) {
   }
 
   const { guardian, guardian2, students, familyExtras } = await req.json();
+
+  if (!guardian?.firstName || !guardian?.email || !Array.isArray(students) || students.length === 0) {
+    return NextResponse.json({ error: "Guardian email and at least one student are required." }, { status: 400 });
+  }
 
   const extrasParts: string[] = [];
   if (familyExtras?.usedFamilyMembershipPlan) {
@@ -85,5 +95,67 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message || "Failed to save to the roster." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  const registeredAt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date());
+  const receiptNumber = `SBJ-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+
+  const gearItems: RegistrationReceiptItem[] = Array.isArray(familyExtras?.gearItems)
+    ? familyExtras.gearItems
+        .filter((item: unknown) => !!item && typeof item === "object")
+        .map((item: { label?: unknown; price?: unknown }) => ({
+          label: String(item.label || "Gear"),
+          price: Number(item.price) || 0,
+        }))
+    : [];
+
+  const receipt: RegistrationReceipt = {
+    receiptNumber,
+    registeredAt,
+    paymentStatus: "Payment pending",
+    students: students.map((student: any) => ({
+      name: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+      session: String(student.sessionLabel || ""),
+      classTime: String(student.classTimeLabel || ""),
+      sessionFee: Number(student.sessionFeeCharged) || 0,
+      giLabel: student.giLabel ? String(student.giLabel) : undefined,
+      giPrice: Number(student.giPrice) || 0,
+      membershipStatus: String(student.membershipStatus || "none"),
+    })),
+    gearItems,
+    total:
+      students.reduce(
+        (sum: number, student: any) =>
+          sum + (Number(student.sessionFeeCharged) || 0) + (Number(student.giPrice) || 0),
+        0
+      ) + gearItems.reduce((sum, item) => sum + item.price, 0),
+  };
+
+  let emailSent = false;
+  let emailError = "";
+  if (emailConfigured()) {
+    const recipients = [guardian.email, guardian2?.email]
+      .filter((email): email is string => typeof email === "string" && email.includes("@"))
+      .filter((email, index, list) => list.indexOf(email) === index);
+    try {
+      await sendRegistrationConfirmationEmail({
+        to: recipients,
+        guardianName: `${guardian.firstName} ${guardian.lastName || ""}`.trim(),
+        receipt,
+      });
+      emailSent = true;
+    } catch (error: any) {
+      emailError = error?.message || "Confirmation email could not be sent.";
+    }
+  } else {
+    emailError = "Email is not connected yet.";
+  }
+
+  return NextResponse.json({ ok: true, receipt, emailSent, emailError });
 }

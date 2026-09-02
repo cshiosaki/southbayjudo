@@ -139,9 +139,16 @@ and medical notes once people start using it for real. Treat the admin
 password — and who you've shared the Sheet with directly — like you would
 any other access to sensitive family data.
 
-### Setting up USJF reminder emails (one-time)
-The "Send reminder" button on flagged roster cards emails the guardian
-about a missing, incomplete, or expired USJF membership — via
+### Setting up registration confirmations and USJF reminder emails (one-time)
+Every successfully saved registration emails the primary guardian (and the
+second guardian when an email was provided) a detailed registration receipt.
+Staff receive a blind copy at `info@southbayjudo.com` by default, and the admin
+roster highlights every gi and family gear/apparel purchase with sizes and
+prices. Set `REGISTRATION_BCC` to use a different staff receipt address.
+Because Stripe is not connected yet, the receipt is clearly marked **Payment
+pending** and is not proof of payment. The "Send reminder" button on flagged
+roster cards also emails the guardian about a missing, incomplete, or expired
+USJF membership — both features use
 [Resend](https://resend.com), not any Google service.
 
 1. Create a Resend account (free tier: 3,000 emails/month, plenty for a
@@ -161,12 +168,10 @@ Until domain verification finishes, Resend will reject sends from
 `@southbayjudo.com` — the button will show the error inline rather than
 failing silently.
 
-**Note on scope:** this reminder is the only email this app sends right
-now. A full registration-confirmation-with-receipt email is meant to
-follow once the real Stripe checkout exists — sending something that
-looks like a payment receipt before there's a real charge would be
-misleading, so that one's intentionally held back until Stripe is wired
-in.
+Registration confirmations include the student/session selections, gear,
+amount due, receipt number, and payment status. Medical details are excluded
+from email. Once Stripe is connected, the payment status can change to Paid
+after a successful charge.
 
 
 The admin page needs a small persistent store (not a full database) to
