@@ -57,9 +57,14 @@ const HEADERS = [
   "Session Fee Charged",
   "Paid",
   "Family Extras Note",
+  "Receipt Number",
+  "Payment Status",
+  "Stripe Checkout Session ID",
+  "Receipt JSON",
 ];
-const LAST_COLUMN = "AG"; // matches HEADERS.length (33 columns, A..AG)
+const LAST_COLUMN = "AK"; // matches HEADERS.length (37 columns, A..AK)
 const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position in HEADERS
+const PAYMENT_STATUS_COLUMN = "AI";
 
 function getAuth() {
   const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -95,10 +100,11 @@ async function ensureHeaders() {
   if (!sheets || !sheetId) return;
 
   const res = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: `A1:${LAST_COLUMN}1` });
-  if (!res.data.values || res.data.values.length === 0) {
+  const currentHeaders = res.data.values?.[0] || [];
+  if (HEADERS.some((header, index) => currentHeaders[index] !== header)) {
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
-      range: "A1",
+      range: `A1:${LAST_COLUMN}1`,
       valueInputOption: "RAW",
       requestBody: { values: [HEADERS] },
     });
@@ -106,6 +112,10 @@ async function ensureHeaders() {
 }
 
 export async function appendRegistration(row: string[]) {
+  return appendRegistrations([row]);
+}
+
+export async function appendRegistrations(rows: string[][]) {
   const sheets = await getSheetsClient();
   const sheetId = getSheetId();
   if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
@@ -115,7 +125,7 @@ export async function appendRegistration(row: string[]) {
     range: "A1",
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
-    requestBody: { values: [row] },
+    requestBody: { values: rows },
   });
 }
 
@@ -214,4 +224,72 @@ export async function setPaid(rowNumber: number, paid: boolean) {
     valueInputOption: "RAW",
     requestBody: { values: [[paid ? "TRUE" : "FALSE"]] },
   });
+}
+
+export interface StoredRegistrationOrder {
+  guardianName: string;
+  recipients: string[];
+  receipt: {
+    receiptNumber: string;
+    registeredAt: string;
+    paymentStatus: "Payment pending" | "Payment processing" | "Payment failed" | "Paid";
+    students: Array<{
+      name: string;
+      session: string;
+      classTime: string;
+      sessionFee: number;
+      giLabel?: string;
+      giPrice?: number;
+      membershipStatus: string;
+    }>;
+    gearItems: Array<{ label: string; price: number }>;
+    total: number;
+  };
+}
+
+/**
+ * Updates every roster row that belongs to one checkout. Returns the stored
+ * order payload so the Stripe webhook can send the paid receipt exactly once.
+ */
+export async function updateRegistrationPayment(
+  receiptNumber: string,
+  paymentStatus: StoredRegistrationOrder["receipt"]["paymentStatus"],
+  paid: boolean
+) {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  await ensureHeaders();
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `A2:${LAST_COLUMN}`,
+  });
+  const values = res.data.values || [];
+  const matchingRows = values
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => row[33] === receiptNumber);
+
+  if (matchingRows.length === 0) {
+    throw new Error(`Registration ${receiptNumber} was not found.`);
+  }
+
+  const wasAlreadyPaid = matchingRows.every(({ row }) => row[31] === "TRUE");
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: sheetId,
+    requestBody: {
+      valueInputOption: "RAW",
+      data: matchingRows.flatMap(({ rowNumber }) => [
+        { range: `${PAID_COLUMN}${rowNumber}`, values: [[paid ? "TRUE" : "FALSE"]] },
+        { range: `${PAYMENT_STATUS_COLUMN}${rowNumber}`, values: [[paymentStatus]] },
+      ]),
+    },
+  });
+
+  const storedJson = matchingRows[0].row[36];
+  if (!storedJson) throw new Error(`Registration ${receiptNumber} is missing its receipt data.`);
+  const order = JSON.parse(storedJson) as StoredRegistrationOrder;
+  order.receipt.paymentStatus = paymentStatus;
+
+  return { order, wasAlreadyPaid };
 }

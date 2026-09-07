@@ -68,23 +68,6 @@ interface StudentEntry {
   autoRenew: boolean;
 }
 
-interface RegistrationReceipt {
-  receiptNumber: string;
-  registeredAt: string;
-  paymentStatus: "Payment pending";
-  students: Array<{
-    name: string;
-    session: string;
-    classTime: string;
-    sessionFee: number;
-    giLabel?: string;
-    giPrice?: number;
-    membershipStatus: string;
-  }>;
-  gearItems: Array<{ label: string; price: number }>;
-  total: number;
-}
-
 function blankStudent(): StudentEntry {
   return {
     id: crypto.randomUUID(),
@@ -114,7 +97,7 @@ function blankStudent(): StudentEntry {
   };
 }
 
-type Step = "guardian" | "session" | "info" | "membership" | "waiver" | "review" | "done";
+type Step = "guardian" | "session" | "info" | "membership" | "waiver" | "review";
 const STUDENT_STEPS: Step[] = ["session", "info", "membership", "waiver"];
 
 const orgLabel: Record<string, string> = {
@@ -228,9 +211,6 @@ export default function RegisterPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [receipt, setReceipt] = useState<RegistrationReceipt | null>(null);
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailError, setEmailError] = useState("");
 
   async function submitRegistration() {
     setSubmitting(true);
@@ -251,6 +231,7 @@ export default function RegisterPage() {
               classTimeLabel: classTimes.find((x) => x.id === s.classTimeId)?.label ?? "",
               isNewStudent: s.isNewStudent,
               isLateOrTransfer: s.isLateOrTransfer,
+              classesRemaining: s.classesRemaining,
               firstName: s.firstName,
               lastName: s.lastName,
               dateOfBirth: s.dateOfBirth,
@@ -263,109 +244,36 @@ export default function RegisterPage() {
               membershipOrg: s.membershipOrg,
               memberIdNumber: s.memberIdNumber,
               membershipExpires: s.membershipExpires,
-              giSize: GI_SIZES.find((g) => g.id === s.giSizeId)?.label ?? "",
-              giLabel: GI_SIZES.find((g) => g.id === s.giSizeId)?.label ?? "",
-              giPrice: GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0,
+              giSizeId: s.giSizeId,
               photoConsent: s.photoConsent,
               signedByName: s.signedByName,
               autoRenew: s.autoRenew,
-              sessionFeeCharged: sessionFeeFor(s, session, positions[s.id]),
             };
           }),
           familyExtras: {
-            dummyOrders: dummyOrders.map((id) => {
-              const item = DUMMY_SIZES.find((d) => d.id === id);
-              return `${item?.label ?? id} — $${item?.price ?? 0}`;
-            }),
-            duffleOrders: duffleOrders.map((id) => {
-              const item = DUFFLE_SIZES.find((d) => d.id === id);
-              return `${item?.label ?? id} — $${item?.price ?? 0}`;
-            }),
-            tshirtOrders: tshirtOrders.map((id) => {
-              const item = TSHIRT_SIZES.find((d) => d.id === id);
-              return `${item?.label ?? id} — $${item?.price ?? 0}`;
-            }),
-            sweatshirtOrders: sweatshirtOrders.map((id) => {
-              const item = SWEATSHIRT_SIZES.find((d) => d.id === id);
-              return `${item?.label ?? id} — $${item?.price ?? 0}`;
-            }),
-            gearTotal,
-            gearItems: [
-              ...dummyOrders.map((id) => ({ label: `Practice Dummy — ${DUMMY_SIZES.find((d) => d.id === id)?.label ?? id}`, price: DUMMY_SIZES.find((d) => d.id === id)?.price ?? 0 })),
-              ...duffleOrders.map((id) => ({ label: `Duffle Bag — ${DUFFLE_SIZES.find((d) => d.id === id)?.label ?? id}`, price: DUFFLE_SIZES.find((d) => d.id === id)?.price ?? 0 })),
-              ...tshirtOrders.map((id) => ({ label: `T-Shirt — ${TSHIRT_SIZES.find((d) => d.id === id)?.label ?? id}`, price: TSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0 })),
-              ...sweatshirtOrders.map((id) => ({ label: `Sweatshirt — ${SWEATSHIRT_SIZES.find((d) => d.id === id)?.label ?? id}`, price: SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0 })),
-            ],
+            dummyOrderIds: dummyOrders,
+            duffleOrderIds: duffleOrders,
+            tshirtOrderIds: tshirtOrders,
+            sweatshirtOrderIds: sweatshirtOrders,
           },
         }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setSubmitError(data.error || "Save failed.");
+        throw new Error(data.error || "Checkout could not be created.");
       } else {
         const data = await res.json();
-        setReceipt(data.receipt || null);
-        setEmailSent(!!data.emailSent);
-        setEmailError(data.emailError || "");
+        if (!data.checkoutUrl) throw new Error("Stripe did not return a checkout link.");
+        window.location.assign(data.checkoutUrl);
       }
-    } finally {
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Checkout could not be created.");
       setSubmitting(false);
-      setStep("done");
     }
   }
 
   if (configLoading) {
     return <main className="max-w-2xl mx-auto px-6 py-24 text-center text-ink/50">Loading current sessions…</main>;
-  }
-
-  if (step === "done") {
-    return (
-      <main className="max-w-2xl mx-auto px-6 py-24 text-center">
-        <p className="font-display text-gold text-lg mb-2">Registration received</p>
-        <h1 className="font-display text-5xl mb-6">
-          {students.length > 1 ? `${students.length} students registered` : "You're registered"}
-        </h1>
-        <p className="text-ink/70 max-w-md mx-auto">Your registration details have been received. No payment was charged online.</p>
-        {submitError ? (
-          <p className="text-belt text-sm mt-4 max-w-md mx-auto">
-            This registration wasn't saved to the roster ({submitError})
-          </p>
-        ) : (
-          <p className="text-mat text-sm mt-4 max-w-md mx-auto">
-            Saved to the roster — visible on the admin page.
-          </p>
-        )}
-        {!submitError && emailSent && (
-          <p className="text-mat text-sm mt-2 max-w-md mx-auto">A confirmation and receipt were emailed to {guardian.email}{guardian2.email ? ` and ${guardian2.email}` : ""}.</p>
-        )}
-        {!submitError && !emailSent && (
-          <p className="text-belt text-sm mt-2 max-w-md mx-auto">The registration was saved, but the confirmation email could not be sent{emailError ? ` (${emailError})` : "."}</p>
-        )}
-        {receipt && (
-          <section className="mt-10 bg-card border border-ink/15 text-left p-6 print:border-0 print:p-0" id="registration-receipt">
-            <div className="flex justify-between gap-4 items-start border-b border-ink/15 pb-4 mb-4">
-              <div>
-                <p className="font-display text-2xl">Registration Receipt</p>
-                <p className="text-xs text-ink/60">{receipt.receiptNumber} · {receipt.registeredAt}</p>
-              </div>
-              <span className="bg-gold/25 text-ink px-3 py-1 text-xs font-bold uppercase tracking-wide">{receipt.paymentStatus}</span>
-            </div>
-            <div className="space-y-4">
-              {receipt.students.map((student) => (
-                <div key={`${student.name}-${student.session}`}>
-                  <div className="flex justify-between gap-4 text-sm"><span><strong>{student.name}</strong><br /><span className="text-ink/60">{student.session} · {student.classTime}</span></span><span>${student.sessionFee.toFixed(2)}</span></div>
-                  {student.giLabel && <div className="flex justify-between gap-4 text-sm text-ink/60 pl-4 mt-2"><span>Gi — {student.giLabel}</span><span>${(student.giPrice || 0).toFixed(2)}</span></div>}
-                </div>
-              ))}
-              {receipt.gearItems.map((item, index) => <div key={`${item.label}-${index}`} className="flex justify-between gap-4 text-sm"><span>{item.label}</span><span>${item.price.toFixed(2)}</span></div>)}
-            </div>
-            <div className="flex justify-between border-t border-ink/15 pt-4 mt-5 font-display text-2xl"><span>Total due</span><span>${receipt.total.toFixed(2)}</span></div>
-            <p className="text-xs text-ink/60 mt-3">This receipt confirms registration details and the amount due. It is not proof of payment.</p>
-            <button onClick={() => window.print()} className="mt-5 border border-ink/30 px-4 py-2 font-display print:hidden">Print receipt</button>
-          </section>
-        )}
-      </main>
-    );
   }
 
   if (step === "guardian") {
@@ -606,8 +514,9 @@ export default function RegisterPage() {
           onClick={submitRegistration}
           className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
         >
-          {submitting ? "Submitting..." : "Submit registration"}
+          {submitting ? "Opening secure checkout..." : "Continue to secure payment"}
         </button>
+        {submitError && <p className="text-belt text-sm mt-4">{submitError}</p>}
       </main>
     );
   }

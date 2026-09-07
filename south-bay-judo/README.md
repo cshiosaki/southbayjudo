@@ -1,13 +1,38 @@
-# South Bay Judo — Registration & Roster (Demo Mode)
+# South Bay Judo — Registration, Payments & Roster
 
 This started as a pure design/UX review build and has grown real
-functionality since: registrations now actually save to a roster (Google
-Sheets), and the admin page can edit live site settings. There's still no
-Stripe — payment is simulated — so nothing charges a card, but data does
-get saved once the roster/settings backends are connected (see setup
-sections below). Deploys to Vercel from GitHub; the only setup needed is
-the two backend connections described further down, everything else works
-with zero configuration.
+functionality since: registrations save to a roster (Google Sheets), Stripe
+Checkout collects payment, Stripe webhooks mark the roster paid and trigger
+the final receipt, and the admin page can edit live site settings. Deploys to
+Vercel from GitHub; the backend connections are described below.
+
+## Stripe Checkout setup
+
+The registration API creates one-time Stripe Checkout Sessions from prices
+recalculated on the server. Cards, Apple Pay, Google Pay, and US bank accounts
+are enabled. Stripe webhook events automatically update every student row in
+the registration batch and send the paid receipt to the parent(s), with the
+staff address blind-copied.
+
+Set these Vercel environment variables:
+
+- `STRIPE_SECRET_KEY` — the sandbox secret key while testing; replace with the
+  live account key only when South Bay Judo is ready to accept real payments.
+- `STRIPE_WEBHOOK_SECRET` — signing secret for the webhook endpoint below.
+
+Create a Stripe webhook endpoint at:
+
+`https://<production-domain>/api/webhooks/stripe`
+
+Subscribe it to:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+
+The Google registration sheet grows four columns automatically: Receipt
+Number, Payment Status, Stripe Checkout Session ID, and Receipt JSON. Existing
+rows remain compatible.
 
 ## Pricing model
 This matches the club's actual fee schedule, not a simplified placeholder:
