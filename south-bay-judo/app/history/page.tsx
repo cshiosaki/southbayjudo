@@ -74,13 +74,17 @@ export default function HistoryPage() {
           </div>
           <div className="relative min-h-[350px] overflow-hidden border border-canvas/20 sm:min-h-[470px]">
             <Image
-              src="/images/south-bay-judo-practice.webp"
-              alt="South Bay Judo students practicing together on the mat"
+              src="/images/jigoro-kano.webp"
+              alt="Historic portrait of Jigoro Kano, founder of Kodokan Judo"
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
+              className="bg-black object-contain"
               priority
             />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent px-5 pb-4 pt-16">
+              <p className="font-display text-xl">Jigoro Kano</p>
+              <p className="text-sm text-canvas/70">Founder of Kodokan Judo</p>
+            </div>
           </div>
         </div>
       </section>
@@ -215,6 +219,10 @@ export default function HistoryPage() {
           , and the {" "}
           <a className="underline underline-offset-2" href="https://www.southbayjudo.com/home-5-4" target="_blank" rel="noreferrer">
             South Bay Judo archive
+          </a>
+          . Jigoro Kano portrait: {" "}
+          <a className="underline underline-offset-2" href="https://commons.wikimedia.org/wiki/File:Jigoro-Kano-BW-4375px.jpg" target="_blank" rel="noreferrer">
+            Wikimedia Commons, public domain
           </a>
           .
         </p>
