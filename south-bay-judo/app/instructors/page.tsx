@@ -40,12 +40,12 @@ const assistantInstructors = [
 ];
 
 const pastInstructors = [
-  "Craig Shiosaki",
-  "Myles Honda",
-  "David Honda",
-  "Sandy Honda",
-  "Nancy Williams",
-  "Cheyenne Fu",
+  { name: "Craig Shiosaki", rank: "Sandan · 3rd degree black belt" },
+  { name: "Myles Honda", rank: "Nidan · 2nd degree black belt" },
+  { name: "David Honda", rank: "Nidan · 2nd degree black belt" },
+  { name: "Sandy Honda", rank: "Shodan · 1st degree black belt" },
+  { name: "Nancy Williams", rank: "Shodan · 1st degree black belt" },
+  { name: "Cheyenne Fu", rank: "Ikkyu · 1st degree brown belt" },
 ];
 
 export default function InstructorsPage() {
@@ -143,9 +143,10 @@ export default function InstructorsPage() {
             </p>
           </div>
           <ul className="grid gap-px bg-ink/15 sm:grid-cols-2" aria-label="Past South Bay Judo instructors">
-            {pastInstructors.map((name) => (
-              <li key={name} className="bg-canvas px-6 py-5 font-display text-2xl">
-                {name}
+            {pastInstructors.map((instructor) => (
+              <li key={instructor.name} className="bg-canvas px-6 py-5">
+                <p className="font-display text-2xl">{instructor.name}</p>
+                <p className="mt-1 text-sm text-ink/60">{instructor.rank}</p>
               </li>
             ))}
           </ul>
