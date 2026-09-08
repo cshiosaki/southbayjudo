@@ -152,11 +152,11 @@ export default function InstructorsPage() {
               remain part of our club’s story.
             </p>
           </div>
-          <ul className="grid gap-px bg-ink/15 sm:grid-cols-2" aria-label="Past South Bay Judo instructors">
+          <ul className="border-t border-ink/20" aria-label="Past South Bay Judo instructors">
             {pastInstructors.map((group) => (
-              <li key={group.rank} className="bg-canvas px-5 py-3">
-                <p className="font-display text-lg">{group.names}</p>
-                <p className="text-xs text-ink/55">{group.rank}</p>
+              <li key={group.rank} className="grid gap-2 border-b border-ink/15 py-4 sm:grid-cols-[15rem_1fr] sm:gap-8">
+                <p className="font-display text-lg text-belt">{group.rank}</p>
+                <p className="leading-relaxed text-ink/75">{group.names}</p>
               </li>
             ))}
           </ul>
