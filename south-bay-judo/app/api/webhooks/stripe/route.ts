@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendRegistrationConfirmationEmail } from "@/lib/email";
-import { updateRegistrationPayment } from "@/lib/sheets";
+import { markRegistrationReceiptEmailSent, updateRegistrationPayment } from "@/lib/sheets";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -14,13 +14,15 @@ async function updateFromCheckoutSession(
   const receiptNumber = session.metadata?.receiptNumber || session.client_reference_id;
   if (!receiptNumber) throw new Error("Stripe Checkout Session is missing its receipt number.");
 
-  const { order, wasAlreadyPaid } = await updateRegistrationPayment(receiptNumber, status, paid);
-  if (paid && !wasAlreadyPaid) {
+  const { order, receiptEmailAlreadySent } = await updateRegistrationPayment(receiptNumber, status, paid);
+  if (paid && !receiptEmailAlreadySent) {
     await sendRegistrationConfirmationEmail({
       to: order.recipients,
       guardianName: order.guardianName,
       receipt: order.receipt,
+      idempotencyKey: `registration-receipt/${receiptNumber}`,
     });
+    await markRegistrationReceiptEmailSent(receiptNumber);
   }
 }
 

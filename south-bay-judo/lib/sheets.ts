@@ -61,10 +61,12 @@ const HEADERS = [
   "Payment Status",
   "Stripe Checkout Session ID",
   "Receipt JSON",
+  "Receipt Email Sent",
 ];
-const LAST_COLUMN = "AK"; // matches HEADERS.length (37 columns, A..AK)
+const LAST_COLUMN = "AL"; // matches HEADERS.length (38 columns, A..AL)
 const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position in HEADERS
 const PAYMENT_STATUS_COLUMN = "AI";
+const RECEIPT_EMAIL_SENT_COLUMN = "AL";
 
 function getAuth() {
   const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -274,7 +276,7 @@ export async function updateRegistrationPayment(
     throw new Error(`Registration ${receiptNumber} was not found.`);
   }
 
-  const wasAlreadyPaid = matchingRows.every(({ row }) => row[31] === "TRUE");
+  const receiptEmailAlreadySent = matchingRows.every(({ row }) => row[37] === "TRUE");
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: sheetId,
     requestBody: {
@@ -291,5 +293,33 @@ export async function updateRegistrationPayment(
   const order = JSON.parse(storedJson) as StoredRegistrationOrder;
   order.receipt.paymentStatus = paymentStatus;
 
-  return { order, wasAlreadyPaid };
+  return { order, receiptEmailAlreadySent };
+}
+
+export async function markRegistrationReceiptEmailSent(receiptNumber: string) {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `A2:${LAST_COLUMN}`,
+  });
+  const rowNumbers = (res.data.values || [])
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => row[33] === receiptNumber)
+    .map(({ rowNumber }) => rowNumber);
+
+  if (rowNumbers.length === 0) throw new Error(`Registration ${receiptNumber} was not found.`);
+
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: sheetId,
+    requestBody: {
+      valueInputOption: "RAW",
+      data: rowNumbers.map((rowNumber) => ({
+        range: `${RECEIPT_EMAIL_SENT_COLUMN}${rowNumber}`,
+        values: [["TRUE"]],
+      })),
+    },
+  });
 }

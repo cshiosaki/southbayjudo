@@ -66,6 +66,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
   to: string[];
   guardianName: string;
   receipt: RegistrationReceipt;
+  idempotencyKey?: string;
 }) {
   const resend = getResend();
   if (!resend) throw new Error("Email isn't connected yet — set RESEND_API_KEY.");
@@ -136,15 +137,18 @@ export async function sendRegistrationConfirmationEmail(opts: {
   const gearLines = opts.receipt.gearItems.map((item) => `${item.label}: ${money(item.price)}`);
   const text = `Hi ${opts.guardianName},\n\nWe received your South Bay Judo registration${isPaid ? " and payment" : ""}.\n\nReceipt: ${opts.receipt.receiptNumber}\nRegistered: ${opts.receipt.registeredAt}\nStatus: ${opts.receipt.paymentStatus}\n\n${[...studentLines, ...gearLines].join("\n")}\n\nTotal: ${money(opts.receipt.total)}\n\n${statusDetail}\n\nQuestions? Reply to this email or call (424) 392-4732.\n\nSouth Bay Judo`;
 
-  const { error } = await resend.emails.send({
-    from: FROM_ADDRESS,
-    to: opts.to,
-    bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
-    replyTo: "info@southbayjudo.com",
-    subject: `South Bay Judo ${isPaid ? "payment" : "registration"} confirmed — ${opts.receipt.receiptNumber}`,
-    html,
-    text,
-  });
+  const { error } = await resend.emails.send(
+    {
+      from: FROM_ADDRESS,
+      to: opts.to,
+      bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
+      replyTo: "info@southbayjudo.com",
+      subject: `South Bay Judo ${isPaid ? "payment" : "registration"} confirmed — ${opts.receipt.receiptNumber}`,
+      html,
+      text,
+    },
+    opts.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined
+  );
 
   if (error) throw new Error(error.message || "Failed to send registration confirmation.");
 }
