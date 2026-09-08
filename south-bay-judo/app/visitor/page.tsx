@@ -62,15 +62,21 @@ export default function VisitorPage() {
       </fieldset>
 
       <div className="mb-6">
-        <p className="text-sm mb-2">Is {form.firstName || "the visiting student"} under 18?</p>
-        <div className="flex gap-6 mb-3">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" checked={isMinor === "no"} onChange={() => setIsMinor("no")} />
-            No — they'll sign for themselves
+        <p className="font-display text-lg mb-3">Student age</p>
+        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+          <label className={`flex items-start gap-3 border p-4 cursor-pointer transition-colors ${isMinor === "no" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+            <input name="studentAge" type="radio" checked={isMinor === "no"} onChange={() => setIsMinor("no")} />
+            <span>
+              <strong className="block font-medium">18 or older</strong>
+              <span className="block text-sm text-ink/60">Student signs the waiver</span>
+            </span>
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" checked={isMinor === "yes"} onChange={() => setIsMinor("yes")} />
-            Yes — a parent/guardian is here with them
+          <label className={`flex items-start gap-3 border p-4 cursor-pointer transition-colors ${isMinor === "yes" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+            <input name="studentAge" type="radio" checked={isMinor === "yes"} onChange={() => setIsMinor("yes")} />
+            <span>
+              <strong className="block font-medium">Under 18</strong>
+              <span className="block text-sm text-ink/60">Parent or guardian signs</span>
+            </span>
           </label>
         </div>
         {isMinor === "yes" && (

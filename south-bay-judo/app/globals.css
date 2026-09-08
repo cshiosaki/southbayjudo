@@ -35,6 +35,13 @@ input, select, textarea {
   font-family: var(--font-karla), sans-serif;
 }
 
+input[type="radio"],
+input[type="checkbox"] {
+  width: auto;
+  margin-top: 0.25rem;
+  accent-color: #9C3B28;
+}
+
 input:focus, select:focus, textarea:focus {
   outline: 2px solid #7C8F5E;
   outline-offset: 1px;
