@@ -45,7 +45,7 @@ const clubTimeline = [
   {
     year: "A few years later",
     title: "The community builds a real mat",
-    body: "A successful Super Bowl fundraiser—supported by members, friends, local businesses, sponsors, and neighboring clubs—helped purchase 72 one-meter-square tatami mats.",
+    body: "A successful Super Bowl fundraiser—supported by members, friends, local businesses, sponsors, and neighboring clubs—helped purchase approximately 775 square feet of tatami mats.",
   },
   {
     year: "Today",
