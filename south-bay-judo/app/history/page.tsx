@@ -94,6 +94,20 @@ export default function HistoryPage() {
           <div>
             <p className="mb-2 font-display uppercase tracking-[0.14em] text-belt">The gentle way</p>
             <h2 className="font-display text-4xl leading-none sm:text-5xl">A short history of judo</h2>
+            <figure className="mt-8 max-w-72">
+              <div className="relative aspect-square overflow-hidden border border-ink/15 bg-ink/5">
+                <Image
+                  src="/images/kodokan-1937.webp"
+                  alt="The Kodokan building in Tokyo in 1937"
+                  fill
+                  sizes="288px"
+                  className="object-cover"
+                />
+              </div>
+              <figcaption className="mt-2 text-sm leading-relaxed text-ink/60">
+                The Kodokan in Tokyo, 1937
+              </figcaption>
+            </figure>
           </div>
           <div className="border-t border-ink/20">
             {judoTimeline.map((item) => (
@@ -222,6 +236,10 @@ export default function HistoryPage() {
           </a>
           . Jigoro Kano portrait: {" "}
           <a className="underline underline-offset-2" href="https://commons.wikimedia.org/wiki/File:Jigoro-Kano-BW-4375px.jpg" target="_blank" rel="noreferrer">
+            Wikimedia Commons, public domain
+          </a>
+          . Kodokan building photograph: {" "}
+          <a className="underline underline-offset-2" href="https://commons.wikimedia.org/wiki/File:Kodokan_in_1937.jpg" target="_blank" rel="noreferrer">
             Wikimedia Commons, public domain
           </a>
           .
