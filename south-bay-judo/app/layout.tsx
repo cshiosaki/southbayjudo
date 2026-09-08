@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/history", label: "History" },
+  { href: "/instructors", label: "Instructors" },
   { href: "/events", label: "Events" },
   { href: "/schedule", label: "Schedule" },
   { href: "/register", label: "Register" },
@@ -51,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </span>
               </span>
             </Link>
-            <nav className="flex gap-6 text-sm">
+            <nav className="flex flex-wrap justify-end gap-x-6 gap-y-2 text-sm">
               {NAV.map((item) => (
                 <Link key={item.href} href={item.href} className="hover:text-gold transition-colors">
                   {item.label}
