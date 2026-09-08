@@ -15,19 +15,19 @@ const assistantInstructors = [
   },
   {
     rank: "Sandan · 3rd degree black belt",
-    names: ["You Matsutani", "Shane Shiosaki", "Craig Shiosaki", "Alan Honda", "John Hernandez"],
+    names: ["You Matsutani", "Shane Shiosaki", "Alan Honda", "John Hernandez"],
   },
   {
     rank: "Nidan · 2nd degree black belt",
-    names: ["Yuko Felde", "David Honda", "Myles Honda", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
+    names: ["Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
   },
   {
     rank: "Shodan · 1st degree black belt",
-    names: ["Joan Shiosaki", "Sandy Honda", "Matt Sawada", "Chris Williams", "Nancy Williams"],
+    names: ["Joan Shiosaki", "Matt Sawada", "Chris Williams"],
   },
   {
     rank: "Ikkyu · 1st degree brown belt",
-    names: ["Mark Williams", "Skyler Shiosaki", "Cheyenne Fu"],
+    names: ["Mark Williams", "Skyler Shiosaki"],
   },
   {
     rank: "Nikyu · 2nd degree brown belt",
@@ -37,6 +37,15 @@ const assistantInstructors = [
     rank: "Sankyu · 3rd degree brown belt",
     names: ["Luis Vazquez"],
   },
+];
+
+const pastInstructors = [
+  "Craig Shiosaki",
+  "Myles Honda",
+  "David Honda",
+  "Sandy Honda",
+  "Nancy Williams",
+  "Cheyenne Fu",
 ];
 
 export default function InstructorsPage() {
@@ -119,6 +128,27 @@ export default function InstructorsPage() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="border-y border-ink/15 bg-card">
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-14 md:grid-cols-[0.75fr_1.25fr] md:gap-16">
+          <div>
+            <p className="mb-2 font-display uppercase tracking-[0.14em] text-belt">With appreciation</p>
+            <h2 className="font-display text-4xl leading-none sm:text-5xl">Past instructors</h2>
+            <p className="mt-5 max-w-sm leading-relaxed text-ink/70">
+              We recognize the instructors who have shared their time, knowledge, and care with the
+              South Bay Judo community. Though they are not currently teaching, their contributions
+              remain part of our club’s story.
+            </p>
+          </div>
+          <ul className="grid gap-px bg-ink/15 sm:grid-cols-2" aria-label="Past South Bay Judo instructors">
+            {pastInstructors.map((name) => (
+              <li key={name} className="bg-canvas px-6 py-5 font-display text-2xl">
+                {name}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
