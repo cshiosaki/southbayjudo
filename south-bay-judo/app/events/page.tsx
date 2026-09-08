@@ -11,32 +11,19 @@ export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
   const document = (await getEventDocument()) ?? DEFAULT_EVENT_DOCUMENT;
-  const updated = document?.uploadedAt
-    ? new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "America/Los_Angeles" }).format(
-        new Date(document.uploadedAt)
-      )
-    : null;
 
   return (
-    <main>
-      <section className="bg-ink text-canvas">
-        <div className="mx-auto max-w-5xl px-6 py-8 sm:py-10">
-          <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-gold">What’s happening</p>
-          <h1 className="font-display text-4xl leading-none sm:text-5xl">Events</h1>
-          <p className="mt-3 max-w-3xl text-base leading-normal text-canvas/75">
-            Find the latest South Bay Judo event details, schedules, and announcements here.
-          </p>
-        </div>
-      </section>
+    <main className="mx-auto max-w-6xl px-6 py-16">
+      <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-belt">What’s happening</p>
+      <h1 className="mb-3 font-display text-5xl">Events</h1>
+      <p className="mb-12 max-w-xl text-ink/70">
+        Find the latest South Bay Judo event details, schedules, and announcements here.
+      </p>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+      <section>
         {document ? (
           <div>
-            <div className="mb-6 flex flex-col justify-between gap-5 border-b border-ink/15 pb-6 sm:flex-row sm:items-end">
-              <div>
-                <h2 className="font-display text-4xl">{document.title}</h2>
-                {updated && <p className="mt-2 text-sm text-ink/55">Updated {updated}</p>}
-              </div>
+            <div className="mb-6 flex flex-wrap justify-end gap-3 border-b border-ink/15 pb-6">
               <div className="flex flex-wrap gap-3">
                 <a
                   href={document.url}
