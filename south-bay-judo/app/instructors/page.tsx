@@ -41,11 +41,11 @@ const assistantInstructors = [
 
 const pastInstructors = [
   {
-    names: "Craig Shiosaki · John Hernandez",
+    names: "Craig Shiosaki · John Hernandez · Christine Shiosaki",
     rank: "Sandan · 3rd degree black belt",
   },
   {
-    names: "Myles Honda · David Honda",
+    names: "Myles Honda · David Honda · Randy Shiosaki",
     rank: "Nidan · 2nd degree black belt",
   },
   {
