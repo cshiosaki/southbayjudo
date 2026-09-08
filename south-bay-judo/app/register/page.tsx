@@ -615,7 +615,9 @@ export default function RegisterPage() {
               <label
                 key={s.id}
                 className={`flex items-center justify-between gap-4 bg-card p-4 cursor-pointer ${
-                  !s.allowNew && draft.isNewStudent ? "opacity-40 cursor-not-allowed" : ""
+                  s.registrationOpen === false || (!s.allowNew && draft.isNewStudent)
+                    ? "opacity-40 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 <span className="flex items-center gap-3">
@@ -624,15 +626,26 @@ export default function RegisterPage() {
                     name="session"
                     checked={draft.sessionId === s.id}
                     onChange={() => setDraft({ ...draft, sessionId: s.id })}
-                    disabled={!s.allowNew && draft.isNewStudent}
+                    disabled={s.registrationOpen === false || (!s.allowNew && draft.isNewStudent)}
                   />
                   <span>
                     <span className="font-display text-lg block leading-tight">{s.label}</span>
-                    <span className="text-xs text-ink/60">{s.dates}{!s.allowNew && " · returning students only"}</span>
+                    <span className="text-xs text-ink/60">
+                      {s.dates}
+                      {s.registrationOpen === false
+                        ? " · registration not open"
+                        : !s.allowNew
+                          ? " · returning students only"
+                          : ""}
+                    </span>
                   </span>
                 </span>
                 <span className="font-display text-lg text-belt">
-                  {s.pricingMode === "flat" ? `$${s.flatPrice}` : `$${s.familyTierFirst}+`}
+                  {s.registrationOpen === false
+                    ? "Not open yet"
+                    : s.pricingMode === "flat"
+                      ? `$${s.flatPrice}`
+                      : `$${s.familyTierFirst}+`}
                 </span>
               </label>
             ))}

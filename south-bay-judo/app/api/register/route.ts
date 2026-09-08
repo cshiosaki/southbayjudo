@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       const session = config.sessions.find((item) => item.id === sessionId);
       const classTime = config.classTimes.find((item) => item.id === classTimeId);
       if (!session || !classTime) throw new Error("A selected session or class time is no longer available.");
+      if (session.registrationOpen === false) throw new Error(`Registration is not open for ${session.label}.`);
 
       const firstName = text(student.firstName);
       const lastName = text(student.lastName);
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
               ? session.familyTierSecond || 0
               : session.familyTierThirdPlus || 0;
       const isNewStudent = Boolean(student.isNewStudent);
+      if (isNewStudent && !session.allowNew) throw new Error(`${session.label} is open to returning students only.`);
       const isLateOrTransfer = Boolean(student.isLateOrTransfer);
       const classesRemaining = Math.max(0, Number(student.classesRemaining) || 0);
       const sessionFee = !isNewStudent && isLateOrTransfer ? Math.min(tierPrice, classesRemaining * 10) : tierPrice;

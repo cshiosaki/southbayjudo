@@ -24,7 +24,9 @@ export interface SessionConfig {
   dates: string;
   regWindow: string;
   note?: string;
+  registrationOpen?: boolean;
   allowNew: boolean;
+  priceLabelOverride?: string;
   pricingMode: "family_tier" | "flat";
   flatPrice?: number; // used when pricingMode === "flat"
   familyTierFirst?: number; // used when pricingMode === "family_tier"
@@ -34,46 +36,12 @@ export interface SessionConfig {
 
 export const SESSIONS: SessionConfig[] = [
   {
-    id: "sess_1q",
-    label: "1Q — Winter 2026",
-    dates: "Jan 6 – Mar 5",
-    regWindow: "Registration: Dec 22, 2025 – Jan 2, 2026",
-    allowNew: true,
-    pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
-  },
-  {
-    id: "sess_2q",
-    label: "2Q — Spring 2026",
-    dates: "Mar 17 – May 14",
-    regWindow: "Returning: Feb 16 – Mar 11 · New: Mar 2 – Mar 11",
-    note: "Session break: May 19, 21, 26, 28, Jun 2 & 4 (CA primary election)",
-    allowNew: true,
-    pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
-  },
-  {
-    id: "sess_3q",
-    label: "3Q — Summer 2026",
-    dates: "Jun 9 – Aug 11",
-    regWindow: "Registration: May 4 – Jun 3",
-    note: "No class July 2. Session break Aug 13.",
-    allowNew: true,
-    pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
-  },
-  {
     id: "sess_4q",
     label: "4Q — Fall 2026",
     dates: "Aug 18 – Nov 5",
     regWindow: "Registration: Jul 27 – Aug 12",
     note: "No classes Aug 31–Sept 18 (gym & MPR closed for renovation). No classes Oct 22, 27, 29, Nov 3 & 5 (election).",
+    registrationOpen: true,
     allowNew: true,
     pricingMode: "family_tier",
     familyTierFirst: 180,
@@ -86,13 +54,83 @@ export const SESSIONS: SessionConfig[] = [
     dates: "Nov 10 – Dec 15",
     regWindow: "Registration: Oct 12 – Oct 30",
     note: "No class Nov 26. Returning students only.",
+    registrationOpen: true,
     allowNew: false,
     pricingMode: "flat",
     flatPrice: 120,
   },
+  {
+    id: "sess_2027_1q",
+    label: "1Q — Winter 2027",
+    dates: "Jan 12 – Mar 11",
+    regWindow: "Registration dates to be announced",
+    note: "18 classes. Session break Mar 16 & 18.",
+    registrationOpen: false,
+    allowNew: true,
+    pricingMode: "family_tier",
+    familyTierFirst: 180,
+    familyTierSecond: 160,
+    familyTierThirdPlus: 140,
+    priceLabelOverride: "Pricing to be announced",
+  },
+  {
+    id: "sess_2027_2q",
+    label: "2Q — Spring 2027",
+    dates: "Mar 23 – May 20",
+    regWindow: "Registration dates to be announced",
+    note: "18 classes. Session break May 25 & 27 and Jun 1 & 3.",
+    registrationOpen: false,
+    allowNew: true,
+    pricingMode: "family_tier",
+    familyTierFirst: 180,
+    familyTierSecond: 160,
+    familyTierThirdPlus: 140,
+    priceLabelOverride: "Pricing to be announced",
+  },
+  {
+    id: "sess_2027_3q",
+    label: "3Q — Summer 2027",
+    dates: "Jun 8 – Aug 10",
+    regWindow: "Registration dates to be announced",
+    note: "18 classes. No class Jul 6. Session break Aug 17 & 19.",
+    registrationOpen: false,
+    allowNew: true,
+    pricingMode: "family_tier",
+    familyTierFirst: 180,
+    familyTierSecond: 160,
+    familyTierThirdPlus: 140,
+    priceLabelOverride: "Pricing to be announced",
+  },
+  {
+    id: "sess_2027_4q",
+    label: "4Q — Fall 2027",
+    dates: "Aug 24 – Oct 26",
+    regWindow: "Registration dates to be announced",
+    note: "18 classes. No class Sept 7. Session break Oct 28.",
+    registrationOpen: false,
+    allowNew: true,
+    pricingMode: "family_tier",
+    familyTierFirst: 180,
+    familyTierSecond: 160,
+    familyTierThirdPlus: 140,
+    priceLabelOverride: "Pricing to be announced",
+  },
+  {
+    id: "sess_2027_5q",
+    label: "5Q — Holiday 2027",
+    dates: "Nov 2 – Dec 16",
+    regWindow: "Registration dates to be announced",
+    note: "Kata practice Nov 2 & 4. Holiday workouts Nov 9–Dec 16; no class Nov 11 or Nov 25. Holiday class times: 6:00–7:30pm and 7:45–9:15pm. Returning students only.",
+    registrationOpen: false,
+    allowNew: false,
+    pricingMode: "flat",
+    flatPrice: 120,
+    priceLabelOverride: "Pricing to be announced",
+  },
 ];
 
 export function sessionPriceLabel(s: SessionConfig): string {
+  if (s.priceLabelOverride) return s.priceLabelOverride;
   if (s.pricingMode === "flat") return `$${s.flatPrice}`;
   return `$${s.familyTierFirst} / $${s.familyTierSecond} / $${s.familyTierThirdPlus}+`;
 }

@@ -600,6 +600,14 @@ export default function AdminPage() {
             <label className="flex items-center gap-2 text-sm sm:col-span-2 mt-1">
               <input
                 type="checkbox"
+                checked={s.registrationOpen !== false}
+                onChange={(e) => updateSession(i, { registrationOpen: e.target.checked })}
+              />
+              Registration open
+            </label>
+            <label className="flex items-center gap-2 text-sm sm:col-span-2 mt-1">
+              <input
+                type="checkbox"
                 checked={s.allowNew}
                 onChange={(e) => updateSession(i, { allowNew: e.target.checked })}
               />

@@ -111,9 +111,9 @@ export default async function HomePage() {
       {/* Sessions strip */}
       <section className="bg-mat/15">
         <div className="max-w-6xl mx-auto px-6 py-16">
-          <h2 className="font-display text-3xl mb-8">2026 Sessions</h2>
-          <div className="grid sm:grid-cols-5 gap-px bg-ink/10">
-            {sessions.map((s) => (
+          <h2 className="font-display text-3xl mb-8">Open for registration</h2>
+          <div className="grid sm:grid-cols-2 gap-px bg-ink/10">
+            {sessions.filter((s) => s.registrationOpen !== false).map((s) => (
               <div key={s.id} className="bg-canvas p-5">
                 <p className="font-display text-xl mb-1">{s.label.replace(/ — .*/, "")}</p>
                 <p className="text-sm text-ink/70">{s.dates}{!s.allowNew && " (returning students)"}</p>

@@ -41,7 +41,21 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     const items = await res.json();
     const value = items?.siteConfig;
     if (!value || !Array.isArray(value.sessions)) return DEFAULTS;
-    return value as SiteConfig;
+
+    // Keep live edits for sessions that still exist, while allowing newly
+    // published sessions to appear and retired sessions to drop away.
+    const storedSessions = new Map(
+      (value.sessions as SessionConfig[]).map((session) => [session.id, session])
+    );
+    return {
+      sessions: DEFAULT_SESSIONS.map((session) => ({
+        ...session,
+        ...(storedSessions.get(session.id) || {}),
+      })),
+      classTimes: Array.isArray(value.classTimes) ? value.classTimes : DEFAULT_CLASS_TIMES,
+      membershipFee:
+        typeof value.membershipFee === "number" ? value.membershipFee : DEFAULT_MEMBERSHIP_FEE,
+    };
   } catch {
     return DEFAULTS;
   }
