@@ -7,6 +7,21 @@ body {
   color: #1F2420;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: #9C3B28;
+  color: #FAFAF6;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #C7A76C;
+  outline-offset: 3px;
+}
+
 .mat-seam {
   border-top: 1px solid rgba(31, 36, 32, 0.15);
 }
