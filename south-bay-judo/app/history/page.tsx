@@ -147,14 +147,31 @@ export default function HistoryPage() {
         </div>
 
         <div className="grid gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
-          <div className="relative min-h-[410px] overflow-hidden bg-ink lg:sticky lg:top-8 lg:self-start">
-            <Image
-              src="/images/south-bay-judo-class.webp"
-              alt="South Bay Judo instructors and students gathered at the dojo"
-              fill
-              sizes="(min-width: 1024px) 45vw, 100vw"
-              className="object-cover object-center"
-            />
+          <div className="grid gap-4 sm:grid-cols-2 lg:sticky lg:top-8 lg:grid-cols-1 lg:self-start">
+            <figure>
+              <div className="relative aspect-[4/3] overflow-hidden bg-ink">
+                <Image
+                  src="/images/south-bay-judo-early-group.webp"
+                  alt="One of the first South Bay Judo classes gathered on the mat"
+                  fill
+                  sizes="(min-width: 1024px) 45vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <figcaption className="mt-2 text-sm text-ink/60">One of the first South Bay Judo classes</figcaption>
+            </figure>
+            <figure>
+              <div className="relative aspect-[4/3] overflow-hidden bg-ink">
+                <Image
+                  src="/images/south-bay-judo-early-instructors.webp"
+                  alt="The original South Bay Judo instructors gathered on the mat"
+                  fill
+                  sizes="(min-width: 1024px) 45vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <figcaption className="mt-2 text-sm text-ink/60">The original South Bay Judo instructors</figcaption>
+            </figure>
           </div>
           <div className="border-t border-ink/20">
             {clubTimeline.map((item) => (
