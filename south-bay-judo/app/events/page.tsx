@@ -20,10 +20,10 @@ export default async function EventsPage() {
   return (
     <main>
       <section className="bg-ink text-canvas">
-        <div className="mx-auto max-w-5xl px-6 py-14 sm:py-20">
-          <p className="mb-3 font-display text-lg uppercase tracking-[0.14em] text-gold">What’s happening</p>
-          <h1 className="font-display text-6xl leading-none sm:text-7xl">Events</h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-canvas/75">
+        <div className="mx-auto max-w-5xl px-6 py-8 sm:py-10">
+          <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-gold">What’s happening</p>
+          <h1 className="font-display text-4xl leading-none sm:text-5xl">Events</h1>
+          <p className="mt-3 max-w-3xl text-base leading-normal text-canvas/75">
             Find the latest South Bay Judo event details, schedules, and announcements here.
           </p>
         </div>
