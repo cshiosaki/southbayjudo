@@ -27,8 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${barlow.variable} ${karla.variable}`}>
       <body className="font-body">
         <div className="bg-belt text-card text-center text-sm py-1.5 px-4">
-          Design preview — this is a mock-up for review. Registration below does not process real
-          payments.
+          Stripe test mode — sandbox checkout only. No real charges will be made.
         </div>
 
         <header className="bg-ink text-canvas">

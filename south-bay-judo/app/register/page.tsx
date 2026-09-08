@@ -6,7 +6,7 @@ import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
 import { GI_SIZES, DUMMY_SIZES, DUFFLE_SIZES, TSHIRT_SIZES, SWEATSHIRT_SIZES } from "@/lib/sessions";
 
 /**
- * DEMO MODE — for design/UX review only. No real payment yet.
+ * TEST MODE — Stripe Checkout uses sandbox credentials until launch.
  *
  * PRICING (per the club's real fee schedule):
  * - Regular sessions charge per family, tiered by how many kids from the

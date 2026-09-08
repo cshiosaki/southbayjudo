@@ -8,9 +8,8 @@ import { Resend } from "resend";
  *   3. Set env vars: RESEND_API_KEY, and optionally EMAIL_FROM if you want
  *      a different "from" address than the default below.
  *
- * Registration receipts are explicitly marked "Payment pending" until a
- * real payment provider is connected. They confirm what was registered and
- * the amount due; they are not proof of payment.
+ * Registration receipts are sent after Stripe confirms payment. Pending
+ * statuses remain available for asynchronous bank payments.
  */
 
 function getResend() {
@@ -121,7 +120,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
           <tr><td style="padding:0 0 18px;color:#5f5a52">Registered</td><td style="padding:0 0 18px;text-align:right">${escapeHtml(opts.receipt.registeredAt)}</td></tr>
           ${studentRows}
           ${gearRows}
-          <tr><td style="padding:18px 0 0;font-size:18px"><strong>Total due</strong></td><td style="padding:18px 0 0;text-align:right;font-size:22px"><strong>${money(opts.receipt.total)}</strong></td></tr>
+          <tr><td style="padding:18px 0 0;font-size:18px"><strong>${isPaid ? "Total paid" : "Total due"}</strong></td><td style="padding:18px 0 0;text-align:right;font-size:22px"><strong>${money(opts.receipt.total)}</strong></td></tr>
         </table>
         ${membershipNotice}
         <p style="margin:26px 0 0;font-size:14px;color:#5f5a52">Questions? Reply to this email or contact South Bay Judo at (424) 392-4732.</p>

@@ -149,10 +149,9 @@ confirmation screen that it wasn't saved, and the Roster tab will show a
 "Google Sheets isn't connected yet" message — everything else keeps
 working off the `lib/sessions.ts` defaults in the meantime.
 
-**Note on "paid" status:** since this demo doesn't have a real Stripe
-charge wired up yet, every registration starts as unpaid and the admin
-marks it paid manually from the roster. Once the real Stripe checkout is
-built, this would flip automatically on successful payment instead.
+**Note on "paid" status:** every registration starts as unpaid. Stripe
+webhooks mark it paid automatically after a successful payment; the admin
+can still correct the status manually from the roster when needed.
 
 **Note on scale:** the Google Sheets API has lower rate limits than a
 real database — completely fine for a club doing sign-ups a few times a
@@ -170,10 +169,9 @@ second guardian when an email was provided) a detailed registration receipt.
 Staff receive a blind copy at `info@southbayjudo.com` by default, and the admin
 roster highlights every gi and family gear/apparel purchase with sizes and
 prices. Set `REGISTRATION_BCC` to use a different staff receipt address.
-Because Stripe is not connected yet, the receipt is clearly marked **Payment
-pending** and is not proof of payment. The "Send reminder" button on flagged
-roster cards also emails the guardian about a missing, incomplete, or expired
-USJF membership — both features use
+Paid receipts are sent after Stripe confirms payment. The "Send reminder"
+button on flagged roster cards also emails the guardian about a missing,
+incomplete, or expired USJF membership — both features use
 [Resend](https://resend.com), not any Google service.
 
 1. Create a Resend account (free tier: 3,000 emails/month, plenty for a
@@ -195,8 +193,8 @@ failing silently.
 
 Registration confirmations include the student/session selections, gear,
 amount due, receipt number, and payment status. Medical details are excluded
-from email. Once Stripe is connected, the payment status can change to Paid
-after a successful charge.
+from email. Stripe webhooks change the payment status to Paid after a
+successful charge.
 
 
 The admin page needs a small persistent store (not a full database) to
