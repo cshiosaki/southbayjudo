@@ -19,11 +19,11 @@ const assistantInstructors = [
   },
   {
     rank: "Nidan · 2nd degree black belt",
-    names: ["Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
+    names: ["Myles Honda", "Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
   },
   {
     rank: "Shodan · 1st degree black belt",
-    names: [],
+    names: ["Sandy Honda"],
   },
   {
     rank: "Ikkyu · 1st degree brown belt",
@@ -45,11 +45,11 @@ const pastInstructors = [
     rank: "Sandan · 3rd degree black belt",
   },
   {
-    names: "Myles Honda · David Honda · Randy Shiosaki",
+    names: "David Honda · Randy Shiosaki",
     rank: "Nidan · 2nd degree black belt",
   },
   {
-    names: "Joan Shiosaki · Sandy Honda · Matt Sawada · Chris Williams · Nancy Williams",
+    names: "Joan Shiosaki · Matt Sawada · Chris Williams · Nancy Williams",
     rank: "Shodan · 1st degree black belt",
   },
   {
