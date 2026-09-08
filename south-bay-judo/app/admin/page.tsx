@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { upload } from "@vercel/blob/client";
 import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
 import { GI_SIZES } from "@/lib/sessions";
 
@@ -48,13 +49,27 @@ interface RosterRow {
   familyExtrasNote: string;
 }
 
+interface EventDocument {
+  title: string;
+  url: string;
+  downloadUrl?: string;
+  pathname: string;
+  uploadedAt: string;
+}
+
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<"roster" | "settings">("roster");
+  const [tab, setTab] = useState<"roster" | "events" | "settings">("roster");
+  const [eventTitle, setEventTitle] = useState("South Bay Judo Events");
+  const [eventFile, setEventFile] = useState<File | null>(null);
+  const [eventDocument, setEventDocument] = useState<EventDocument | null>(null);
+  const [eventUploading, setEventUploading] = useState(false);
+  const [eventProgress, setEventProgress] = useState(0);
+  const [eventMessage, setEventMessage] = useState("");
 
   const [sessions, setSessions] = useState<SessionConfig[]>([]);
   const [classTimes, setClassTimes] = useState<ClassTimeConfig[]>([]);
@@ -137,10 +152,44 @@ export default function AdminPage() {
       setSessions(config.sessions);
       setClassTimes(config.classTimes);
       setMembershipFee(config.membershipFee);
+      const eventsRes = await fetch("/api/events", { cache: "no-store" });
+      const eventsData = await eventsRes.json();
+      if (eventsData.document) {
+        setEventDocument(eventsData.document);
+        setEventTitle(eventsData.document.title);
+      }
       setUnlocked(true);
       if (config.sessions?.[0]?.id) loadRoster(config.sessions[0].id);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function uploadEventPdf() {
+    if (!eventFile) return;
+    setEventUploading(true);
+    setEventProgress(0);
+    setEventMessage("");
+    try {
+      const blob = await upload(`events/${eventFile.name}`, eventFile, {
+        access: "public",
+        handleUploadUrl: "/api/admin/events/upload",
+        clientPayload: JSON.stringify({ password, title: eventTitle }),
+        onUploadProgress: ({ percentage }) => setEventProgress(Math.round(percentage)),
+      });
+      setEventDocument({
+        title: eventTitle.trim() || "South Bay Judo Events",
+        url: blob.url,
+        downloadUrl: blob.downloadUrl,
+        pathname: blob.pathname,
+        uploadedAt: new Date().toISOString(),
+      });
+      setEventFile(null);
+      setEventMessage("Uploaded — the Events page will update within a few seconds.");
+    } catch (uploadError) {
+      setEventMessage(uploadError instanceof Error ? uploadError.message : "Upload failed.");
+    } finally {
+      setEventUploading(false);
     }
   }
 
@@ -212,6 +261,14 @@ export default function AdminPage() {
           }`}
         >
           Roster
+        </button>
+        <button
+          onClick={() => setTab("events")}
+          className={`font-display text-lg px-4 py-2 -mb-px border-b-2 ${
+            tab === "events" ? "border-belt text-belt" : "border-transparent text-ink/50"
+          }`}
+        >
+          Events PDF
         </button>
         <button
           onClick={() => setTab("settings")}
@@ -390,6 +447,79 @@ export default function AdminPage() {
               })}
             </div>
           )}
+        </section>
+      )}
+
+      {tab === "events" && (
+        <section className="max-w-2xl">
+          <h2 className="mb-3 font-display text-3xl">Current event flyer</h2>
+          <p className="mb-8 leading-relaxed text-ink/60">
+            Upload a PDF here whenever event information changes. The new file automatically replaces
+            the flyer on the public Events page.
+          </p>
+
+          {eventDocument && (
+            <div className="mb-8 border border-ink/15 bg-card p-5">
+              <p className="font-display text-xl">{eventDocument.title}</p>
+              <p className="mt-1 text-sm text-ink/55">
+                Uploaded {new Date(eventDocument.uploadedAt).toLocaleDateString()}
+              </p>
+              <a
+                href={eventDocument.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-block text-sm underline decoration-belt decoration-2 underline-offset-2"
+              >
+                View current PDF
+              </a>
+            </div>
+          )}
+
+          <label className="mb-5 block text-sm text-ink/65">
+            Flyer title
+            <input
+              value={eventTitle}
+              maxLength={100}
+              onChange={(e) => setEventTitle(e.target.value)}
+              disabled={eventUploading}
+            />
+          </label>
+          <label className="mb-5 block text-sm text-ink/65">
+            PDF file · maximum 10 MB
+            <input
+              key={eventFile?.name || "empty"}
+              type="file"
+              accept="application/pdf,.pdf"
+              disabled={eventUploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setEventFile(file);
+                setEventMessage("");
+              }}
+            />
+          </label>
+
+          {eventUploading && (
+            <div className="mb-5" aria-live="polite">
+              <div className="h-2 overflow-hidden bg-ink/10">
+                <div className="h-full bg-mat transition-all" style={{ width: `${eventProgress}%` }} />
+              </div>
+              <p className="mt-2 text-sm text-ink/60">Uploading… {eventProgress}%</p>
+            </div>
+          )}
+          {eventMessage && (
+            <p className={`mb-5 text-sm ${eventMessage.startsWith("Uploaded") ? "text-mat" : "text-belt"}`}>
+              {eventMessage}
+            </p>
+          )}
+
+          <button
+            onClick={uploadEventPdf}
+            disabled={!eventFile || eventUploading}
+            className="bg-belt px-6 py-3 font-display text-lg tracking-wide text-card disabled:opacity-30"
+          >
+            {eventUploading ? "Uploading…" : eventDocument ? "Replace events PDF" : "Upload events PDF"}
+          </button>
         </section>
       )}
 
