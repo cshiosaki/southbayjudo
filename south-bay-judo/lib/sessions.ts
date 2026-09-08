@@ -50,7 +50,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_5q",
-    label: "5Q — Holiday 2026",
+    label: "Holiday Session 2026",
     dates: "Nov 10 – Dec 15",
     regWindow: "Registration: Oct 12 – Oct 30",
     note: "No class Nov 26. Returning students only.",
@@ -117,10 +117,10 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_5q",
-    label: "5Q — Holiday 2027",
+    label: "Holiday Session 2027",
     dates: "Nov 2 – Dec 16",
     regWindow: "Registration dates to be announced",
-    note: "Kata practice Nov 2 & 4. Holiday workouts Nov 9–Dec 16; no class Nov 11 or Nov 25. Holiday class times: 6:00–7:30pm and 7:45–9:15pm. Returning students only.",
+    note: "Holiday Session meets Nov 2 & 4, then Nov 9–Dec 16; no class Nov 11 or Nov 25. Class times: 6:00–7:30pm and 7:45–9:15pm. Returning students only.",
     registrationOpen: false,
     allowNew: false,
     pricingMode: "flat",

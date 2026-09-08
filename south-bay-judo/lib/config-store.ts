@@ -48,10 +48,17 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       (value.sessions as SessionConfig[]).map((session) => [session.id, session])
     );
     return {
-      sessions: DEFAULT_SESSIONS.map((session) => ({
-        ...session,
-        ...(storedSessions.get(session.id) || {}),
-      })),
+      sessions: DEFAULT_SESSIONS.map((session) => {
+        const storedSession = storedSessions.get(session.id);
+        const isHolidaySession = session.id === "sess_5q" || session.id === "sess_2027_5q";
+        return {
+          ...session,
+          ...(storedSession || {}),
+          // Holiday sessions use a family-friendly public name even if an
+          // older saved admin configuration still contains the former 5Q label.
+          ...(isHolidaySession ? { label: session.label, note: session.note } : {}),
+        };
+      }),
       classTimes: Array.isArray(value.classTimes) ? value.classTimes : DEFAULT_CLASS_TIMES,
       membershipFee:
         typeof value.membershipFee === "number" ? value.membershipFee : DEFAULT_MEMBERSHIP_FEE,
