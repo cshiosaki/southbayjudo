@@ -14,33 +14,37 @@ export default async function EventsPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
-      <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-belt">What’s happening</p>
-      <h1 className="mb-3 font-display text-5xl">Events</h1>
-      <p className="mb-12 max-w-xl text-ink/70">
-        Find the latest South Bay Judo event details, schedules, and announcements here.
-      </p>
+      <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-belt">What’s happening</p>
+          <h1 className="mb-3 font-display text-5xl">Events</h1>
+          <p className="max-w-xl text-ink/70">
+            Find the latest South Bay Judo event details, schedules, and announcements here.
+          </p>
+        </div>
+        {document && (
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={document.url}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-ink/30 px-5 py-2.5 font-display text-lg"
+            >
+              Open PDF
+            </a>
+            <a
+              href={document.downloadUrl || document.url}
+              className="bg-belt px-5 py-2.5 font-display text-lg text-card"
+            >
+              Download PDF
+            </a>
+          </div>
+        )}
+      </div>
 
       <section>
         {document ? (
           <div>
-            <div className="mb-6 flex flex-wrap justify-end gap-3 border-b border-ink/15 pb-6">
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={document.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border border-ink/30 px-5 py-2.5 font-display text-lg"
-                >
-                  Open PDF
-                </a>
-                <a
-                  href={document.downloadUrl || document.url}
-                  className="bg-belt px-5 py-2.5 font-display text-lg text-card"
-                >
-                  Download PDF
-                </a>
-              </div>
-            </div>
             <iframe
               src={`${document.url}#toolbar=1&navpanes=0`}
               title={document.title}
