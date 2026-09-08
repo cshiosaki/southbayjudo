@@ -23,7 +23,7 @@ import { GI_SIZES, DUMMY_SIZES, DUFFLE_SIZES, TSHIRT_SIZES, SWEATSHIRT_SIZES } f
  * lib/config-store.ts for how the live values are read.
  */
 
-const MEDICAL_ACK_TEXT = `I acknowledge that judo involves physical contact and carries inherent risk of injury. I certify that the student named above is physically fit to participate, and I will disclose any medical conditions, allergies, or physical limitations to South Bay Judo instructors. I release South Bay Judo, the City of Torrance, and their instructors and volunteers from liability for injuries sustained during normal participation, except in cases of gross negligence. I consent to emergency medical treatment for the student if I cannot be reached.`;
+const MEDICAL_ACK_TEXT = `I acknowledge that judo involves physical contact and carries inherent risk of injury. I certify that the participant named above is physically fit to participate, and I will disclose any medical conditions, allergies, or physical limitations to South Bay Judo instructors. I release South Bay Judo, the City of Torrance, and their instructors and volunteers from liability for injuries sustained during normal participation, except in cases of gross negligence. I consent to emergency medical treatment for the participant when necessary.`;
 
 type MembershipStatus = "none" | "current";
 
@@ -288,9 +288,12 @@ export default function RegisterPage() {
     return (
       <main className="max-w-2xl mx-auto px-6 py-16">
         <h1 className="font-display text-5xl mb-2">Session Registration</h1>
-        <p className="text-ink/60 mb-10">Start with your info — you'll add one or more students next.</p>
+        <p className="text-ink/60 mb-10">
+          Enter the primary contact below. If you are an adult registering yourself, use your own information.
+        </p>
         <fieldset>
-          <legend className="font-display text-lg mb-1">Parent/Guardian</legend>
+          <legend className="font-display text-lg mb-1">Primary contact or adult registrant</legend>
+          <p className="mb-3 text-sm text-ink/60">This person will receive registration confirmations and receipts.</p>
           <input placeholder="First name" value={guardian.firstName} onChange={(e) => setGuardian({ ...guardian, firstName: e.target.value })} />
           <input placeholder="Last name" value={guardian.lastName} onChange={(e) => setGuardian({ ...guardian, lastName: e.target.value })} />
           <input placeholder="Email" type="email" value={guardian.email} onChange={(e) => setGuardian({ ...guardian, email: e.target.value })} />
@@ -298,7 +301,8 @@ export default function RegisterPage() {
         </fieldset>
 
         <fieldset>
-          <legend className="font-display text-lg mb-1">Second Parent/Guardian (optional)</legend>
+          <legend className="font-display text-lg mb-1">Additional parent or guardian (optional)</legend>
+          <p className="mb-3 text-sm text-ink/60">For youth or family registrations only.</p>
           <input placeholder="First name" value={guardian2.firstName} onChange={(e) => setGuardian2({ ...guardian2, firstName: e.target.value })} />
           <input placeholder="Last name" value={guardian2.lastName} onChange={(e) => setGuardian2({ ...guardian2, lastName: e.target.value })} />
           <input placeholder="Email" type="email" value={guardian2.email} onChange={(e) => setGuardian2({ ...guardian2, email: e.target.value })} />
@@ -310,7 +314,7 @@ export default function RegisterPage() {
           onClick={() => setStep("session")}
           className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
         >
-          Add your first student
+          Add first participant
         </button>
       </main>
     );
@@ -323,7 +327,7 @@ export default function RegisterPage() {
         <p className="text-ink/60 mb-10">
           {guardian.firstName} {guardian.lastName}
           {(guardian2.firstName || guardian2.lastName) && ` & ${guardian2.firstName} ${guardian2.lastName}`} —{" "}
-          {students.length} student{students.length !== 1 ? "s" : ""}
+          {students.length} participant{students.length !== 1 ? "s" : ""}
         </p>
 
         <div className="space-y-6 mb-8">
@@ -404,14 +408,14 @@ export default function RegisterPage() {
           onClick={() => setStep("session")}
           className="border border-ink/30 px-5 py-2.5 font-display text-base tracking-wide mb-10"
         >
-          + Add another student
+          + Add another participant
         </button>
 
         {noMembershipCount > 0 && (
           <div className="bg-card border border-belt/40 p-4 mb-6">
             <p className="font-display text-lg mb-2 text-belt">Membership needed</p>
             <p className="text-sm text-ink/70">
-              {noMembershipCount} student{noMembershipCount !== 1 ? "s don't" : " doesn't"} have a current USJF
+              {noMembershipCount} participant{noMembershipCount !== 1 ? "s don't" : " doesn't"} have a current USJF
               membership on file. USJF membership is required before their first class and must be
               purchased directly through <span className="underline">usjf.org</span> — it isn't sold
               through this site. Day passes are no longer offered by USJF.
@@ -558,18 +562,18 @@ export default function RegisterPage() {
     );
   }
 
-  // ---- Per-student steps: session / info / membership / waiver ----
+  // ---- Per-participant steps: session / info / membership / waiver ----
   return (
     <main className="max-w-2xl mx-auto px-6 py-16">
       <h1 className="font-display text-5xl mb-2">
-        {students.length === 0 ? "First" : `Student ${students.length + 1}`}
+        {students.length === 0 ? "First participant" : `Participant ${students.length + 1}`}
       </h1>
-      <p className="text-ink/60 mb-10">Step {stepIndex + 1} of {STUDENT_STEPS.length} for this student</p>
+      <p className="text-ink/60 mb-10">Step {stepIndex + 1} of {STUDENT_STEPS.length} for this participant</p>
 
       {step === "session" && (
         <section>
           <h2 className="font-display text-2xl mb-5">Choose a session &amp; class time</h2>
-          <p className="text-xs text-ink/60 mb-5">Each student can be in a different session or class time — pick what fits their age group.</p>
+          <p className="text-xs text-ink/60 mb-5">Each participant can be in a different session or class time — pick what fits their age group.</p>
 
           <div className="flex gap-6 mb-2">
             <label className="flex items-center gap-2 text-sm">
@@ -669,7 +673,16 @@ export default function RegisterPage() {
 
       {step === "info" && (
         <section>
-          <h2 className="font-display text-2xl mb-5">Student info</h2>
+          <h2 className="font-display text-2xl mb-2">Participant information</h2>
+          {students.length === 0 && (
+            <button
+              type="button"
+              onClick={() => setDraft({ ...draft, firstName: guardian.firstName, lastName: guardian.lastName })}
+              className="mb-5 text-sm text-belt underline underline-offset-2"
+            >
+              I’m registering myself — use my name
+            </button>
+          )}
           <fieldset>
             <input placeholder="First name" value={draft.firstName} onChange={(e) => setDraft({ ...draft, firstName: e.target.value })} />
             <input placeholder="Last name" value={draft.lastName} onChange={(e) => setDraft({ ...draft, lastName: e.target.value })} />
@@ -783,8 +796,8 @@ export default function RegisterPage() {
         <section>
           <h2 className="font-display text-2xl mb-3">USJF membership</h2>
           <p className="text-sm text-ink/70 mb-5">
-            All students must carry a current USJF membership for insurance coverage — for this
-            student and for the club. Membership is purchased directly through{" "}
+            All participants must carry a current USJF membership for insurance coverage — for the
+            participant and for the club. Membership is purchased directly through{" "}
             <span className="underline">usjf.org</span>, not through this site (USJF no longer
             offers day passes).
           </p>
@@ -863,7 +876,7 @@ export default function RegisterPage() {
           {draft.membershipStatus === "current" && draft.membershipExpires && (
             isExpired(draft.membershipExpires) ? (
               <div className="bg-belt/10 border border-belt p-3 mb-6 text-sm text-belt">
-                This membership expired on {draft.membershipExpires} — {draft.firstName || "the student"} will
+                This membership expired on {draft.membershipExpires} — {draft.firstName || "the participant"} will
                 need to renew directly at usjf.org before their first class.
               </div>
             ) : (
@@ -889,7 +902,7 @@ export default function RegisterPage() {
                     checked={draft.membershipMismatchConfirmed}
                     onChange={(e) => setDraft({ ...draft, membershipMismatchConfirmed: e.target.checked })}
                   />
-                  Yes, this is the correct membership for {draft.firstName || "this student"}
+                  Yes, this is the correct membership for {draft.firstName || "this participant"}
                 </label>
               </div>
             )}
@@ -940,7 +953,7 @@ export default function RegisterPage() {
               onClick={() => { finishStudent(); setStep("review"); }}
               className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
             >
-              Save student &amp; review
+              Save participant &amp; review
             </button>
           </div>
         </section>
