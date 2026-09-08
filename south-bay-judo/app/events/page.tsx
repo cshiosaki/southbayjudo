@@ -29,7 +29,7 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
         {document ? (
           <div>
             <div className="mb-6 flex flex-col justify-between gap-5 border-b border-ink/15 pb-6 sm:flex-row sm:items-end">
