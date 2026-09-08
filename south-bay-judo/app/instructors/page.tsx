@@ -15,7 +15,7 @@ const assistantInstructors = [
   },
   {
     rank: "Sandan · 3rd degree black belt",
-    names: ["You Matsutani", "Shane Shiosaki", "Alan Honda", "John Hernandez"],
+    names: ["You Matsutani", "Shane Shiosaki", "Alan Honda"],
   },
   {
     rank: "Nidan · 2nd degree black belt",
@@ -23,11 +23,11 @@ const assistantInstructors = [
   },
   {
     rank: "Shodan · 1st degree black belt",
-    names: ["Joan Shiosaki", "Matt Sawada", "Chris Williams"],
+    names: [],
   },
   {
     rank: "Ikkyu · 1st degree brown belt",
-    names: ["Mark Williams", "Skyler Shiosaki"],
+    names: ["Mark Williams"],
   },
   {
     rank: "Nikyu · 2nd degree brown belt",
@@ -41,10 +41,15 @@ const assistantInstructors = [
 
 const pastInstructors = [
   { name: "Craig Shiosaki", rank: "Sandan · 3rd degree black belt" },
+  { name: "John Hernandez", rank: "Sandan · 3rd degree black belt" },
   { name: "Myles Honda", rank: "Nidan · 2nd degree black belt" },
   { name: "David Honda", rank: "Nidan · 2nd degree black belt" },
+  { name: "Joan Shiosaki", rank: "Shodan · 1st degree black belt" },
   { name: "Sandy Honda", rank: "Shodan · 1st degree black belt" },
+  { name: "Matt Sawada", rank: "Shodan · 1st degree black belt" },
+  { name: "Chris Williams", rank: "Shodan · 1st degree black belt" },
   { name: "Nancy Williams", rank: "Shodan · 1st degree black belt" },
+  { name: "Skyler Shiosaki", rank: "Ikkyu · 1st degree brown belt" },
   { name: "Cheyenne Fu", rank: "Ikkyu · 1st degree brown belt" },
 ];
 
@@ -121,7 +126,7 @@ export default function InstructorsPage() {
             </p>
           </div>
           <div className="border-t border-ink/20">
-            {assistantInstructors.map((group) => (
+            {assistantInstructors.filter((group) => group.names.length > 0).map((group) => (
               <article key={group.rank} className="grid gap-3 border-b border-ink/15 py-6 sm:grid-cols-[15rem_1fr] sm:gap-8">
                 <h3 className="font-display text-xl text-belt">{group.rank}</h3>
                 <p className="leading-relaxed text-ink/85">{group.names.join(" · ")}</p>
