@@ -29,7 +29,7 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-14 sm:py-20">
+      <section className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14">
         {document ? (
           <div>
             <div className="mb-6 flex flex-col justify-between gap-5 border-b border-ink/15 pb-6 sm:flex-row sm:items-end">
@@ -57,7 +57,7 @@ export default async function EventsPage() {
             <iframe
               src={`${document.url}#toolbar=1&navpanes=0`}
               title={document.title}
-              className="h-[72vh] min-h-[560px] w-full border border-ink/20 bg-card"
+              className="h-[82vh] min-h-[640px] w-full border border-ink/20 bg-card sm:min-h-[760px]"
             />
             <p className="mt-4 text-sm text-ink/55">
               If the flyer does not appear above, use the Open PDF button.
