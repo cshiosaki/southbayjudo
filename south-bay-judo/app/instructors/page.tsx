@@ -40,17 +40,22 @@ const assistantInstructors = [
 ];
 
 const pastInstructors = [
-  { name: "Craig Shiosaki", rank: "Sandan · 3rd degree black belt" },
-  { name: "John Hernandez", rank: "Sandan · 3rd degree black belt" },
-  { name: "Myles Honda", rank: "Nidan · 2nd degree black belt" },
-  { name: "David Honda", rank: "Nidan · 2nd degree black belt" },
-  { name: "Joan Shiosaki", rank: "Shodan · 1st degree black belt" },
-  { name: "Sandy Honda", rank: "Shodan · 1st degree black belt" },
-  { name: "Matt Sawada", rank: "Shodan · 1st degree black belt" },
-  { name: "Chris Williams", rank: "Shodan · 1st degree black belt" },
-  { name: "Nancy Williams", rank: "Shodan · 1st degree black belt" },
-  { name: "Skyler Shiosaki", rank: "Ikkyu · 1st degree brown belt" },
-  { name: "Cheyenne Fu", rank: "Ikkyu · 1st degree brown belt" },
+  {
+    names: "Craig Shiosaki · John Hernandez",
+    rank: "Sandan · 3rd degree black belt",
+  },
+  {
+    names: "Myles Honda · David Honda",
+    rank: "Nidan · 2nd degree black belt",
+  },
+  {
+    names: "Joan Shiosaki · Sandy Honda · Matt Sawada · Chris Williams · Nancy Williams",
+    rank: "Shodan · 1st degree black belt",
+  },
+  {
+    names: "Skyler Shiosaki · Cheyenne Fu",
+    rank: "Ikkyu · 1st degree brown belt",
+  },
 ];
 
 export default function InstructorsPage() {
@@ -148,10 +153,10 @@ export default function InstructorsPage() {
             </p>
           </div>
           <ul className="grid gap-px bg-ink/15 sm:grid-cols-2" aria-label="Past South Bay Judo instructors">
-            {pastInstructors.map((instructor) => (
-              <li key={instructor.name} className="bg-canvas px-5 py-3">
-                <p className="font-display text-lg">{instructor.name}</p>
-                <p className="text-xs text-ink/55">{instructor.rank}</p>
+            {pastInstructors.map((group) => (
+              <li key={group.rank} className="bg-canvas px-5 py-3">
+                <p className="font-display text-lg">{group.names}</p>
+                <p className="text-xs text-ink/55">{group.rank}</p>
               </li>
             ))}
           </ul>
