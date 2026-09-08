@@ -132,11 +132,11 @@ export default function InstructorsPage() {
       </section>
 
       <section className="border-y border-ink/15 bg-card">
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-14 md:grid-cols-[0.75fr_1.25fr] md:gap-16">
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-10 md:grid-cols-[0.75fr_1.25fr] md:gap-12">
           <div>
-            <p className="mb-2 font-display uppercase tracking-[0.14em] text-belt">With appreciation</p>
-            <h2 className="font-display text-4xl leading-none sm:text-5xl">Past instructors</h2>
-            <p className="mt-5 max-w-sm leading-relaxed text-ink/70">
+            <p className="mb-1 text-sm uppercase tracking-[0.12em] text-belt">With appreciation</p>
+            <h2 className="font-display text-3xl leading-none">Past instructors</h2>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink/65">
               We recognize the instructors who have shared their time, knowledge, and care with the
               South Bay Judo community. Though they are not currently teaching, their contributions
               remain part of our club’s story.
@@ -144,9 +144,9 @@ export default function InstructorsPage() {
           </div>
           <ul className="grid gap-px bg-ink/15 sm:grid-cols-2" aria-label="Past South Bay Judo instructors">
             {pastInstructors.map((instructor) => (
-              <li key={instructor.name} className="bg-canvas px-6 py-5">
-                <p className="font-display text-2xl">{instructor.name}</p>
-                <p className="mt-1 text-sm text-ink/60">{instructor.rank}</p>
+              <li key={instructor.name} className="bg-canvas px-5 py-3">
+                <p className="font-display text-lg">{instructor.name}</p>
+                <p className="text-xs text-ink/55">{instructor.rank}</p>
               </li>
             ))}
           </ul>
