@@ -5,7 +5,7 @@ import { sessionPriceLabel } from "@/lib/sessions";
 export default async function SchedulePage() {
   const { sessions, classTimes } = await getSiteConfig();
   return (
-    <main className="max-w-5xl mx-auto px-6 py-16">
+    <main className="max-w-6xl mx-auto px-6 py-16">
       <h1 className="font-display text-5xl mb-3">2026 Class Schedule</h1>
       <p className="text-ink/70 max-w-xl mb-12">
         Four sessions a year for new and returning students, plus an optional Holiday session in
@@ -26,9 +26,9 @@ export default async function SchedulePage() {
       <h2 className="font-display text-3xl mb-6">Sessions &amp; Registration Windows</h2>
       <div className="space-y-px bg-ink/10">
         {sessions.map((s) => (
-          <div key={s.id} className="bg-canvas p-6 grid sm:grid-cols-4 gap-4 items-start">
+          <div key={s.id} className="bg-canvas p-6 grid sm:grid-cols-2 lg:grid-cols-[1fr_2.25fr_1fr_1.25fr] gap-4 items-start">
             <p className="font-display text-xl sm:col-span-1">{s.label}</p>
-            <p className="text-sm sm:col-span-1">{s.dates} — {sessionPriceLabel(s)}{s.pricingMode === "family_tier" && <span className="text-xs text-ink/50"> (1st / 2nd / 3rd+ child)</span>}</p>
+            <p className="text-sm sm:col-span-1 lg:whitespace-nowrap">{s.dates} — {sessionPriceLabel(s)}{s.pricingMode === "family_tier" && <span className="text-xs text-ink/50"> (1st / 2nd / 3rd+ child)</span>}</p>
             <p className="text-sm text-ink/70 sm:col-span-1">{s.regWindow}</p>
             <p className="text-xs text-ink/55 sm:col-span-1">{s.note}</p>
           </div>
