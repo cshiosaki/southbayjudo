@@ -32,6 +32,8 @@ export interface RegistrationReceiptStudent {
   giLabel?: string;
   giPrice?: number;
   membershipStatus: string;
+  needsUsjfMembership?: boolean;
+  autoRenew?: boolean;
 }
 
 export interface RegistrationReceiptItem {
@@ -72,15 +74,20 @@ export async function sendRegistrationConfirmationEmail(opts: {
 
   const studentRows = opts.receipt.students
     .map(
-      (student) => `
+      (student) => {
+        const needsUsjf = student.needsUsjfMembership ?? student.membershipStatus === "none";
+        return `
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e6e1d8;vertical-align:top">
-            <strong>${escapeHtml(student.name)}</strong><br />
+            <strong>${escapeHtml(student.name)}</strong>
+            ${needsUsjf ? `<span style="display:inline-block;margin-left:7px;padding:3px 6px;background:#9c2f1b;color:#fff;font-size:10px;font-weight:bold;letter-spacing:.4px;text-transform:uppercase;vertical-align:1px">USJF membership needed</span>` : ""}<br />
             <span style="color:#5f5a52;font-size:13px">${escapeHtml(student.session)} · ${escapeHtml(student.classTime)}</span>
+            ${student.autoRenew ? `<br /><span style="color:#9c2f1b;font-size:12px">Auto-renew selected</span>` : ""}
           </td>
           <td style="padding:12px 0;border-bottom:1px solid #e6e1d8;text-align:right;vertical-align:top">${money(student.sessionFee)}</td>
         </tr>
         ${student.giLabel ? `<tr><td style="padding:8px 0 8px 18px;border-bottom:1px solid #e6e1d8;color:#5f5a52">Gi — ${escapeHtml(student.giLabel)}</td><td style="padding:8px 0;border-bottom:1px solid #e6e1d8;text-align:right">${money(student.giPrice || 0)}</td></tr>` : ""}`
+      }
     )
     .join("");
 
@@ -90,7 +97,9 @@ export async function sendRegistrationConfirmationEmail(opts: {
     )
     .join("");
 
-  const membershipNotice = opts.receipt.students.some((student) => student.membershipStatus === "none")
+  const membershipNotice = opts.receipt.students.some(
+    (student) => student.needsUsjfMembership ?? student.membershipStatus === "none"
+  )
     ? `<div style="margin:24px 0;padding:14px 16px;background:#fff4ee;border-left:4px solid #9c2f1b;color:#612014"><strong>USJF membership needed</strong><br /><span style="font-size:14px">One or more students do not have a current USJF membership on file. Membership must be completed directly at <a href="https://www.usjf.com" style="color:#612014">usjf.org</a> before the first class.</span></div>`
     : "";
 
@@ -130,7 +139,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
   </body></html>`;
 
   const studentLines = opts.receipt.students.flatMap((student) => [
-    `${student.name} — ${student.session} — ${student.classTime}: ${money(student.sessionFee)}`,
+    `${student.name}${(student.needsUsjfMembership ?? student.membershipStatus === "none") ? " [USJF membership needed]" : ""} — ${student.session} — ${student.classTime}: ${money(student.sessionFee)}${student.autoRenew ? " [Auto-renew selected]" : ""}`,
     ...(student.giLabel ? [`  Gi — ${student.giLabel}: ${money(student.giPrice || 0)}`] : []),
   ]);
   const gearLines = opts.receipt.gearItems.map((item) => `${item.label}: ${money(item.price)}`);

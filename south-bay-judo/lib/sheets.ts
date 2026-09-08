@@ -243,6 +243,8 @@ export interface StoredRegistrationOrder {
       giLabel?: string;
       giPrice?: number;
       membershipStatus: string;
+      needsUsjfMembership?: boolean;
+      autoRenew?: boolean;
     }>;
     gearItems: Array<{ label: string; price: number }>;
     total: number;

@@ -11,6 +11,13 @@ function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function membershipNeedsAction(status: string, memberId: string, expires: string) {
+  if (status !== "current" || !memberId) return true;
+  if (!expires) return false;
+  const expiration = new Date(expires);
+  return !Number.isNaN(expiration.getTime()) && expiration.getTime() < Date.now();
+}
+
 function selectedGear(ids: unknown, options: Array<{ id: string; label: string; price: number }>, prefix: string) {
   if (!Array.isArray(ids)) return [];
   return ids.map((id) => {
@@ -121,6 +128,12 @@ export async function POST(req: NextRequest) {
         giLabel: student.gi?.label,
         giPrice: student.gi?.price || 0,
         membershipStatus: student.membershipStatus,
+        needsUsjfMembership: membershipNeedsAction(
+          student.membershipStatus,
+          student.memberIdNumber,
+          student.membershipExpires
+        ),
+        autoRenew: student.autoRenew,
       })),
       gearItems: gearItems.map(({ label, price }) => ({ label, price })),
       total:
@@ -172,12 +185,17 @@ export async function POST(req: NextRequest) {
 
     const origin = new URL(req.url).origin;
     const stripe = getStripe();
+    const hasAutoRenewal = students.some((student) => student.autoRenew);
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: recipients[0],
+      customer_creation: hasAutoRenewal ? "always" : undefined,
       client_reference_id: receiptNumber,
       metadata: { receiptNumber },
-      payment_intent_data: { metadata: { receiptNumber } },
+      payment_intent_data: {
+        metadata: { receiptNumber },
+        setup_future_usage: hasAutoRenewal ? "off_session" : undefined,
+      },
       payment_method_types: ["card", "us_bank_account"],
       line_items: lineItems,
       success_url: `${origin}/register/success?session_id={CHECKOUT_SESSION_ID}`,

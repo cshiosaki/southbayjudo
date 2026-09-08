@@ -34,6 +34,14 @@ function isExpired(dateStr: string): boolean {
   return d.getTime() < Date.now();
 }
 
+function needsUsjfMembership(student: StudentEntry): boolean {
+  return (
+    student.membershipStatus !== "current" ||
+    !student.memberIdNumber ||
+    isExpired(student.membershipExpires)
+  );
+}
+
 /** Loose check that a picked USJF record's name plausibly matches the student being registered — catches picking a parent's or sibling's record by mistake. Sheet names are "Last, First Middle", so this isn't exact, just a sanity check. */
 function namesLikelyMatch(sheetName: string, firstName: string, lastName: string): boolean {
   if (!firstName || !lastName || !sheetName) return true;
@@ -191,7 +199,7 @@ export default function RegisterPage() {
   const sessionFeeTotal = students.reduce((sum, s) => sum + sessionFeeFor(s, sessions.find((x) => x.id === s.sessionId), positions[s.id]), 0);
   const giTotal = students.reduce((sum, s) => sum + (GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0), 0);
 
-  const noMembershipCount = students.filter((s) => s.membershipStatus === "none").length;
+  const noMembershipCount = students.filter(needsUsjfMembership).length;
 
   const gearTotal =
     dummyOrders.reduce((sum, id) => sum + (DUMMY_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
@@ -324,10 +332,23 @@ export default function RegisterPage() {
             const classTime = classTimes.find((x) => x.id === s.classTimeId);
             const fee = sessionFeeFor(s, session, positions[s.id]);
             const giPrice = GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0;
+            const needsUsjf = needsUsjfMembership(s);
+            const sessionIndex = sessions.findIndex((item) => item.id === s.sessionId);
+            const nextRegularSession = sessions
+              .slice(sessionIndex + 1)
+              .find((item) => item.pricingMode === "family_tier");
+            const renewalSession = nextRegularSession?.label || "next year's Winter session";
             return (
               <div key={s.id} className="bg-card border border-ink/15">
                 <div className="p-4 bg-ink text-canvas flex justify-between items-center">
-                  <span className="font-display text-lg">{s.firstName} {s.lastName}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-display text-lg">{s.firstName} {s.lastName}</span>
+                    {needsUsjf && (
+                      <span className="rounded-sm bg-belt px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                        USJF membership needed
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => setStudents(students.filter((x) => x.id !== s.id))}
                     className="text-xs underline text-canvas/70"
@@ -351,12 +372,28 @@ export default function RegisterPage() {
                   {s.giSizeId && (
                     <div className="p-3 flex justify-between"><span>Gi ({GI_SIZES.find((g) => g.id === s.giSizeId)?.label})</span><span>${giPrice}</span></div>
                   )}
-                  {s.membershipStatus === "none" && (
-                    <div className="p-3 text-xs text-belt">No current USJF membership on file — insurance gap, must register directly at usjf.org</div>
+                  {needsUsjf && (
+                    <div className="p-3 text-xs text-belt">No current USJF membership confirmed — must register or renew directly at usjf.org</div>
                   )}
-                  {s.autoRenew && (
-                    <div className="p-3 text-xs text-belt">Auto-renew enabled for next quarter</div>
-                  )}
+                  <label className={`m-3 flex cursor-pointer items-start gap-3 border p-4 transition-colors ${s.autoRenew ? "border-belt bg-belt/5" : "border-ink/15 bg-canvas/40"}`}>
+                    <input
+                      type="checkbox"
+                      checked={s.autoRenew}
+                      onChange={(event) =>
+                        setStudents(students.map((student) =>
+                          student.id === s.id ? { ...student, autoRenew: event.target.checked } : student
+                        ))
+                      }
+                    />
+                    <span>
+                      <strong className="block font-display text-lg leading-tight">
+                        Auto-renew {s.firstName}
+                      </strong>
+                      <span className="mt-1 block text-xs leading-relaxed text-ink/65">
+                        Enroll in {renewalSession || "the next session"}. We’ll email before the renewal charge to confirm the class time, waiver, and current price.
+                      </span>
+                    </span>
+                  </label>
                 </div>
               </div>
             );
@@ -895,43 +932,6 @@ export default function RegisterPage() {
           </p>
           <p className="text-sm text-ink/60 mb-2">Sign below</p>
           <SignaturePad onChange={(url) => setDraft({ ...draft, signatureDataUrl: url })} />
-
-          {(() => {
-            const draftIdx = sessions.findIndex((s) => s.id === draft.sessionId);
-            const isLastSession = draftIdx === sessions.length - 1;
-            const nextSession = !isLastSession ? sessions[draftIdx + 1] : null;
-            return (
-              <label className="flex items-start gap-3 bg-card border border-ink/15 p-4 mt-8 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={draft.autoRenew}
-                  onChange={(e) => setDraft({ ...draft, autoRenew: e.target.checked })}
-                  className="mt-1"
-                />
-                <span className="text-sm">
-                  <span className="font-display text-lg block leading-tight mb-1">
-                    {isLastSession ? "Auto-renew next year" : "Auto-renew next quarter"}
-                  </span>
-                  <span className="text-ink/70">
-                    {isLastSession ? (
-                      <>
-                        Save this card and automatically enroll {draft.firstName || "this student"} in next
-                        year's Winter session, with an email to reconfirm the waiver and class time before
-                        any charge. Prices are subject to change and will be confirmed before you're charged.
-                      </>
-                    ) : (
-                      <>
-                        Save this card and automatically enroll {draft.firstName || "this student"} in the
-                        same class time for {nextSession?.label ?? "next quarter"}, with an email to
-                        reconfirm the waiver before any charge. Prices are subject to change and will be
-                        confirmed before you're charged.
-                      </>
-                    )}
-                  </span>
-                </span>
-              </label>
-            );
-          })()}
 
           <div className="flex gap-4 mt-8">
             <button onClick={() => setStep("membership")} className="text-ink/60 underline font-display text-lg">Back</button>
