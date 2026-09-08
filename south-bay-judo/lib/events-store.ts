@@ -6,6 +6,14 @@ export interface EventDocument {
   uploadedAt: string;
 }
 
+export const DEFAULT_EVENT_DOCUMENT: EventDocument = {
+  title: "South Bay Judo Newsletter — August 2026",
+  url: "/events/south-bay-judo-newsletter-august-2026.pdf",
+  downloadUrl: "/events/south-bay-judo-newsletter-august-2026.pdf",
+  pathname: "events/south-bay-judo-newsletter-august-2026.pdf",
+  uploadedAt: "2026-07-31T15:49:56.000Z",
+};
+
 export async function getEventDocument(): Promise<EventDocument | null> {
   const id = process.env.GLOBAL_CONFIG_ID;
   const token = process.env.GLOBAL_CONFIG_READ_TOKEN;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getEventDocument } from "@/lib/events-store";
+import { DEFAULT_EVENT_DOCUMENT, getEventDocument } from "@/lib/events-store";
 
 export const metadata: Metadata = {
   title: "Events | South Bay Judo",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  const document = await getEventDocument();
+  const document = (await getEventDocument()) ?? DEFAULT_EVENT_DOCUMENT;
   const updated = document?.uploadedAt
     ? new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "America/Los_Angeles" }).format(
         new Date(document.uploadedAt)
