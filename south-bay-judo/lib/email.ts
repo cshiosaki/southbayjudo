@@ -26,6 +26,7 @@ const FROM_ADDRESS = process.env.EMAIL_FROM || "South Bay Judo <info@southbayjud
 
 export interface RegistrationReceiptStudent {
   name: string;
+  registrationStatus?: "NEW" | "RET";
   session: string;
   classTime: string;
   sessionFee: number;
@@ -80,6 +81,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e6e1d8;vertical-align:top">
             <strong>${escapeHtml(student.name)}</strong>
+            ${student.registrationStatus ? `<span style="display:inline-block;margin-left:7px;padding:3px 6px;background:#eee9df;color:#4f473d;font-size:10px;font-weight:bold;letter-spacing:.4px">${student.registrationStatus}</span>` : ""}
             ${needsUsjf ? `<span style="display:inline-block;margin-left:7px;padding:3px 6px;background:#9c2f1b;color:#fff;font-size:10px;font-weight:bold;letter-spacing:.4px;text-transform:uppercase;vertical-align:1px">USJF membership needed</span>` : ""}<br />
             <span style="color:#5f5a52;font-size:13px">${escapeHtml(student.session)} · ${escapeHtml(student.classTime)}</span>
             ${student.autoRenew ? `<br /><span style="color:#9c2f1b;font-size:12px">Auto-renew selected</span>` : ""}
@@ -139,7 +141,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
   </body></html>`;
 
   const studentLines = opts.receipt.students.flatMap((student) => [
-    `${student.name}${(student.needsUsjfMembership ?? student.membershipStatus === "none") ? " [USJF membership needed]" : ""} — ${student.session} — ${student.classTime}: ${money(student.sessionFee)}${student.autoRenew ? " [Auto-renew selected]" : ""}`,
+    `${student.name}${student.registrationStatus ? ` [${student.registrationStatus}]` : ""}${(student.needsUsjfMembership ?? student.membershipStatus === "none") ? " [USJF membership needed]" : ""} — ${student.session} — ${student.classTime}: ${money(student.sessionFee)}${student.autoRenew ? " [Auto-renew selected]" : ""}`,
     ...(student.giLabel ? [`  Gi — ${student.giLabel}: ${money(student.giPrice || 0)}`] : []),
   ]);
   const gearLines = opts.receipt.gearItems.map((item) => `${item.label}: ${money(item.price)}`);

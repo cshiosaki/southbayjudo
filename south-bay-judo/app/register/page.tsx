@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import SignaturePad from "@/components/SignaturePad";
 import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
-import { GI_SIZES, DUMMY_SIZES, DUFFLE_SIZES, TSHIRT_SIZES, SWEATSHIRT_SIZES } from "@/lib/sessions";
+import {
+  GI_SIZES,
+  DUMMY_SIZES,
+  DUFFLE_SIZES,
+  TSHIRT_SIZES,
+  SWEATSHIRT_SIZES,
+  MEMBERSHIP_FEE,
+  SHORT_TERM_MEMBERSHIP_FEE,
+} from "@/lib/sessions";
 
 /**
  * TEST MODE — Stripe Checkout uses sandbox credentials until launch.
@@ -36,8 +45,10 @@ function isExpired(dateStr: string): boolean {
 
 function needsUsjfMembership(student: StudentEntry): boolean {
   return (
+    student.membershipOrg !== "USJF" ||
     student.membershipStatus !== "current" ||
     !student.memberIdNumber ||
+    !student.membershipExpires ||
     isExpired(student.membershipExpires)
   );
 }
@@ -62,6 +73,7 @@ interface StudentEntry {
   beltRank: string;
   emergencyContact: string;
   emergencyPhone: string;
+  homeDojo: string;
   medicalNotes: string;
   hasMedicalConditions: "no" | "yes" | "";
   membershipStatus: MembershipStatus;
@@ -90,6 +102,7 @@ function blankStudent(): StudentEntry {
     beltRank: "",
     emergencyContact: "",
     emergencyPhone: "",
+    homeDojo: "",
     medicalNotes: "",
     hasMedicalConditions: "",
     membershipStatus: "none",
@@ -111,7 +124,6 @@ const STUDENT_STEPS: Step[] = ["session", "info", "membership", "waiver"];
 const orgLabel: Record<string, string> = {
   USJF: "USJF",
   USA_JUDO: "USA Judo",
-  OTHER: "Other",
 };
 
 /** Family position within a session — 1st, 2nd, 3rd+ child registering for that same session. */
@@ -246,6 +258,7 @@ export default function RegisterPage() {
               beltRank: s.beltRank,
               emergencyContact: s.emergencyContact,
               emergencyPhone: s.emergencyPhone,
+              homeDojo: s.homeDojo,
               hasMedicalConditions: s.hasMedicalConditions,
               medicalNotes: s.medicalNotes,
               membershipStatus: s.membershipStatus,
@@ -364,6 +377,11 @@ export default function RegisterPage() {
                   <div className="p-3 flex justify-between"><span>Session</span><span>{session?.label}</span></div>
                   <div className="p-3 flex justify-between"><span>Class time</span><span>{classTime?.label} ({classTime?.age})</span></div>
                   <div className="p-3 flex justify-between">
+                    <span>Student status</span>
+                    <span className="font-semibold text-belt">{s.isNewStudent ? "NEW" : "RET"}</span>
+                  </div>
+                  <div className="p-3 flex justify-between"><span>Home dojo/club</span><span>{s.homeDojo}</span></div>
+                  <div className="p-3 flex justify-between">
                     <span>
                       Session fee
                       {session?.pricingMode === "family_tier" && !(!s.isNewStudent && s.isLateOrTransfer) && (
@@ -417,8 +435,9 @@ export default function RegisterPage() {
             <p className="text-sm text-ink/70">
               {noMembershipCount} participant{noMembershipCount !== 1 ? "s don't" : " doesn't"} have a current USJF
               membership on file. USJF membership is required before their first class and must be
-              purchased directly through <span className="underline">usjf.org</span> — it isn't sold
-              through this site. Day passes are no longer offered by USJF.
+              purchased directly through <span className="underline">usjf.org</span>. Primary annual
+              membership is ${MEMBERSHIP_FEE}; a ${SHORT_TERM_MEMBERSHIP_FEE} monthly option is available
+              for participants who currently hold USA Judo membership.
             </p>
           </div>
         )}
@@ -557,6 +576,9 @@ export default function RegisterPage() {
         >
           {submitting ? "Opening secure checkout..." : "Continue to secure payment"}
         </button>
+        <p className="mt-3 text-xs leading-relaxed text-ink/55">
+          Stripe Checkout supports credit cards, bank payments, Apple Pay, and Google Pay when available on your device.
+        </p>
         {submitError && <p className="text-belt text-sm mt-4">{submitError}</p>}
       </main>
     );
@@ -699,8 +721,17 @@ export default function RegisterPage() {
           <fieldset>
             <input placeholder="First name" value={draft.firstName} onChange={(e) => setDraft({ ...draft, firstName: e.target.value })} />
             <input placeholder="Last name" value={draft.lastName} onChange={(e) => setDraft({ ...draft, lastName: e.target.value })} />
-            <input placeholder="Date of birth" type="date" value={draft.dateOfBirth} onChange={(e) => setDraft({ ...draft, dateOfBirth: e.target.value })} />
+            <label className="block text-sm text-ink/70">
+              Participant date of birth
+              <input required type="date" value={draft.dateOfBirth} onChange={(e) => setDraft({ ...draft, dateOfBirth: e.target.value })} />
+            </label>
             <input placeholder="Current belt rank, if known (optional)" value={draft.beltRank} onChange={(e) => setDraft({ ...draft, beltRank: e.target.value })} />
+            <input
+              required
+              placeholder="Home dojo/club or Unattached"
+              value={draft.homeDojo}
+              onChange={(e) => setDraft({ ...draft, homeDojo: e.target.value })}
+            />
             <input placeholder="Emergency contact name" value={draft.emergencyContact} onChange={(e) => setDraft({ ...draft, emergencyContact: e.target.value })} />
             <input placeholder="Emergency contact phone" value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} />
             {(guardian.firstName || guardian2.firstName) && (
@@ -776,6 +807,27 @@ export default function RegisterPage() {
                 <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
               ))}
             </select>
+            <details className="mt-3 border border-ink/15 bg-card p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-belt">View the Hatashita/FUJI judo gi size chart</summary>
+              <Image
+                src="/images/fuji-judo-gi-size-chart.png"
+                alt="FUJI Sports size chart for FUJI judo gi uniforms"
+                width={622}
+                height={1008}
+                className="mt-3 h-auto w-full"
+              />
+              <a
+                href="https://hatashitasports.com/pages/size-charts"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-xs text-ink/55 underline underline-offset-2"
+              >
+                Official Hatashita/FUJI size chart
+              </a>
+            </details>
+            <span className="mt-2 block text-xs leading-relaxed text-ink/60">
+              If the gi does not fit, it may be exchanged. You will only pay the difference if the replacement costs more.
+            </span>
           </label>
 
           <div className="mb-6">
@@ -795,7 +847,7 @@ export default function RegisterPage() {
           <div className="flex gap-4">
             <button onClick={() => setStep("session")} className="text-ink/60 underline font-display text-lg">Back</button>
             <button
-              disabled={!draft.firstName || !draft.lastName || !draft.hasMedicalConditions}
+              disabled={!draft.firstName || !draft.lastName || !draft.dateOfBirth || !draft.homeDojo || !draft.hasMedicalConditions}
               onClick={() => setStep("membership")}
               className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
             >
@@ -807,19 +859,28 @@ export default function RegisterPage() {
 
       {step === "membership" && (
         <section>
-          <h2 className="font-display text-2xl mb-3">USJF membership</h2>
+          <h2 className="font-display text-2xl mb-3">USJF or USA Judo membership</h2>
           <p className="text-sm text-ink/70 mb-5">
-            All participants must carry a current USJF membership for insurance coverage — for the
-            participant and for the club. Membership is purchased directly through{" "}
-            <span className="underline">usjf.org</span>, not through this site (USJF no longer
-            offers day passes).
+            All participants must carry a current USJF membership for insurance coverage. A primary
+            12-month USJF membership is ${MEMBERSHIP_FEE}. If the participant currently has USA Judo,
+            they must also obtain a USJF short-term membership (${SHORT_TERM_MEMBERSHIP_FEE} monthly).
+            Memberships are purchased directly through{" "}
+            <a href="https://www.usjf.com/membership-program/" target="_blank" rel="noreferrer" className="underline">usjf.org</a>.
           </p>
+
+          {draft.isNewStudent && (
+            <div className="mb-5 border border-belt/35 bg-belt/5 p-3 text-sm text-ink/75">
+              <strong>First time in judo?</strong> If this participant does not already have USJF membership,
+              purchase the ${MEMBERSHIP_FEE} annual membership before the first class.
+            </div>
+          )}
 
           {!usjfManualEntry && (
             <div className="mb-6">
-              <p className="text-sm mb-2">Search your name to find your USJF number</p>
+              <p className="text-sm mb-1">Search your USJF membership</p>
+              <p className="mb-2 text-xs text-ink/60">Enter the last name first. If several names appear, select the correct participant.</p>
               <input
-                placeholder="Start typing a name…"
+                placeholder="Last name, First name"
                 value={usjfQuery}
                 onChange={(e) => {
                   setUsjfQuery(e.target.value);
@@ -873,13 +934,21 @@ export default function RegisterPage() {
                 ))}
               </select>
               <input placeholder="Member ID #" value={draft.memberIdNumber} onChange={(e) => setDraft({ ...draft, membershipStatus: "current", memberIdNumber: e.target.value })} />
-              <input
-                placeholder="Expiration date"
-                type="date"
-                value={draft.membershipExpires}
-                onChange={(e) => setDraft({ ...draft, membershipExpires: e.target.value })}
-              />
+              <label className="block text-sm text-ink/70">
+                Membership expiration date
+                <input
+                  type="date"
+                  value={draft.membershipExpires}
+                  onChange={(e) => setDraft({ ...draft, membershipExpires: e.target.value })}
+                />
+              </label>
               <p className="text-xs text-ink/60">We'll ask for a photo of the card after this step for admin verification.</p>
+              {draft.membershipOrg === "USA_JUDO" && (
+                <p className="border border-belt/35 bg-belt/5 p-3 text-sm text-belt">
+                  USA Judo membership alone does not meet the club requirement. Purchase a USJF short-term membership
+                  (${SHORT_TERM_MEMBERSHIP_FEE} monthly) before the first class.
+                </p>
+              )}
               <button type="button" onClick={() => setUsjfManualEntry(false)} className="text-xs text-ink/50 underline">
                 Back to search
               </button>
@@ -947,6 +1016,9 @@ export default function RegisterPage() {
           <div className="bg-card border border-ink/15 p-4 text-sm leading-relaxed max-h-40 overflow-auto mb-5">
             {MEDICAL_ACK_TEXT}
           </div>
+          <p className="mb-4 text-sm leading-relaxed text-ink/70">
+            The parent/guardian, or the adult participant registering themself, is signing for the entire registration submitted here.
+          </p>
           <input
             placeholder="Type your full legal name to sign"
             value={draft.signedByName}

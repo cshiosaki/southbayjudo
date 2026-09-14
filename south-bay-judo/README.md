@@ -48,16 +48,12 @@ This matches the club's actual fee schedule, not a simplified placeholder:
   this.
 - **The Holiday session** is flat-priced (not family-tiered) — it's a
   different kind of program.
-- **USJF** is the required national federation (not USA Judo — confirmed
-  against the club's actual guest-registration and fee-schedule
-  documents). USA Judo is still selectable for students who
-  hold those instead. **USJF membership is not sold through this site** —
-  the club decided against collecting for it here, since USJF handles
-  that directly (and no longer offers day passes). The form asks whether
-  a student has a current membership purely for insurance record-keeping;
-  if not, they're told to register directly at usjf.org before their
-  first class. `MEMBERSHIP_FEE` and `familyMembershipFee()` still exist
-  in `lib/sessions.ts` for reference but aren't charged anywhere.
+- **USJF** is the required national federation. USA Judo is still
+  selectable for participants who hold that membership, but they are told
+  to obtain a USJF short-term membership before their first class. USJF
+  membership is purchased directly through usjf.org, not through this site.
+  The registration flow shows the current $80 primary annual fee and $9.99
+  monthly short-term option and records the member number and expiration date.
 - **USJF number lookup**: the membership step lets a parent search their
   name against the club's actual USJF roster (a separate Google Sheet —
   see "Setting up USJF lookup" below) and auto-fills their member number

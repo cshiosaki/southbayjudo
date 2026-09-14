@@ -44,9 +44,9 @@ export const SESSIONS: SessionConfig[] = [
     registrationOpen: true,
     allowNew: true,
     pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
   },
   {
     id: "sess_5q",
@@ -68,9 +68,9 @@ export const SESSIONS: SessionConfig[] = [
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
     priceLabelOverride: "Pricing to be announced",
   },
   {
@@ -82,9 +82,9 @@ export const SESSIONS: SessionConfig[] = [
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
     priceLabelOverride: "Pricing to be announced",
   },
   {
@@ -96,9 +96,9 @@ export const SESSIONS: SessionConfig[] = [
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
     priceLabelOverride: "Pricing to be announced",
   },
   {
@@ -110,9 +110,9 @@ export const SESSIONS: SessionConfig[] = [
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
-    familyTierFirst: 180,
-    familyTierSecond: 160,
-    familyTierThirdPlus: 140,
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
     priceLabelOverride: "Pricing to be announced",
   },
   {
@@ -153,7 +153,8 @@ export const CLASS_TIMES: ClassTimeConfig[] = [
 // fee schedule and guest-registration confirmation). USA Judo
 // are still selectable in the form for students who hold those instead.
 
-export const MEMBERSHIP_FEE = 70; // USJF individual annual membership
+export const MEMBERSHIP_FEE = 80; // USJF primary individual annual membership
+export const SHORT_TERM_MEMBERSHIP_FEE = 9.99; // USJF monthly short-term membership
 
 /** Discounted USJF family plan — covers everyone in the household, cheaper than paying individually once 3+ people need membership. */
 export function familyMembershipFee(memberCount: number): number {

@@ -19,22 +19,18 @@ const assistantInstructors = [
   },
   {
     rank: "Nidan · 2nd degree black belt",
-    names: ["Myles Honda", "Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
+    names: ["Myles Honda", "Ken Nagata", "Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
   },
   {
     rank: "Shodan · 1st degree black belt",
-    names: ["Sandy Honda"],
+    names: ["Sandy Honda", "Mark Williams"],
   },
   {
     rank: "Ikkyu · 1st degree brown belt",
-    names: ["Mark Williams"],
-  },
-  {
-    rank: "Nikyu · 2nd degree brown belt",
     names: ["Romeo Sangdee-Takeuchi"],
   },
   {
-    rank: "Sankyu · 3rd degree brown belt",
+    rank: "Nikyu · 2nd degree brown belt",
     names: ["Luis Vazquez"],
   },
 ];

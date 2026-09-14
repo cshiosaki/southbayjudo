@@ -11,9 +11,9 @@ function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function membershipNeedsAction(status: string, memberId: string, expires: string) {
-  if (status !== "current" || !memberId) return true;
-  if (!expires) return false;
+function membershipNeedsAction(status: string, org: string, memberId: string, expires: string) {
+  if (org !== "USJF" || status !== "current" || !memberId) return true;
+  if (!expires) return true;
   const expiration = new Date(expires);
   return !Number.isNaN(expiration.getTime()) && expiration.getTime() < Date.now();
 }
@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
       const firstName = text(student.firstName);
       const lastName = text(student.lastName);
       if (!firstName || !lastName) throw new Error("Every student needs a first and last name.");
+      if (!text(student.dateOfBirth)) throw new Error(`Date of birth is required for ${firstName} ${lastName}.`);
+      if (!text(student.homeDojo)) throw new Error(`Home dojo/club or Unattached is required for ${firstName} ${lastName}.`);
 
       familyPositions[sessionId] = (familyPositions[sessionId] || 0) + 1;
       const position = familyPositions[sessionId];
@@ -87,6 +89,7 @@ export async function POST(req: NextRequest) {
         beltRank: text(student.beltRank),
         emergencyContact: text(student.emergencyContact),
         emergencyPhone: text(student.emergencyPhone),
+        homeDojo: text(student.homeDojo),
         hasMedicalConditions: text(student.hasMedicalConditions),
         medicalNotes: text(student.medicalNotes),
         membershipStatus: text(student.membershipStatus) || "none",
@@ -124,6 +127,7 @@ export async function POST(req: NextRequest) {
       paymentStatus: "Payment pending",
       students: students.map((student) => ({
         name: `${student.firstName} ${student.lastName}`,
+        registrationStatus: student.isNewStudent ? "NEW" : "RET",
         session: student.sessionLabel,
         classTime: student.classTimeLabel,
         sessionFee: student.sessionFee,
@@ -132,6 +136,7 @@ export async function POST(req: NextRequest) {
         membershipStatus: student.membershipStatus,
         needsUsjfMembership: membershipNeedsAction(
           student.membershipStatus,
+          student.membershipOrg,
           student.memberIdNumber,
           student.membershipExpires
         ),
@@ -159,7 +164,7 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: `${student.sessionLabel} — ${student.firstName} ${student.lastName}` },
+            product_data: { name: `${student.sessionLabel} — ${student.firstName} ${student.lastName} — ${student.isNewStudent ? "NEW" : "RET"}` },
             unit_amount: Math.round(student.sessionFee * 100),
           },
           quantity: 1,
@@ -222,7 +227,7 @@ export async function POST(req: NextRequest) {
       student.membershipExpires, student.gi?.label || "", student.photoConsent, student.signedByName,
       student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "FALSE",
       index === 0 ? extrasNote : "", receiptNumber, "Payment pending", checkout.id,
-      index === 0 ? JSON.stringify(storedOrder) : "",
+      index === 0 ? JSON.stringify(storedOrder) : "", "", student.homeDojo,
     ]);
 
     try {

@@ -51,17 +51,33 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       sessions: DEFAULT_SESSIONS.map((session) => {
         const storedSession = storedSessions.get(session.id);
         const isHolidaySession = session.id === "sess_5q" || session.id === "sess_2027_5q";
+        const hasLegacyFamilyPricing =
+          storedSession?.pricingMode === "family_tier" &&
+          storedSession.familyTierFirst === 180 &&
+          storedSession.familyTierSecond === 160 &&
+          storedSession.familyTierThirdPlus === 140;
         return {
           ...session,
           ...(storedSession || {}),
           // Holiday sessions use a family-friendly public name even if an
           // older saved admin configuration still contains the former 5Q label.
           ...(isHolidaySession ? { label: session.label, note: session.note } : {}),
+          // Migrate the previous 180/160/140 family tiers while preserving
+          // any different prices intentionally saved later in Admin.
+          ...(hasLegacyFamilyPricing
+            ? {
+                familyTierFirst: session.familyTierFirst,
+                familyTierSecond: session.familyTierSecond,
+                familyTierThirdPlus: session.familyTierThirdPlus,
+              }
+            : {}),
         };
       }),
       classTimes: Array.isArray(value.classTimes) ? value.classTimes : DEFAULT_CLASS_TIMES,
       membershipFee:
-        typeof value.membershipFee === "number" ? value.membershipFee : DEFAULT_MEMBERSHIP_FEE,
+        typeof value.membershipFee === "number" && value.membershipFee !== 70
+          ? value.membershipFee
+          : DEFAULT_MEMBERSHIP_FEE,
     };
   } catch {
     return DEFAULTS;
