@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import SignaturePad from "@/components/SignaturePad";
 
 /**
  * DEMO MODE — visitor/drop-in check-in. Client-side only for the design
@@ -25,7 +24,6 @@ export default function VisitorPage() {
   const [isMinor, setIsMinor] = useState<"yes" | "no" | "">("");
   const [guardianRelationship, setGuardianRelationship] = useState("");
   const [signedByName, setSignedByName] = useState("");
-  const [signatureDataUrl, setSignatureDataUrl] = useState("");
   const [done, setDone] = useState(false);
 
   if (done) {
@@ -143,6 +141,15 @@ export default function VisitorPage() {
         onChange={(e) => setSignedByName(e.target.value)}
         className="mb-2"
       />
+      <div className="mb-3 min-h-24 border border-ink/25 bg-card px-5 py-4">
+        <p className={`font-signature text-4xl leading-tight ${signedByName ? "text-ink" : "text-ink/30"}`}>
+          {signedByName || "Your signature appears here"}
+        </p>
+        <div className="mt-2 border-t border-ink/35 pt-1 text-xs text-ink/50">Electronic signature</div>
+      </div>
+      <p className="mb-3 text-xs text-ink/60">
+        By typing your full legal name, you agree that it serves as your electronic signature on this waiver and visitor check-in.
+      </p>
       {isMinor === "yes" && (
         <p className="text-xs text-ink/50 mb-2">
           As the parent/guardian, you're signing on behalf of {form.firstName || "the student"}.
@@ -151,9 +158,6 @@ export default function VisitorPage() {
       <p className="text-xs text-ink/50 mb-4">
         Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
       </p>
-      <p className="text-sm text-ink/60 mb-2">Sign below</p>
-      <SignaturePad onChange={setSignatureDataUrl} />
-
       <button
         disabled={
           !form.firstName ||
@@ -161,8 +165,7 @@ export default function VisitorPage() {
           !form.homeDojo ||
           !form.hasMedicalConditions ||
           (form.hasMedicalConditions === "yes" && !form.medicalNotes.trim()) ||
-          !signedByName ||
-          !signatureDataUrl ||
+          !signedByName.trim() ||
           !isMinor ||
           (isMinor === "yes" && !guardianRelationship)
         }

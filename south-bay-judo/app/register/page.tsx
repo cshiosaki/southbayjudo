@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import SignaturePad from "@/components/SignaturePad";
 import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
 import {
   GI_SIZES,
@@ -83,7 +82,6 @@ interface StudentEntry {
   giSizeId: string;
   photoConsent: "yes" | "no" | "";
   signedByName: string;
-  signatureDataUrl: string;
   autoRenew: boolean;
 }
 
@@ -111,7 +109,6 @@ function blankStudent(): StudentEntry {
     giSizeId: "",
     photoConsent: "",
     signedByName: "",
-    signatureDataUrl: "",
     autoRenew: false,
   };
 }
@@ -1063,16 +1060,23 @@ export default function RegisterPage() {
             onChange={(e) => setDraft({ ...draft, signedByName: e.target.value })}
             className="mb-2"
           />
+          <div className="mb-3 min-h-24 border border-ink/25 bg-card px-5 py-4">
+            <p className={`font-signature text-4xl leading-tight ${draft.signedByName ? "text-ink" : "text-ink/30"}`}>
+              {draft.signedByName || "Your signature appears here"}
+            </p>
+            <div className="mt-2 border-t border-ink/35 pt-1 text-xs text-ink/50">Electronic signature</div>
+          </div>
+          <p className="mb-3 text-xs text-ink/60">
+            By typing your full legal name, you agree that it serves as your electronic signature on this waiver and registration.
+          </p>
           <p className="text-xs text-ink/50 mb-4">
             Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
           </p>
-          <p className="text-sm text-ink/60 mb-2">Sign below</p>
-          <SignaturePad onChange={(url) => setDraft({ ...draft, signatureDataUrl: url })} />
 
           <div className="flex gap-4 mt-8">
             <button onClick={() => setStep("membership")} className="text-ink/60 underline font-display text-lg">Back</button>
             <button
-              disabled={!draft.signedByName || !draft.signatureDataUrl || !draft.photoConsent}
+              disabled={!draft.signedByName.trim() || !draft.photoConsent}
               onClick={() => { finishStudent(); setStep("review"); }}
               className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
             >
