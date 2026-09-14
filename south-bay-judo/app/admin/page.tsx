@@ -34,7 +34,6 @@ interface RosterRow {
   guardian2Phone: string;
   emergencyContact: string;
   emergencyPhone: string;
-  homeDojo: string;
   hasMedicalConditions: string;
   medicalNotes: string;
   membershipStatus: string;
@@ -349,7 +348,6 @@ export default function AdminPage() {
                       <p className="text-xs text-ink/60">
                         DOB {r.dateOfBirth} · {r.classTime} · {r.sessionLabel} · ${r.sessionFeeCharged || "0"} charged
                       </p>
-                      <p className="text-xs text-ink/60 mt-1">Home dojo/club: {r.homeDojo || "Not recorded"}</p>
                     </div>
                     <button
                       onClick={() => togglePaid(r)}

@@ -73,7 +73,6 @@ interface StudentEntry {
   beltRank: string;
   emergencyContact: string;
   emergencyPhone: string;
-  homeDojo: string;
   medicalNotes: string;
   hasMedicalConditions: "no" | "yes" | "";
   membershipStatus: MembershipStatus;
@@ -102,7 +101,6 @@ function blankStudent(): StudentEntry {
     beltRank: "",
     emergencyContact: "",
     emergencyPhone: "",
-    homeDojo: "",
     medicalNotes: "",
     hasMedicalConditions: "",
     membershipStatus: "none",
@@ -258,7 +256,6 @@ export default function RegisterPage() {
               beltRank: s.beltRank,
               emergencyContact: s.emergencyContact,
               emergencyPhone: s.emergencyPhone,
-              homeDojo: s.homeDojo,
               hasMedicalConditions: s.hasMedicalConditions,
               medicalNotes: s.medicalNotes,
               membershipStatus: s.membershipStatus,
@@ -380,7 +377,6 @@ export default function RegisterPage() {
                     <span>Student status</span>
                     <span className="font-semibold text-belt">{s.isNewStudent ? "NEW" : "RET"}</span>
                   </div>
-                  <div className="p-3 flex justify-between"><span>Home dojo/club</span><span>{s.homeDojo}</span></div>
                   <div className="p-3 flex justify-between">
                     <span>
                       Session fee
@@ -726,12 +722,6 @@ export default function RegisterPage() {
               <input required type="date" value={draft.dateOfBirth} onChange={(e) => setDraft({ ...draft, dateOfBirth: e.target.value })} />
             </label>
             <input placeholder="Current belt rank, if known (optional)" value={draft.beltRank} onChange={(e) => setDraft({ ...draft, beltRank: e.target.value })} />
-            <input
-              required
-              placeholder="Home dojo/club or Unattached"
-              value={draft.homeDojo}
-              onChange={(e) => setDraft({ ...draft, homeDojo: e.target.value })}
-            />
             <input placeholder="Emergency contact name" value={draft.emergencyContact} onChange={(e) => setDraft({ ...draft, emergencyContact: e.target.value })} />
             <input placeholder="Emergency contact phone" value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} />
             {(guardian.firstName || guardian2.firstName) && (
@@ -847,7 +837,7 @@ export default function RegisterPage() {
           <div className="flex gap-4">
             <button onClick={() => setStep("session")} className="text-ink/60 underline font-display text-lg">Back</button>
             <button
-              disabled={!draft.firstName || !draft.lastName || !draft.dateOfBirth || !draft.homeDojo || !draft.hasMedicalConditions}
+              disabled={!draft.firstName || !draft.lastName || !draft.dateOfBirth || !draft.hasMedicalConditions}
               onClick={() => setStep("membership")}
               className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
             >

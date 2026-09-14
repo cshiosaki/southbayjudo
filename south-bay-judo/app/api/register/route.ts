@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       const lastName = text(student.lastName);
       if (!firstName || !lastName) throw new Error("Every student needs a first and last name.");
       if (!text(student.dateOfBirth)) throw new Error(`Date of birth is required for ${firstName} ${lastName}.`);
-      if (!text(student.homeDojo)) throw new Error(`Home dojo/club or Unattached is required for ${firstName} ${lastName}.`);
 
       familyPositions[sessionId] = (familyPositions[sessionId] || 0) + 1;
       const position = familyPositions[sessionId];
@@ -89,7 +88,6 @@ export async function POST(req: NextRequest) {
         beltRank: text(student.beltRank),
         emergencyContact: text(student.emergencyContact),
         emergencyPhone: text(student.emergencyPhone),
-        homeDojo: text(student.homeDojo),
         hasMedicalConditions: text(student.hasMedicalConditions),
         medicalNotes: text(student.medicalNotes),
         membershipStatus: text(student.membershipStatus) || "none",
@@ -227,7 +225,7 @@ export async function POST(req: NextRequest) {
       student.membershipExpires, student.gi?.label || "", student.photoConsent, student.signedByName,
       student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "FALSE",
       index === 0 ? extrasNote : "", receiptNumber, "Payment pending", checkout.id,
-      index === 0 ? JSON.stringify(storedOrder) : "", "", student.homeDojo,
+      index === 0 ? JSON.stringify(storedOrder) : "", "",
     ]);
 
     try {

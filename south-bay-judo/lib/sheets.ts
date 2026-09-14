@@ -62,9 +62,8 @@ const HEADERS = [
   "Stripe Checkout Session ID",
   "Receipt JSON",
   "Receipt Email Sent",
-  "Home Dojo / Club",
 ];
-const LAST_COLUMN = "AM"; // matches HEADERS.length (39 columns, A..AM)
+const LAST_COLUMN = "AL"; // matches HEADERS.length (38 columns, A..AL)
 const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position in HEADERS
 const PAYMENT_STATUS_COLUMN = "AI";
 const RECEIPT_EMAIL_SENT_COLUMN = "AL";
@@ -154,7 +153,6 @@ export interface RosterRow {
   guardian2Phone: string;
   emergencyContact: string;
   emergencyPhone: string;
-  homeDojo: string;
   hasMedicalConditions: string;
   medicalNotes: string;
   membershipStatus: string;
@@ -200,7 +198,6 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     guardian2Phone: v[17] || "",
     emergencyContact: v[18] || "",
     emergencyPhone: v[19] || "",
-    homeDojo: v[38] || "",
     hasMedicalConditions: v[20] || "",
     medicalNotes: v[21] || "",
     membershipStatus: v[22] || "",

@@ -49,7 +49,15 @@ export default function VisitorPage() {
       <fieldset>
         <input placeholder="Visiting student's first name" onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
         <input placeholder="Visiting student's last name" onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
-        <input placeholder="Home dojo (optional)" onChange={(e) => setForm({ ...form, homeDojo: e.target.value })} />
+        <label className="block text-sm text-ink/70">
+          Home dojo/club or Unattached
+          <input
+            required
+            placeholder="Home dojo/club or Unattached"
+            value={form.homeDojo}
+            onChange={(e) => setForm({ ...form, homeDojo: e.target.value })}
+          />
+        </label>
         <select onChange={(e) => setForm({ ...form, membershipOrg: e.target.value })} defaultValue="USJF">
           <option value="">No current membership</option>
           <option value="USJF">USJF</option>
@@ -109,7 +117,7 @@ export default function VisitorPage() {
       <SignaturePad onChange={setSignatureDataUrl} />
 
       <button
-        disabled={!signedByName || !signatureDataUrl || !isMinor || (isMinor === "yes" && !guardianRelationship)}
+        disabled={!form.firstName || !form.lastName || !form.homeDojo || !signedByName || !signatureDataUrl || !isMinor || (isMinor === "yes" && !guardianRelationship)}
         onClick={() => setDone(true)}
         className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30 mt-8"
       >
