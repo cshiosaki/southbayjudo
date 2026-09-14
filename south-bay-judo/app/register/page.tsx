@@ -169,6 +169,7 @@ export default function RegisterPage() {
   const [usjfResults, setUsjfResults] = useState<{ name: string; expires: string; id: string }[]>([]);
   const [usjfSearching, setUsjfSearching] = useState(false);
   const [usjfManualEntry, setUsjfManualEntry] = useState(false);
+  const [needsMembershipSelected, setNeedsMembershipSelected] = useState(false);
 
   useEffect(() => {
     if (usjfQuery.trim().length < 2) {
@@ -225,6 +226,7 @@ export default function RegisterPage() {
     setUsjfQuery("");
     setUsjfResults([]);
     setUsjfManualEntry(false);
+    setNeedsMembershipSelected(false);
   }
 
   const [submitting, setSubmitting] = useState(false);
@@ -865,6 +867,47 @@ export default function RegisterPage() {
             </div>
           )}
 
+          <div className={`mb-6 border p-4 ${needsMembershipSelected ? "border-belt bg-belt/10" : "border-ink/20 bg-card"}`}>
+            <button
+              type="button"
+              onClick={() => {
+                setNeedsMembershipSelected(true);
+                setUsjfManualEntry(false);
+                setUsjfQuery("");
+                setUsjfResults([]);
+                setDraft({
+                  ...draft,
+                  membershipStatus: "none",
+                  membershipOrg: "USJF",
+                  memberIdNumber: "",
+                  membershipExpires: "",
+                  membershipMismatchConfirmed: false,
+                });
+              }}
+              className="w-full text-left"
+            >
+              <strong className="font-display block text-xl">I don’t have a membership / I need to join</strong>
+              <span className="block text-sm text-ink/65 mt-1">
+                Select this option if the participant needs a new USJF membership.
+              </span>
+            </button>
+            {needsMembershipSelected && (
+              <div className="mt-4 border-t border-belt/25 pt-4 text-sm">
+                <p className="mb-3">
+                  This participant will be marked as needing membership. Purchase it directly from USJF before the first class.
+                </p>
+                <a
+                  href="https://www.usjf.com/membership-program/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block bg-belt px-4 py-2 font-display text-card"
+                >
+                  Join USJF — ${MEMBERSHIP_FEE}
+                </a>
+              </div>
+            )}
+          </div>
+
           {!usjfManualEntry && (
             <div className="mb-6">
               <p className="text-sm mb-1">Search your USJF membership</p>
@@ -873,6 +916,7 @@ export default function RegisterPage() {
                 placeholder="Last name, First name"
                 value={usjfQuery}
                 onChange={(e) => {
+                  setNeedsMembershipSelected(false);
                   setUsjfQuery(e.target.value);
                   setDraft({ ...draft, membershipStatus: "none", memberIdNumber: "", membershipExpires: "", membershipMismatchConfirmed: false });
                 }}
@@ -885,6 +929,7 @@ export default function RegisterPage() {
                       key={m.id}
                       type="button"
                       onClick={() => {
+                        setNeedsMembershipSelected(false);
                         setDraft({
                           ...draft,
                           membershipStatus: "current",
@@ -908,7 +953,10 @@ export default function RegisterPage() {
               )}
               <button
                 type="button"
-                onClick={() => setUsjfManualEntry(true)}
+                onClick={() => {
+                  setNeedsMembershipSelected(false);
+                  setUsjfManualEntry(true);
+                }}
                 className="text-xs text-ink/50 underline mt-3"
               >
                 Can't find your name? Enter it manually, or add a USA Judo membership instead
