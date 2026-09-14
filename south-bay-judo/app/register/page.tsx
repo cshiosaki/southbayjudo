@@ -886,15 +886,15 @@ export default function RegisterPage() {
               }}
               className="w-full text-left"
             >
-              <strong className="font-display block text-xl">I don’t have a membership / I need to join</strong>
+              <strong className="font-display block text-xl">I don’t have a USJF membership yet</strong>
               <span className="block text-sm text-ink/65 mt-1">
-                Select this option if the participant needs a new USJF membership.
+                Select this to let South Bay Judo know the participant still needs to obtain membership.
               </span>
             </button>
             {needsMembershipSelected && (
               <div className="mt-4 border-t border-belt/25 pt-4 text-sm">
                 <p className="mb-3">
-                  This participant will be marked as needing membership. Purchase it directly from USJF before the first class.
+                  Selecting this option does not enroll the participant. You must visit the official USJF website and complete the membership signup there before the first class.
                 </p>
                 <a
                   href="https://www.usjf.com/membership-program/"
@@ -902,7 +902,7 @@ export default function RegisterPage() {
                   rel="noreferrer"
                   className="inline-block bg-belt px-4 py-2 font-display text-card"
                 >
-                  Join USJF — ${MEMBERSHIP_FEE}
+                  Go to USJF website to sign up — ${MEMBERSHIP_FEE}
                 </a>
               </div>
             )}
