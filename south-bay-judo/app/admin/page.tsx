@@ -47,6 +47,7 @@ interface RosterRow {
   sessionFeeCharged: string;
   paid: boolean;
   familyExtrasNote: string;
+  emailOptIn: boolean;
 }
 
 interface EventDocument {
@@ -413,6 +414,9 @@ export default function AdminPage() {
                     <p>
                       <span className="text-ink/50">Photo consent:</span>{" "}
                       {r.photoConsent === "yes" ? "Yes" : r.photoConsent === "no" ? "No" : "Not recorded"}
+                    </p>
+                    <p>
+                      <span className="text-ink/50">Email updates:</span> {r.emailOptIn ? "Opted in" : "Opted out"}
                     </p>
                   </div>
                   {(r.giSize || r.familyExtrasNote) && (

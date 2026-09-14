@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
       student.membershipExpires, student.gi?.label || "", student.photoConsent, student.signedByName,
       student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "FALSE",
       index === 0 ? extrasNote : "", receiptNumber, "Payment pending", checkout.id,
-      index === 0 ? JSON.stringify(storedOrder) : "", "",
+      index === 0 ? JSON.stringify(storedOrder) : "", "", guardian.emailOptIn === false ? "No" : "Yes",
     ]);
 
     try {

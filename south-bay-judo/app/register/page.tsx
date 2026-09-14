@@ -148,7 +148,7 @@ function sessionFeeFor(s: StudentEntry, session: SessionConfig | undefined, posi
 
 export default function RegisterPage() {
   const [step, setStep] = useState<Step>("guardian");
-  const [guardian, setGuardian] = useState({ firstName: "", lastName: "", email: "", phone: "" });
+  const [guardian, setGuardian] = useState({ firstName: "", lastName: "", email: "", phone: "", emailOptIn: true });
   const [guardian2, setGuardian2] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [students, setStudents] = useState<StudentEntry[]>([]);
   const [draft, setDraft] = useState<StudentEntry>(blankStudent());
@@ -306,6 +306,17 @@ export default function RegisterPage() {
           <input placeholder="First name" value={guardian.firstName} onChange={(e) => setGuardian({ ...guardian, firstName: e.target.value })} />
           <input placeholder="Last name" value={guardian.lastName} onChange={(e) => setGuardian({ ...guardian, lastName: e.target.value })} />
           <input placeholder="Email" type="email" value={guardian.email} onChange={(e) => setGuardian({ ...guardian, email: e.target.value })} />
+          <label className="flex items-start gap-3 border border-ink/15 bg-card p-3 text-sm leading-relaxed">
+            <input
+              type="checkbox"
+              checked={guardian.emailOptIn}
+              onChange={(e) => setGuardian({ ...guardian, emailOptIn: e.target.checked })}
+            />
+            <span>
+              Keep me informed about South Bay Judo news, events, schedule updates, and registration reminders by email.
+              <span className="block text-xs text-ink/55">You can unsubscribe at any time.</span>
+            </span>
+          </label>
           <input placeholder="Phone" value={guardian.phone} onChange={(e) => setGuardian({ ...guardian, phone: e.target.value })} />
         </fieldset>
 

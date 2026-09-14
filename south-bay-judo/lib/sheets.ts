@@ -62,8 +62,9 @@ const HEADERS = [
   "Stripe Checkout Session ID",
   "Receipt JSON",
   "Receipt Email Sent",
+  "Email Opt-In",
 ];
-const LAST_COLUMN = "AL"; // matches HEADERS.length (38 columns, A..AL)
+const LAST_COLUMN = "AM"; // matches HEADERS.length (39 columns, A..AM)
 const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position in HEADERS
 const PAYMENT_STATUS_COLUMN = "AI";
 const RECEIPT_EMAIL_SENT_COLUMN = "AL";
@@ -166,6 +167,7 @@ export interface RosterRow {
   sessionFeeCharged: string;
   paid: boolean;
   familyExtrasNote: string;
+  emailOptIn: boolean;
 }
 
 export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
@@ -211,6 +213,7 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     sessionFeeCharged: v[30] || "",
     paid: v[31] === "TRUE",
     familyExtrasNote: v[32] || "",
+    emailOptIn: v[38] !== "No",
   }));
 
   return sessionId ? rows.filter((r) => r.sessionId === sessionId) : rows;
