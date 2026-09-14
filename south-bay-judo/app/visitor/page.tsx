@@ -19,6 +19,8 @@ export default function VisitorPage() {
     membershipId: "",
     emergencyContact: "",
     emergencyPhone: "",
+    hasMedicalConditions: "" as "yes" | "no" | "",
+    medicalNotes: "",
   });
   const [isMinor, setIsMinor] = useState<"yes" | "no" | "">("");
   const [guardianRelationship, setGuardianRelationship] = useState("");
@@ -70,6 +72,42 @@ export default function VisitorPage() {
       </fieldset>
 
       <div className="mb-6">
+        <p className="font-display text-lg mb-1">Medical information</p>
+        <p className="text-sm text-ink/65 mb-3">
+          Does the visiting student have any medical conditions, allergies, injuries, medications, or physical limitations that instructors should know about?
+        </p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className={`flex items-center gap-3 border p-4 cursor-pointer ${form.hasMedicalConditions === "no" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+            <input
+              name="hasMedicalConditions"
+              type="radio"
+              checked={form.hasMedicalConditions === "no"}
+              onChange={() => setForm({ ...form, hasMedicalConditions: "no", medicalNotes: "" })}
+            />
+            <strong className="font-medium">No</strong>
+          </label>
+          <label className={`flex items-center gap-3 border p-4 cursor-pointer ${form.hasMedicalConditions === "yes" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+            <input
+              name="hasMedicalConditions"
+              type="radio"
+              checked={form.hasMedicalConditions === "yes"}
+              onChange={() => setForm({ ...form, hasMedicalConditions: "yes" })}
+            />
+            <strong className="font-medium">Yes</strong>
+          </label>
+        </div>
+        {form.hasMedicalConditions === "yes" && (
+          <textarea
+            required
+            placeholder="Please explain the condition, allergy, injury, medication, or limitation"
+            value={form.medicalNotes}
+            onChange={(e) => setForm({ ...form, medicalNotes: e.target.value })}
+            className="mt-3 min-h-28"
+          />
+        )}
+      </div>
+
+      <div className="mb-6">
         <p className="font-display text-lg mb-3">Student age</p>
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <label className={`flex items-start gap-3 border p-4 cursor-pointer transition-colors ${isMinor === "no" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
@@ -117,7 +155,17 @@ export default function VisitorPage() {
       <SignaturePad onChange={setSignatureDataUrl} />
 
       <button
-        disabled={!form.firstName || !form.lastName || !form.homeDojo || !signedByName || !signatureDataUrl || !isMinor || (isMinor === "yes" && !guardianRelationship)}
+        disabled={
+          !form.firstName ||
+          !form.lastName ||
+          !form.homeDojo ||
+          !form.hasMedicalConditions ||
+          (form.hasMedicalConditions === "yes" && !form.medicalNotes.trim()) ||
+          !signedByName ||
+          !signatureDataUrl ||
+          !isMinor ||
+          (isMinor === "yes" && !guardianRelationship)
+        }
         onClick={() => setDone(true)}
         className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30 mt-8"
       >
