@@ -9,10 +9,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const CALENDAR_URL =
-  "https://calendar.google.com/calendar/embed?src=info%40southbayjudo.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showCalendars=0";
+  "https://calendar.google.com/calendar/embed?src=events%40southbayjudo.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showCalendars=0";
+
+const NEWSLETTER_ARCHIVE_URL =
+  "https://drive.google.com/drive/folders/18E_ztIqbbS1HXj9GlnOUreF6KQWsAnk2";
 
 export default async function EventsPage() {
-  const newsletter = (await getEventDocument()) ?? DEFAULT_EVENT_DOCUMENT;
+  const savedNewsletter = await getEventDocument();
+  const newsletter =
+    savedNewsletter && new Date(savedNewsletter.uploadedAt) > new Date(DEFAULT_EVENT_DOCUMENT.uploadedAt)
+      ? savedNewsletter
+      : DEFAULT_EVENT_DOCUMENT;
 
   return (
     <main className="mx-auto max-w-[1500px] px-4 py-10 sm:px-6 sm:py-16">
@@ -43,7 +50,7 @@ export default async function EventsPage() {
           loading="lazy"
         />
         <p className="mt-3 text-sm text-ink/55">
-          Calendar updates are managed through the info@southbayjudo.com Google Calendar.
+          Calendar updates are managed through the events@southbayjudo.com Google Calendar.
         </p>
       </section>
 
@@ -66,10 +73,12 @@ export default async function EventsPage() {
                 Open newsletter
               </a>
               <a
-                href={newsletter.downloadUrl || newsletter.url}
+                href={NEWSLETTER_ARCHIVE_URL}
+                target="_blank"
+                rel="noreferrer"
                 className="bg-belt px-5 py-2.5 font-display text-lg text-card"
               >
-                Download PDF
+                View all newsletters
               </a>
             </div>
           </div>

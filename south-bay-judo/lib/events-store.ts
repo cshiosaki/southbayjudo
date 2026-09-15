@@ -7,11 +7,11 @@ export interface EventDocument {
 }
 
 export const DEFAULT_EVENT_DOCUMENT: EventDocument = {
-  title: "South Bay Judo Newsletter — August 2026",
-  url: "/events/south-bay-judo-newsletter-august-2026.pdf",
-  downloadUrl: "/events/south-bay-judo-newsletter-august-2026.pdf",
-  pathname: "events/south-bay-judo-newsletter-august-2026.pdf",
-  uploadedAt: "2026-07-31T15:49:56.000Z",
+  title: "South Bay Judo Newsletter — September 2026",
+  url: "https://drive.google.com/file/d/1hq66-9dbFcP3xzFGdkO_pfr2FS3rxxGJ/view",
+  downloadUrl: "https://drive.google.com/uc?export=download&id=1hq66-9dbFcP3xzFGdkO_pfr2FS3rxxGJ",
+  pathname: "google-drive/1hq66-9dbFcP3xzFGdkO_pfr2FS3rxxGJ",
+  uploadedAt: "2026-09-15T12:33:58.268Z",
 };
 
 export async function getEventDocument(): Promise<EventDocument | null> {
