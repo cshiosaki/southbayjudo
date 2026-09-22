@@ -201,6 +201,10 @@ export default function RegisterPage() {
     !namesLikelyMatch(usjfQuery, draft.firstName, draft.lastName) &&
     !draft.membershipMismatchConfirmed;
   const draftClassTime = classTimes.find((c) => c.id === draft.classTimeId);
+  const isHolidaySession = draft.sessionId === "sess_5q" || draft.sessionId === "sess_2027_5q";
+  const availableClassTimes = isHolidaySession
+    ? classTimes.filter((c) => c.id === "ct1" || c.id === "ct2")
+    : classTimes;
   const stepIndex = STUDENT_STEPS.indexOf(step);
 
   const positions = familyPositions(students);
@@ -653,7 +657,7 @@ export default function RegisterPage() {
                     type="radio"
                     name="session"
                     checked={draft.sessionId === s.id}
-                    onChange={() => setDraft({ ...draft, sessionId: s.id })}
+                    onChange={() => setDraft({ ...draft, sessionId: s.id, classTimeId: "" })}
                     disabled={s.registrationOpen === false || (!s.allowNew && draft.isNewStudent)}
                   />
                   <span>
@@ -681,20 +685,28 @@ export default function RegisterPage() {
 
           <h3 className="font-display text-xl mb-4">Class time (by age)</h3>
           <div className="space-y-px bg-ink/10 mb-10">
-            {classTimes.map((c) => (
-              <label key={c.id} className="flex items-center gap-3 bg-card p-4 cursor-pointer">
-                <input
-                  type="radio"
-                  name="classtime"
-                  checked={draft.classTimeId === c.id}
-                  onChange={() => setDraft({ ...draft, classTimeId: c.id })}
-                />
-                <span>
-                  <span className="font-display text-lg block leading-tight">{c.label} — {c.age}</span>
-                  <span className="text-xs text-ink/60">{c.time}</span>
-                </span>
-              </label>
-            ))}
+            {availableClassTimes.map((c) => {
+              const holidayAge =
+                isHolidaySession && c.id === "ct1"
+                  ? "12 and under"
+                  : isHolidaySession && c.id === "ct2"
+                    ? "13 and above"
+                    : c.age;
+              return (
+                <label key={c.id} className="flex items-center gap-3 bg-card p-4 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="classtime"
+                    checked={draft.classTimeId === c.id}
+                    onChange={() => setDraft({ ...draft, classTimeId: c.id })}
+                  />
+                  <span>
+                    <span className="font-display text-lg block leading-tight">{c.label} — {holidayAge}</span>
+                    <span className="text-xs text-ink/60">{c.time}</span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           <div className="flex gap-4">
