@@ -13,9 +13,9 @@
  * - A RETURNING student who is joining late, transferring from another
  *   club, or coming back after a break gets prorated at $10/class instead
  *   of the family-tier price, capped at the 1st-student price.
- * - The Holiday session is flat-priced (not family-tiered), since it's a
- *   different kind of program (conditioning/competition, returning
- *   students only).
+ * - The Holiday session uses the same family-tier pricing as a regular
+ *   session, but offers only two age-based class choices and remains
+ *   returning-students-only.
  */
 
 export interface SessionConfig {
@@ -56,8 +56,10 @@ export const SESSIONS: SessionConfig[] = [
     note: "No class Nov 26. Returning students only.",
     registrationOpen: true,
     allowNew: false,
-    pricingMode: "flat",
-    flatPrice: 120,
+    pricingMode: "family_tier",
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
   },
   {
     id: "sess_2027_1q",
@@ -123,8 +125,10 @@ export const SESSIONS: SessionConfig[] = [
     note: "Holiday Session meets Nov 2 & 4, then Nov 9–Dec 16; no class Nov 11 or Nov 25. Class times: 6:00–7:30pm and 7:45–9:15pm. Returning students only.",
     registrationOpen: false,
     allowNew: false,
-    pricingMode: "flat",
-    flatPrice: 120,
+    pricingMode: "family_tier",
+    familyTierFirst: 200,
+    familyTierSecond: 180,
+    familyTierThirdPlus: 160,
     priceLabelOverride: "Pricing to be announced",
   },
 ];
