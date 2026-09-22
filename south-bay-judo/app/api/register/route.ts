@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
       const classTime = config.classTimes.find((item) => item.id === classTimeId);
       if (!session || !classTime) throw new Error("A selected session or class time is no longer available.");
       if (session.registrationOpen === false) throw new Error(`Registration is not open for ${session.label}.`);
+      const isHolidaySession = sessionId === "sess_5q" || sessionId === "sess_2027_5q";
+      if (isHolidaySession && classTimeId !== "ct1" && classTimeId !== "ct2") {
+        throw new Error("Holiday Session only offers Class 1 (12 and under) and Class 2 (13 and above).");
+      }
 
       const firstName = text(student.firstName);
       const lastName = text(student.lastName);
