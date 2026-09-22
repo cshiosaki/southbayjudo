@@ -56,6 +56,10 @@ export async function getSiteConfig(): Promise<SiteConfig> {
           storedSession.familyTierFirst === 180 &&
           storedSession.familyTierSecond === 160 &&
           storedSession.familyTierThirdPlus === 140;
+        const hasLegacyHolidayFlatPricing =
+          isHolidaySession &&
+          storedSession?.pricingMode === "flat" &&
+          storedSession.flatPrice === 120;
         return {
           ...session,
           ...(storedSession || {}),
@@ -64,8 +68,10 @@ export async function getSiteConfig(): Promise<SiteConfig> {
           ...(isHolidaySession ? { label: session.label, note: session.note } : {}),
           // Migrate the previous 180/160/140 family tiers while preserving
           // any different prices intentionally saved later in Admin.
-          ...(hasLegacyFamilyPricing
+          ...(hasLegacyFamilyPricing || hasLegacyHolidayFlatPricing
             ? {
+                pricingMode: session.pricingMode,
+                flatPrice: session.flatPrice,
                 familyTierFirst: session.familyTierFirst,
                 familyTierSecond: session.familyTierSecond,
                 familyTierThirdPlus: session.familyTierThirdPlus,
