@@ -21,10 +21,17 @@ export default function VisitorPage() {
     hasMedicalConditions: "" as "yes" | "no" | "",
     medicalNotes: "",
   });
+  const [passPurchased, setPassPurchased] = useState(false);
   const [isMinor, setIsMinor] = useState<"yes" | "no" | "">("");
   const [guardianRelationship, setGuardianRelationship] = useState("");
   const [signedByName, setSignedByName] = useState("");
   const [done, setDone] = useState(false);
+
+  const needsOneMonthPass = form.membershipOrg === "USJF_1_MONTH";
+  const hasAcceptedMembership =
+    form.membershipOrg === "USJF" ||
+    form.membershipOrg === "USA_JUDO" ||
+    (needsOneMonthPass && passPurchased);
 
   if (done) {
     return (
@@ -43,7 +50,8 @@ export default function VisitorPage() {
     <main className="max-w-xl mx-auto px-6 py-16">
       <h1 className="font-display text-5xl mb-2">Visitor Check-In</h1>
       <p className="text-ink/60 mb-10">
-        For students dropping in from another dojo — no session sign-up needed, just a quick waiver.
+        For students dropping in from another dojo. Visitors must have a current USJF or USA Judo
+        membership. If you have neither, a USJF one-month membership is required before checking in.
       </p>
 
       <fieldset>
@@ -58,13 +66,107 @@ export default function VisitorPage() {
             onChange={(e) => setForm({ ...form, homeDojo: e.target.value })}
           />
         </label>
-        <select onChange={(e) => setForm({ ...form, membershipOrg: e.target.value })} defaultValue="USJF">
-          <option value="">No current membership</option>
-          <option value="USJF">USJF</option>
-          <option value="USA_JUDO">USA Judo</option>
-          <option value="OTHER">Other</option>
-        </select>
-        <input placeholder="Membership ID (if any)" onChange={(e) => setForm({ ...form, membershipId: e.target.value })} />
+
+        <div className="mb-5">
+          <p className="font-display text-lg mb-1">Judo membership</p>
+          <p className="text-sm text-ink/65 mb-3">
+            Select the membership that covers this visit.
+          </p>
+          <div className="space-y-3">
+            <label className={`flex items-start gap-3 border p-4 cursor-pointer ${form.membershipOrg === "USJF" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+              <input
+                name="membershipOrg"
+                type="radio"
+                checked={form.membershipOrg === "USJF"}
+                onChange={() => {
+                  setForm({ ...form, membershipOrg: "USJF", membershipId: "" });
+                  setPassPurchased(false);
+                }}
+              />
+              <span>
+                <strong className="block font-medium">Current USJF membership</strong>
+                <span className="block text-sm text-ink/60">Enter the student's current USJF member number below.</span>
+              </span>
+            </label>
+
+            <label className={`flex items-start gap-3 border p-4 cursor-pointer ${form.membershipOrg === "USA_JUDO" ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+              <input
+                name="membershipOrg"
+                type="radio"
+                checked={form.membershipOrg === "USA_JUDO"}
+                onChange={() => {
+                  setForm({ ...form, membershipOrg: "USA_JUDO", membershipId: "" });
+                  setPassPurchased(false);
+                }}
+              />
+              <span>
+                <strong className="block font-medium">Current USA Judo membership</strong>
+                <span className="block text-sm text-ink/60">Enter the student's current USA Judo member number below.</span>
+              </span>
+            </label>
+
+            <label className={`flex items-start gap-3 border p-4 cursor-pointer ${needsOneMonthPass ? "border-belt bg-card" : "border-ink/20 bg-card/50"}`}>
+              <input
+                name="membershipOrg"
+                type="radio"
+                checked={needsOneMonthPass}
+                onChange={() => {
+                  setForm({ ...form, membershipOrg: "USJF_1_MONTH", membershipId: "" });
+                  setPassPurchased(false);
+                }}
+              />
+              <span>
+                <strong className="block font-medium">I need a USJF one-month membership</strong>
+                <span className="block text-sm text-ink/60">
+                  Required for visitors who do not currently have USJF or USA Judo membership.
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {form.membershipOrg && (
+          <div className="mb-5">
+            {needsOneMonthPass && (
+              <div className="border border-belt/40 bg-card p-4 mb-3">
+                <p className="font-display text-lg text-belt mb-2">Purchase your USJF membership first</p>
+                <p className="text-sm text-ink/70 mb-3">
+                  Complete the USJF one-month membership process before finishing visitor check-in.
+                </p>
+                <a
+                  href="https://www.usjf.com/membership-program/short-membership/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block bg-belt text-card px-4 py-2 font-display tracking-wide"
+                >
+                  Open USJF membership page
+                </a>
+                <label className="mt-4 flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={passPurchased}
+                    onChange={(e) => setPassPurchased(e.target.checked)}
+                  />
+                  <span>I have completed the required USJF one-month membership.</span>
+                </label>
+              </div>
+            )}
+
+            <input
+              required
+              placeholder={
+                form.membershipOrg === "USA_JUDO"
+                  ? "USA Judo membership ID"
+                  : needsOneMonthPass
+                    ? "USJF membership ID from one-month membership"
+                    : "USJF membership ID"
+              }
+              value={form.membershipId}
+              onChange={(e) => setForm({ ...form, membershipId: e.target.value })}
+            />
+          </div>
+        )}
+
         <input placeholder="Emergency contact name" onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })} />
         <input placeholder="Emergency contact phone" onChange={(e) => setForm({ ...form, emergencyPhone: e.target.value })} />
       </fieldset>
@@ -163,6 +265,8 @@ export default function VisitorPage() {
           !form.firstName ||
           !form.lastName ||
           !form.homeDojo ||
+          !hasAcceptedMembership ||
+          !form.membershipId.trim() ||
           !form.hasMedicalConditions ||
           (form.hasMedicalConditions === "yes" && !form.medicalNotes.trim()) ||
           !signedByName.trim() ||
