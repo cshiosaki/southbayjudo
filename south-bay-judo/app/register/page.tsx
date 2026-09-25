@@ -919,10 +919,16 @@ export default function RegisterPage() {
             {availableClassTimes.map((c) => {
               const holidayAge =
                 isHolidaySession && c.id === "ct1"
-                  ? "12 and under"
+                  ? "Juniors"
                   : isHolidaySession && c.id === "ct2"
-                    ? "13 and above"
+                    ? "Older Youth & Seniors"
                     : c.age;
+              const displayedTime =
+                isHolidaySession && c.id === "ct1"
+                  ? "5:45–6:00pm check-in/setup · 6:00–7:30pm workout"
+                  : isHolidaySession && c.id === "ct2"
+                    ? "7:45–9:15pm workout · 9:15–9:30pm cleanup/takedown"
+                    : c.time;
               return (
                 <label key={c.id} className="flex items-center gap-3 bg-card p-4 cursor-pointer">
                   <input
@@ -933,7 +939,7 @@ export default function RegisterPage() {
                   />
                   <span>
                     <span className="font-display text-lg block leading-tight">{c.label} — {holidayAge}</span>
-                    <span className="text-xs text-ink/60">{c.time}</span>
+                    <span className="text-xs text-ink/60">{displayedTime}</span>
                   </span>
                 </label>
               );
