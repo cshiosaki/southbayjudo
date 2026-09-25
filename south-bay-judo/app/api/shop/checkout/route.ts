@@ -24,6 +24,22 @@ const FIXED_ITEMS: Record<string, { name: string; price: number }> = {
   dummy_6: { name: "Practice Dummy — 6 ft", price: 70 },
   duffle_s: { name: "Judo Duffle Bag — Small", price: 65 },
   duffle_l: { name: "Judo Duffle Bag — Large", price: 75 },
+  tshirt_ys: { name: "T-Shirt — Youth Small", price: 15 },
+  tshirt_ym: { name: "T-Shirt — Youth Medium", price: 15 },
+  tshirt_yl: { name: "T-Shirt — Youth Large", price: 16 },
+  tshirt_as: { name: "T-Shirt — Adult Small", price: 18 },
+  tshirt_am: { name: "T-Shirt — Adult Medium", price: 18 },
+  tshirt_al: { name: "T-Shirt — Adult Large", price: 19 },
+  tshirt_axl: { name: "T-Shirt — Adult XL", price: 20 },
+  tshirt_axxl: { name: "T-Shirt — Adult XXL", price: 22 },
+  sweat_ys: { name: "Sweatshirt — Youth Small", price: 25 },
+  sweat_ym: { name: "Sweatshirt — Youth Medium", price: 25 },
+  sweat_yl: { name: "Sweatshirt — Youth Large", price: 26 },
+  sweat_as: { name: "Sweatshirt — Adult Small", price: 28 },
+  sweat_am: { name: "Sweatshirt — Adult Medium", price: 28 },
+  sweat_al: { name: "Sweatshirt — Adult Large", price: 29 },
+  sweat_axl: { name: "Sweatshirt — Adult XL", price: 30 },
+  sweat_axxl: { name: "Sweatshirt — Adult XXL", price: 32 },
 };
 
 function clean(value: unknown) {
