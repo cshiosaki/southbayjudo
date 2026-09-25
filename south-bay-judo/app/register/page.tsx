@@ -608,70 +608,70 @@ export default function RegisterPage() {
           </div>
 
           <section className="mb-8">
-            <h3 className="font-display text-3xl mb-4">Additional Apparel</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-card border border-ink/10 p-4">
-                <p className="text-sm font-semibold mb-2">T-Shirt</p>
-                <div className="flex gap-2">
-                  <select id="tshirt-select" className="flex-1">
-                    {TSHIRT_SIZES.map((d) => (
-                      <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="border border-ink/30 px-3 text-sm"
-                    onClick={() => {
-                      const el = document.getElementById("tshirt-select") as HTMLSelectElement;
-                      setTshirtOrders([...tshirtOrders, el.value]);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-              <div className="bg-card border border-ink/10 p-4">
-                <p className="text-sm font-semibold mb-2">Sweatshirt</p>
-                <div className="flex gap-2">
-                  <select id="sweatshirt-select" className="flex-1">
-                    {SWEATSHIRT_SIZES.map((d) => (
-                      <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="border border-ink/30 px-3 text-sm"
-                    onClick={() => {
-                      const el = document.getElementById("sweatshirt-select") as HTMLSelectElement;
-                      setSweatshirtOrders([...sweatshirtOrders, el.value]);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-              {(tshirtOrders.length > 0 || sweatshirtOrders.length > 0) && (
-                <ul className="sm:col-span-2 text-sm space-y-2 border border-ink/10 bg-card p-4">
-                  {tshirtOrders.map((id, i) => (
-                    <li key={`t${i}`} className="flex justify-between gap-4">
-                      <span>T-Shirt — {TSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
-                      <span className="flex items-center gap-2">
-                        ${TSHIRT_SIZES.find((d) => d.id === id)?.price}
-                        <button type="button" onClick={() => setTshirtOrders(tshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                      </span>
-                    </li>
-                  ))}
-                  {sweatshirtOrders.map((id, i) => (
-                    <li key={`w${i}`} className="flex justify-between gap-4">
-                      <span>Sweatshirt — {SWEATSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
-                      <span className="flex items-center gap-2">
-                        ${SWEATSHIRT_SIZES.find((d) => d.id === id)?.price}
-                        <button type="button" onClick={() => setSweatshirtOrders(sweatshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <h3 className="font-display text-3xl mb-4">T-Shirts</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {TSHIRT_SIZES.map((item) => {
+                const qty = tshirtOrders.filter((id) => id === item.id).length;
+                return (
+                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{item.label}</p>
+                      <p className="text-belt font-display text-xl">${item.price}</p>
+                    </div>
+                    <label className="text-sm text-right">
+                      <span className="block mb-1 text-ink/60">Qty</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={qty}
+                        onChange={(e) => {
+                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
+                          setTshirtOrders([
+                            ...tshirtOrders.filter((id) => id !== item.id),
+                            ...Array(count).fill(item.id),
+                          ]);
+                        }}
+                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h3 className="font-display text-3xl mb-4">Sweatshirts</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {SWEATSHIRT_SIZES.map((item) => {
+                const qty = sweatshirtOrders.filter((id) => id === item.id).length;
+                return (
+                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{item.label}</p>
+                      <p className="text-belt font-display text-xl">${item.price}</p>
+                    </div>
+                    <label className="text-sm text-right">
+                      <span className="block mb-1 text-ink/60">Qty</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={qty}
+                        onChange={(e) => {
+                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
+                          setSweatshirtOrders([
+                            ...sweatshirtOrders.filter((id) => id !== item.id),
+                            ...Array(count).fill(item.id),
+                          ]);
+                        }}
+                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
+                      />
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
