@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
 import {
   GI_SIZES,
+  GI_PURCHASE_SIZES,
   DUMMY_SIZES,
   DUFFLE_SIZES,
   TSHIRT_SIZES,
@@ -157,6 +158,13 @@ export default function RegisterPage() {
   const [classTimes, setClassTimes] = useState<ClassTimeConfig[]>([]);
   const [configLoading, setConfigLoading] = useState(true);
 
+  const [giOrders, setGiOrders] = useState<string[]>([]);
+  const [giPicker, setGiPicker] = useState("");
+  const [giPickerQty, setGiPickerQty] = useState(1);
+  const [tshirtPicker, setTshirtPicker] = useState("");
+  const [tshirtPickerQty, setTshirtPickerQty] = useState(1);
+  const [sweatshirtPicker, setSweatshirtPicker] = useState("");
+  const [sweatshirtPickerQty, setSweatshirtPickerQty] = useState(1);
   const [dummyOrders, setDummyOrders] = useState<string[]>([]); // sizeIds, one per unit ordered
   const [duffleOrders, setDuffleOrders] = useState<string[]>([]);
   const [tshirtOrders, setTshirtOrders] = useState<string[]>([]);
@@ -211,7 +219,9 @@ export default function RegisterPage() {
 
   const positions = familyPositions(students);
   const sessionFeeTotal = students.reduce((sum, s) => sum + sessionFeeFor(s, sessions.find((x) => x.id === s.sessionId), positions[s.id]), 0);
-  const giTotal = students.reduce((sum, s) => sum + (GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0), 0);
+  const giTotal =
+    students.reduce((sum, s) => sum + (GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0), 0) +
+    giOrders.reduce((sum, id) => sum + (GI_PURCHASE_SIZES.find((g) => g.id === id)?.price ?? 0), 0);
 
   const noMembershipCount = students.filter(needsUsjfMembership).length;
 
@@ -275,6 +285,7 @@ export default function RegisterPage() {
             };
           }),
           familyExtras: {
+            giOrderIds: giOrders,
             dummyOrderIds: dummyOrders,
             duffleOrderIds: duffleOrders,
             tshirtOrderIds: tshirtOrders,
@@ -502,49 +513,55 @@ export default function RegisterPage() {
                 <h3 className="font-display text-3xl">Judo Gi</h3>
                 <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
               </div>
-              <a
-                href="/images/fuji-judo-gi-size-chart.png"
-                target="_blank"
-                className="text-sm underline decoration-belt decoration-2 underline-offset-2"
-              >
+              <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">
                 View size chart
               </a>
             </div>
-            <div className="space-y-3">
-              {students.map((s) => {
-                const gi = GI_SIZES.find((g) => g.id === s.giSizeId);
-                return (
-                  <div key={`gi-review-${s.id}`} className="bg-card border border-ink/10 p-4">
-                    <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-                      <div>
-                        <p className="text-xs text-ink/60 mb-1">Student</p>
-                        <p className="font-semibold">{s.firstName} {s.lastName}</p>
-                      </div>
-                      <label className="text-sm">
-                        <span className="block mb-1 text-ink/60">Gi size</span>
-                        <select
-                          value={s.giSizeId}
-                          onChange={(e) =>
-                            setStudents(students.map((student) =>
-                              student.id === s.id ? { ...student, giSizeId: e.target.value } : student
-                            ))
-                          }
-                          className="w-full"
-                        >
-                          <option value="">No gi needed</option>
-                          {GI_SIZES.map((g) => (
-                            <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <div className="sm:text-right min-w-20">
-                        <p className="text-xs text-ink/60 mb-1">Price</p>
-                        <p className="text-belt font-display text-2xl">{gi ? `$${gi.price}` : "—"}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Gi size</span>
+                  <select value={giPicker} onChange={(e) => setGiPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {GI_PURCHASE_SIZES.map((g) => (
+                      <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={giPickerQty}
+                    onChange={(e) => setGiPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!giPicker}
+                  onClick={() => {
+                    if (!giPicker) return;
+                    setGiOrders([...giOrders, ...Array(giPickerQty).fill(giPicker)]);
+                    setGiPicker("");
+                    setGiPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">
+                  Add to cart
+                </button>
+              </div>
+              {giOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {GI_PURCHASE_SIZES.filter((g) => giOrders.includes(g.id)).map((g) => {
+                    const qty = giOrders.filter((id) => id === g.id).length;
+                    return (
+                      <li key={g.id} className="flex items-center justify-between gap-4">
+                        <span>{g.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${g.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setGiOrders(giOrders.filter((id) => id !== g.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </div>
 
@@ -618,69 +635,97 @@ export default function RegisterPage() {
 
           <section className="mb-8">
             <h3 className="font-display text-3xl mb-4">T-Shirts</h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {TSHIRT_SIZES.map((item) => {
-                const qty = tshirtOrders.filter((id) => id === item.id).length;
-                return (
-                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{item.label}</p>
-                      <p className="text-belt font-display text-xl">${item.price}</p>
-                    </div>
-                    <label className="text-sm text-right">
-                      <span className="block mb-1 text-ink/60">Qty</span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={20}
-                        value={qty}
-                        onChange={(e) => {
-                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
-                          setTshirtOrders([
-                            ...tshirtOrders.filter((id) => id !== item.id),
-                            ...Array(count).fill(item.id),
-                          ]);
-                        }}
-                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
-                      />
-                    </label>
-                  </div>
-                );
-              })}
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Size</span>
+                  <select value={tshirtPicker} onChange={(e) => setTshirtPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {TSHIRT_SIZES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={tshirtPickerQty}
+                    onChange={(e) => setTshirtPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!tshirtPicker}
+                  onClick={() => {
+                    if (!tshirtPicker) return;
+                    setTshirtOrders([...tshirtOrders, ...Array(tshirtPickerQty).fill(tshirtPicker)]);
+                    setTshirtPicker("");
+                    setTshirtPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+              </div>
+              {tshirtOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {TSHIRT_SIZES.filter((item) => tshirtOrders.includes(item.id)).map((item) => {
+                    const qty = tshirtOrders.filter((id) => id === item.id).length;
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-4">
+                        <span>{item.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${item.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setTshirtOrders(tshirtOrders.filter((id) => id !== item.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </section>
 
           <section className="mb-8">
             <h3 className="font-display text-3xl mb-4">Sweatshirts</h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {SWEATSHIRT_SIZES.map((item) => {
-                const qty = sweatshirtOrders.filter((id) => id === item.id).length;
-                return (
-                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{item.label}</p>
-                      <p className="text-belt font-display text-xl">${item.price}</p>
-                    </div>
-                    <label className="text-sm text-right">
-                      <span className="block mb-1 text-ink/60">Qty</span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={20}
-                        value={qty}
-                        onChange={(e) => {
-                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
-                          setSweatshirtOrders([
-                            ...sweatshirtOrders.filter((id) => id !== item.id),
-                            ...Array(count).fill(item.id),
-                          ]);
-                        }}
-                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
-                      />
-                    </label>
-                  </div>
-                );
-              })}
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Size</span>
+                  <select value={sweatshirtPicker} onChange={(e) => setSweatshirtPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {SWEATSHIRT_SIZES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={sweatshirtPickerQty}
+                    onChange={(e) => setSweatshirtPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!sweatshirtPicker}
+                  onClick={() => {
+                    if (!sweatshirtPicker) return;
+                    setSweatshirtOrders([...sweatshirtOrders, ...Array(sweatshirtPickerQty).fill(sweatshirtPicker)]);
+                    setSweatshirtPicker("");
+                    setSweatshirtPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+              </div>
+              {sweatshirtOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {SWEATSHIRT_SIZES.filter((item) => sweatshirtOrders.includes(item.id)).map((item) => {
+                    const qty = sweatshirtOrders.filter((id) => id === item.id).length;
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-4">
+                        <span>{item.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${item.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setSweatshirtOrders(sweatshirtOrders.filter((id) => id !== item.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </section>
 
