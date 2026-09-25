@@ -103,7 +103,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
     (student) => student.needsUsjfMembership ?? student.membershipStatus === "none"
   );
   const membershipNotice = needsMembership
-    ? `<div style="margin:24px 0;padding:14px 16px;background:#fff4ee;border-left:4px solid #9c2f1b;color:#612014"><strong>Action required: Complete USJF membership</strong><br /><span style="font-size:14px">South Bay Judo has not enrolled the participant. You must complete signup directly through the official USJF website before the first class.</span><br /><a href="https://www.usjf.com/membership-program/" style="display:inline-block;margin-top:12px;padding:9px 13px;background:#9c2f1b;color:#fff;text-decoration:none;font-weight:bold">Go to the USJF membership signup page</a></div>`
+    ? `<div style="margin:24px 0;padding:14px 16px;background:#fff4ee;border-left:4px solid #9c2f1b;color:#612014"><strong>Action required: Verify USJF membership</strong><br /><span style="font-size:14px">The participant is enrolled with South Bay Judo. Proof of current USJF membership must be provided before the first class. If membership still needs to be obtained or renewed, use the official USJF website below.</span><br /><a href="https://www.usjf.com/membership-program/" style="display:inline-block;margin-top:12px;padding:9px 13px;background:#9c2f1b;color:#fff;text-decoration:none;font-weight:bold">Go to the USJF membership page</a></div>`
     : "";
 
   const isPaid = opts.receipt.paymentStatus === "Paid";
@@ -147,7 +147,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
   ]);
   const gearLines = opts.receipt.gearItems.map((item) => `${item.label}: ${money(item.price)}`);
   const membershipText = needsMembership
-    ? "\n\nACTION REQUIRED: South Bay Judo has not enrolled the participant in USJF. Complete membership signup before the first class at: https://www.usjf.com/membership-program/"
+    ? "\n\nACTION REQUIRED: The participant is enrolled with South Bay Judo. Proof of current USJF membership must be provided before the first class. If membership still needs to be obtained or renewed, visit: https://www.usjf.com/membership-program/"
     : "";
   const text = `Hi ${opts.guardianName},\n\nWe received your South Bay Judo registration${isPaid ? " and payment" : ""}.\n\nReceipt: ${opts.receipt.receiptNumber}\nRegistered: ${opts.receipt.registeredAt}\nStatus: ${opts.receipt.paymentStatus}\n\n${[...studentLines, ...gearLines].join("\n")}\n\nTotal: ${money(opts.receipt.total)}\n\n${statusDetail}${membershipText}\n\nQuestions? Reply to this email or call (424) 392-4732.\n\nSouth Bay Judo`;
 
