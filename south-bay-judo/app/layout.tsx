@@ -23,6 +23,7 @@ const NAV = [
   { href: "/events", label: "Events" },
   { href: "/schedule", label: "Schedule" },
   { href: "/register", label: "Register" },
+  { href: "/shop", label: "Order Gear" },
   { href: "/visitor", label: "Visitor Check-In" },
 ];
 
