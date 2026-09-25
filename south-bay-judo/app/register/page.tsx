@@ -607,10 +607,10 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <details className="mb-8 border border-ink/15 bg-card">
-            <summary className="cursor-pointer p-4 font-display text-xl">Additional apparel</summary>
-            <div className="border-t border-ink/10 p-4 grid sm:grid-cols-2 gap-4">
-              <div>
+          <section className="mb-8">
+            <h3 className="font-display text-3xl mb-4">Additional Apparel</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-card border border-ink/10 p-4">
                 <p className="text-sm font-semibold mb-2">T-Shirt</p>
                 <div className="flex gap-2">
                   <select id="tshirt-select" className="flex-1">
@@ -630,7 +630,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
-              <div>
+              <div className="bg-card border border-ink/10 p-4">
                 <p className="text-sm font-semibold mb-2">Sweatshirt</p>
                 <div className="flex gap-2">
                   <select id="sweatshirt-select" className="flex-1">
@@ -651,7 +651,7 @@ export default function RegisterPage() {
                 </div>
               </div>
               {(tshirtOrders.length > 0 || sweatshirtOrders.length > 0) && (
-                <ul className="sm:col-span-2 text-sm space-y-2 border-t border-ink/10 pt-4">
+                <ul className="sm:col-span-2 text-sm space-y-2 border border-ink/10 bg-card p-4">
                   {tshirtOrders.map((id, i) => (
                     <li key={`t${i}`} className="flex justify-between gap-4">
                       <span>T-Shirt — {TSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
@@ -673,7 +673,7 @@ export default function RegisterPage() {
                 </ul>
               )}
             </div>
-          </details>
+          </section>
 
           <div className="bg-card border-t-4 border-belt p-6 sm:p-8">
             <h3 className="font-display text-3xl mb-2">Other / Special Purchase</h3>
