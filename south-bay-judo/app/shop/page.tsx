@@ -55,7 +55,11 @@ export default function ShopPage() {
   const [phone, setPhone] = useState("");
   const [studentName, setStudentName] = useState("");
   const [giSizeId, setGiSizeId] = useState("");
-  const [giQuantity, setGiQuantity] = useState(0);
+  const [giQuantity, setGiQuantity] = useState(1);
+  const [tshirtSizeId, setTshirtSizeId] = useState("");
+  const [tshirtQuantity, setTshirtQuantity] = useState(1);
+  const [sweatshirtSizeId, setSweatshirtSizeId] = useState("");
+  const [sweatshirtQuantity, setSweatshirtQuantity] = useState(1);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [customDescription, setCustomDescription] = useState("");
   const [customAmount, setCustomAmount] = useState("");
@@ -63,12 +67,10 @@ export default function ShopPage() {
   const [error, setError] = useState("");
 
   const total = useMemo(() => {
-    const fixed = OPTIONS.filter((item) => item.group !== "Judo Gi").reduce((sum, item) => sum + item.price * (quantities[item.id] || 0), 0);
-    const gi = OPTIONS.find((item) => item.id === giSizeId);
-    const giTotal = gi ? gi.price * giQuantity : 0;
+    const fixed = OPTIONS.reduce((sum, item) => sum + item.price * (quantities[item.id] || 0), 0);
     const custom = Number(customAmount);
-    return fixed + giTotal + (customDescription.trim() && Number.isFinite(custom) && custom > 0 ? custom : 0);
-  }, [quantities, giSizeId, giQuantity, customAmount, customDescription]);
+    return fixed + (customDescription.trim() && Number.isFinite(custom) && custom > 0 ? custom : 0);
+  }, [quantities, customAmount, customDescription]);
 
   function setQty(id: string, value: number) {
     const quantity = Math.max(0, Math.min(20, Math.floor(value || 0)));
@@ -87,10 +89,7 @@ export default function ShopPage() {
           email,
           phone,
           studentName,
-          items: [
-            ...(giSizeId && giQuantity > 0 ? [{ id: giSizeId, quantity: giQuantity }] : []),
-            ...OPTIONS.filter((item) => item.group !== "Judo Gi").map((item) => ({ id: item.id, quantity: quantities[item.id] || 0 })).filter((item) => item.quantity > 0),
-          ],
+          items: OPTIONS.map((item) => ({ id: item.id, quantity: quantities[item.id] || 0 })).filter((item) => item.quantity > 0),
           customDescription,
           customAmount,
         }),
@@ -106,7 +105,7 @@ export default function ShopPage() {
     }
   }
 
-  const groups = ["Judo Gi", "Practice Dummy", "Duffle Bag", "T-Shirt", "Sweatshirt"];
+  const groups = ["Practice Dummy", "Duffle Bag"];
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
@@ -138,20 +137,18 @@ export default function ShopPage() {
         </div>
       </section>
 
-      <section className="mb-8">
+            <section className="mb-8">
         <div className="flex items-end justify-between gap-4 mb-4">
           <div>
             <h2 className="font-display text-3xl">Judo Gi</h2>
             <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
           </div>
-          <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">
-            View size chart
-          </a>
+          <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">View size chart</a>
         </div>
         <div className="bg-card border border-ink/10 p-4">
-          <div className="grid sm:grid-cols-[1fr_120px_auto] gap-3 items-end">
+          <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
             <label className="text-sm">
-              <span className="block mb-1 text-ink/60">Gi size</span>
+              <span className="block mb-1 text-ink/60">Size</span>
               <select value={giSizeId} onChange={(e) => setGiSizeId(e.target.value)} className="w-full">
                 <option value="">Choose a size</option>
                 {OPTIONS.filter((item) => item.group === "Judo Gi").map((item) => (
@@ -161,47 +158,48 @@ export default function ShopPage() {
             </label>
             <label className="text-sm">
               <span className="block mb-1 text-ink/60">Qty</span>
-              <input
-                type="number"
-                min={0}
-                max={20}
-                value={giQuantity}
-                onChange={(e) => setGiQuantity(Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0))))}
-                className="w-full border border-ink/20 bg-white px-2 py-2 text-center"
-              />
+              <input type="number" min={1} max={20} value={giQuantity}
+                onChange={(e) => setGiQuantity(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
             </label>
-            <div className="sm:text-right min-w-24">
-              <p className="text-xs text-ink/60 mb-1">Price</p>
-              <p className="text-belt font-display text-2xl">
-                {giSizeId ? money(OPTIONS.find((item) => item.id === giSizeId)?.price || 0) : "—"}
-              </p>
-            </div>
+            <button type="button" disabled={!giSizeId}
+              onClick={() => {
+                if (!giSizeId) return;
+                setQuantities((current) => ({ ...current, [giSizeId]: (current[giSizeId] || 0) + giQuantity }));
+                setGiSizeId("");
+                setGiQuantity(1);
+              }}
+              className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
           </div>
+          {OPTIONS.filter((item) => item.group === "Judo Gi" && (quantities[item.id] || 0) > 0).length > 0 && (
+            <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+              {OPTIONS.filter((item) => item.group === "Judo Gi" && (quantities[item.id] || 0) > 0).map((item) => (
+                <li key={item.id} className="flex items-center justify-between gap-4">
+                  <span>{item.label} × {quantities[item.id]}</span>
+                  <span className="flex items-center gap-3">
+                    <strong>{money(item.price * quantities[item.id])}</strong>
+                    <button type="button" className="text-belt underline text-xs"
+                      onClick={() => setQuantities((current) => ({ ...current, [item.id]: 0 }))}>remove</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
-      {groups.filter((group) => group !== "Judo Gi").map((group) => (
+      {groups.map((group) => (
         <section key={group} className="mb-8">
-          <div className="mb-4">
-            <h2 className="font-display text-3xl">{group}</h2>
-          </div>
+          <div className="mb-4"><h2 className="font-display text-3xl">{group}</h2></div>
           <div className="grid sm:grid-cols-2 gap-3">
             {OPTIONS.filter((item) => item.group === group).map((item) => (
               <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-semibold">{item.label}</p>
-                  <p className="text-belt font-display text-xl">{money(item.price)}</p>
-                </div>
+                <div><p className="font-semibold">{item.label}</p><p className="text-belt font-display text-xl">{money(item.price)}</p></div>
                 <label className="text-sm text-right">
                   <span className="block mb-1 text-ink/60">Qty</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={20}
-                    value={quantities[item.id] || 0}
+                  <input type="number" min={0} max={20} value={quantities[item.id] || 0}
                     onChange={(e) => setQty(item.id, Number(e.target.value))}
-                    className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
-                  />
+                    className="w-20 border border-ink/20 bg-white px-2 py-2 text-center" />
                 </label>
               </div>
             ))}
@@ -209,7 +207,109 @@ export default function ShopPage() {
         </section>
       ))}
 
-      <section className="bg-card border-t-4 border-belt p-6 sm:p-8 mb-8">
+      <section className="mb-8">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 className="font-display text-3xl">T-Shirts</h2>
+            
+          </div>
+          
+        </div>
+        <div className="bg-card border border-ink/10 p-4">
+          <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Size</span>
+              <select value={tshirtSizeId} onChange={(e) => setTshirtSizeId(e.target.value)} className="w-full">
+                <option value="">Choose a size</option>
+                {OPTIONS.filter((item) => item.group === "T-Shirt").map((item) => (
+                  <option key={item.id} value={item.id}>{item.label} — {money(item.price)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Qty</span>
+              <input type="number" min={1} max={20} value={tshirtQuantity}
+                onChange={(e) => setTshirtQuantity(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+            </label>
+            <button type="button" disabled={!tshirtSizeId}
+              onClick={() => {
+                if (!tshirtSizeId) return;
+                setQuantities((current) => ({ ...current, [tshirtSizeId]: (current[tshirtSizeId] || 0) + tshirtQuantity }));
+                setTshirtSizeId("");
+                setTshirtQuantity(1);
+              }}
+              className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+          </div>
+          {OPTIONS.filter((item) => item.group === "T-Shirt" && (quantities[item.id] || 0) > 0).length > 0 && (
+            <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+              {OPTIONS.filter((item) => item.group === "T-Shirt" && (quantities[item.id] || 0) > 0).map((item) => (
+                <li key={item.id} className="flex items-center justify-between gap-4">
+                  <span>{item.label} × {quantities[item.id]}</span>
+                  <span className="flex items-center gap-3">
+                    <strong>{money(item.price * quantities[item.id])}</strong>
+                    <button type="button" className="text-belt underline text-xs"
+                      onClick={() => setQuantities((current) => ({ ...current, [item.id]: 0 }))}>remove</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 className="font-display text-3xl">Sweatshirts</h2>
+            
+          </div>
+          
+        </div>
+        <div className="bg-card border border-ink/10 p-4">
+          <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Size</span>
+              <select value={sweatshirtSizeId} onChange={(e) => setSweatshirtSizeId(e.target.value)} className="w-full">
+                <option value="">Choose a size</option>
+                {OPTIONS.filter((item) => item.group === "Sweatshirt").map((item) => (
+                  <option key={item.id} value={item.id}>{item.label} — {money(item.price)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Qty</span>
+              <input type="number" min={1} max={20} value={sweatshirtQuantity}
+                onChange={(e) => setSweatshirtQuantity(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+            </label>
+            <button type="button" disabled={!sweatshirtSizeId}
+              onClick={() => {
+                if (!sweatshirtSizeId) return;
+                setQuantities((current) => ({ ...current, [sweatshirtSizeId]: (current[sweatshirtSizeId] || 0) + sweatshirtQuantity }));
+                setSweatshirtSizeId("");
+                setSweatshirtQuantity(1);
+              }}
+              className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+          </div>
+          {OPTIONS.filter((item) => item.group === "Sweatshirt" && (quantities[item.id] || 0) > 0).length > 0 && (
+            <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+              {OPTIONS.filter((item) => item.group === "Sweatshirt" && (quantities[item.id] || 0) > 0).map((item) => (
+                <li key={item.id} className="flex items-center justify-between gap-4">
+                  <span>{item.label} × {quantities[item.id]}</span>
+                  <span className="flex items-center gap-3">
+                    <strong>{money(item.price * quantities[item.id])}</strong>
+                    <button type="button" className="text-belt underline text-xs"
+                      onClick={() => setQuantities((current) => ({ ...current, [item.id]: 0 }))}>remove</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+<section className="bg-card border-t-4 border-belt p-6 sm:p-8 mb-8">
         <h2 className="font-display text-3xl mb-2">Other / Special Purchase</h2>
         <p className="text-sm text-ink/65 mb-5">
           Use this only if instructed by South Bay Judo. Enter the item description and the agreed-upon amount.
