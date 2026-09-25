@@ -113,7 +113,7 @@ function blankStudent(): StudentEntry {
   };
 }
 
-type Step = "guardian" | "session" | "info" | "membership" | "waiver" | "review";
+type Step = "guardian" | "session" | "info" | "membership" | "waiver" | "review" | "gear";
 const STUDENT_STEPS: Step[] = ["session", "info", "membership", "waiver"];
 
 const orgLabel: Record<string, string> = {
@@ -457,7 +457,37 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <section className="mb-10">
+                <div className="bg-ink text-canvas p-5 flex justify-between items-center mb-6">
+          <span className="font-display text-xl">Registration subtotal</span>
+          <span className="font-display text-3xl text-gold">${sessionFeeTotal}</span>
+        </div>
+
+        <button
+          disabled={students.length === 0}
+          onClick={() => setStep("gear")}
+          className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+        >
+          Continue to Order Gear
+        </button>
+        <p className="mt-3 text-xs text-ink/55">
+          Gear is optional. On the next page you can add a gi, practice dummy, duffle bag, apparel, or a special purchase — or skip directly to payment.
+        </p>
+      </main>
+    );
+  }
+
+  if (step === "gear") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <div className="mb-10">
+          <p className="font-display uppercase tracking-[0.14em] text-belt mb-2">Registration · Optional merchandise</p>
+          <h1 className="font-display text-5xl mb-2">Order Gear</h1>
+          <p className="text-ink/60">
+            Add anything you need, or leave everything blank and continue to payment.
+          </p>
+        </div>
+
+<section className="mb-10">
           <div className="mb-7">
             <p className="font-display uppercase tracking-[0.14em] text-belt mb-2">Optional merchandise</p>
             <h2 className="font-display text-4xl mb-2">Order Gear</h2>
@@ -696,6 +726,15 @@ export default function RegisterPage() {
           Stripe Checkout supports credit cards, bank payments, Apple Pay, and Google Pay when available on your device.
         </p>
         {submitError && <p className="text-belt text-sm mt-4">{submitError}</p>}
+
+
+        <button
+          type="button"
+          onClick={() => setStep("review")}
+          className="mt-6 text-ink/60 underline font-display text-lg"
+        >
+          Back to registration review
+        </button>
       </main>
     );
   }
