@@ -113,6 +113,20 @@ export async function POST(req: NextRequest) {
       ...selectedGear(familyExtras?.sweatshirtOrderIds, SWEATSHIRT_SIZES, "Sweatshirt"),
     ];
 
+    const customDescription = text(familyExtras?.customDescription);
+    const customAmount = Number(familyExtras?.customAmount);
+    if (customDescription || customAmount) {
+      if (!customDescription) throw new Error("Enter a description for the Other / Special Purchase.");
+      if (!Number.isFinite(customAmount) || customAmount < 1 || customAmount > 5000) {
+        throw new Error("Other / Special Purchase amount must be between $1 and $5,000.");
+      }
+      gearItems.push({
+        id: "custom",
+        label: `Other / Special Purchase — ${customDescription.slice(0, 150)}`,
+        price: customAmount,
+      });
+    }
+
     const registeredAt = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Los_Angeles",
       year: "numeric",
