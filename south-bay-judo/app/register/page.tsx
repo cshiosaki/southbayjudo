@@ -500,9 +500,7 @@ export default function RegisterPage() {
             <div className="flex items-end justify-between gap-4 mb-4">
               <div>
                 <h3 className="font-display text-3xl">Judo Gi</h3>
-                <p className="text-sm text-ink/60 mt-1">
-                  White gi with South Bay Judo embroidery included. Gi selections are made for each participant above.
-                </p>
+                <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
               </div>
               <a
                 href="/images/fuji-judo-gi-size-chart.png"
@@ -512,27 +510,38 @@ export default function RegisterPage() {
                 View size chart
               </a>
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-3">
               {students.map((s) => {
                 const gi = GI_SIZES.find((g) => g.id === s.giSizeId);
                 return (
                   <div key={`gi-review-${s.id}`} className="bg-card border border-ink/10 p-4">
-                    <p className="font-semibold mb-2">{s.firstName} {s.lastName}</p>
-                    <select
-                      value={s.giSizeId}
-                      onChange={(e) =>
-                        setStudents(students.map((student) =>
-                          student.id === s.id ? { ...student, giSizeId: e.target.value } : student
-                        ))
-                      }
-                      className="w-full"
-                    >
-                      <option value="">No gi needed</option>
-                      {GI_SIZES.map((g) => (
-                        <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
-                      ))}
-                    </select>
-                    {gi && <p className="text-belt font-display text-xl mt-2">${gi.price}</p>}
+                    <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+                      <div>
+                        <p className="text-xs text-ink/60 mb-1">Student</p>
+                        <p className="font-semibold">{s.firstName} {s.lastName}</p>
+                      </div>
+                      <label className="text-sm">
+                        <span className="block mb-1 text-ink/60">Gi size</span>
+                        <select
+                          value={s.giSizeId}
+                          onChange={(e) =>
+                            setStudents(students.map((student) =>
+                              student.id === s.id ? { ...student, giSizeId: e.target.value } : student
+                            ))
+                          }
+                          className="w-full"
+                        >
+                          <option value="">No gi needed</option>
+                          {GI_SIZES.map((g) => (
+                            <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="sm:text-right min-w-20">
+                        <p className="text-xs text-ink/60 mb-1">Price</p>
+                        <p className="text-belt font-display text-2xl">{gi ? `$${gi.price}` : "—"}</p>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
