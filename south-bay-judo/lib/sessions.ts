@@ -184,6 +184,20 @@ export const GI_SIZES: GearOption[] = [
   { id: "gi_5_7", label: "Size 5 to 7", price: 85 },
 ];
 
+export const GI_PURCHASE_SIZES: GearOption[] = [
+  { id: "gi_0000", label: "Size 0000", price: 60 },
+  { id: "gi_000", label: "Size 000", price: 60 },
+  { id: "gi_00", label: "Size 00", price: 60 },
+  { id: "gi_0", label: "Size 0", price: 60 },
+  { id: "gi_1", label: "Size 1", price: 65 },
+  { id: "gi_2", label: "Size 2", price: 65 },
+  { id: "gi_3", label: "Size 3", price: 75 },
+  { id: "gi_4", label: "Size 4", price: 75 },
+  { id: "gi_5", label: "Size 5", price: 85 },
+  { id: "gi_6", label: "Size 6", price: 85 },
+  { id: "gi_7", label: "Size 7", price: 85 },
+];
+
 export const DUMMY_SIZES: GearOption[] = [
   { id: "dummy_4", label: "4 ft", price: 50 },
   { id: "dummy_5", label: "5 ft", price: 60 },
