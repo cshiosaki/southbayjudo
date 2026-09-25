@@ -161,6 +161,8 @@ export default function RegisterPage() {
   const [duffleOrders, setDuffleOrders] = useState<string[]>([]);
   const [tshirtOrders, setTshirtOrders] = useState<string[]>([]);
   const [sweatshirtOrders, setSweatshirtOrders] = useState<string[]>([]);
+  const [customGearDescription, setCustomGearDescription] = useState("");
+  const [customGearAmount, setCustomGearAmount] = useState("");
 
   const [usjfQuery, setUsjfQuery] = useState("");
   const [usjfResults, setUsjfResults] = useState<{ name: string; expires: string; id: string }[]>([]);
@@ -217,7 +219,8 @@ export default function RegisterPage() {
     dummyOrders.reduce((sum, id) => sum + (DUMMY_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     duffleOrders.reduce((sum, id) => sum + (DUFFLE_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     tshirtOrders.reduce((sum, id) => sum + (TSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
-    sweatshirtOrders.reduce((sum, id) => sum + (SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0);
+    sweatshirtOrders.reduce((sum, id) => sum + (SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
+    (customGearDescription.trim() && Number(customGearAmount) > 0 ? Number(customGearAmount) : 0);
 
   const total = sessionFeeTotal + giTotal + gearTotal;
 
@@ -276,6 +279,8 @@ export default function RegisterPage() {
             duffleOrderIds: duffleOrders,
             tshirtOrderIds: tshirtOrders,
             sweatshirtOrderIds: sweatshirtOrders,
+            customDescription: customGearDescription,
+            customAmount: customGearAmount,
           },
         }),
       });
@@ -452,127 +457,221 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <div className="bg-card border border-ink/15 p-4 mb-8">
-          <p className="font-display text-lg mb-3">Gear (optional)</p>
-          <div className="grid sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-xs text-ink/60 mb-1">Add a practice dummy</p>
-              <div className="flex gap-2">
-                <select id="dummy-select" className="flex-1">
-                  {DUMMY_SIZES.map((d) => (
-                    <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                  ))}
-                </select>
-                <button
-                  className="border border-ink/30 px-3 text-sm"
-                  onClick={() => {
-                    const el = document.getElementById("dummy-select") as HTMLSelectElement;
-                    setDummyOrders([...dummyOrders, el.value]);
-                  }}
-                >
-                  Add
-                </button>
+        <section className="mb-10">
+          <div className="mb-7">
+            <p className="font-display uppercase tracking-[0.14em] text-belt mb-2">Optional merchandise</p>
+            <h2 className="font-display text-4xl mb-2">Order Gear</h2>
+            <p className="text-sm text-ink/65 max-w-xl">
+              Add any gear you need to this registration and pay for everything together in one Stripe checkout.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex items-end justify-between gap-4 mb-4">
+              <div>
+                <h3 className="font-display text-3xl">Judo Gi</h3>
+                <p className="text-sm text-ink/60 mt-1">
+                  White gi with South Bay Judo embroidery included. Gi selections are made for each participant above.
+                </p>
               </div>
+              <a
+                href="/images/fuji-judo-gi-size-chart.png"
+                target="_blank"
+                className="text-sm underline decoration-belt decoration-2 underline-offset-2"
+              >
+                View size chart
+              </a>
             </div>
-            <div>
-              <p className="text-xs text-ink/60 mb-1">Add a duffle bag</p>
-              <div className="flex gap-2">
-                <select id="duffle-select" className="flex-1">
-                  {DUFFLE_SIZES.map((d) => (
-                    <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                  ))}
-                </select>
-                <button
-                  className="border border-ink/30 px-3 text-sm"
-                  onClick={() => {
-                    const el = document.getElementById("duffle-select") as HTMLSelectElement;
-                    setDuffleOrders([...duffleOrders, el.value]);
-                  }}
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-ink/60 mb-1">Add a t-shirt</p>
-              <div className="flex gap-2">
-                <select id="tshirt-select" className="flex-1">
-                  {TSHIRT_SIZES.map((d) => (
-                    <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                  ))}
-                </select>
-                <button
-                  className="border border-ink/30 px-3 text-sm"
-                  onClick={() => {
-                    const el = document.getElementById("tshirt-select") as HTMLSelectElement;
-                    setTshirtOrders([...tshirtOrders, el.value]);
-                  }}
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-ink/60 mb-1">Add a sweatshirt</p>
-              <div className="flex gap-2">
-                <select id="sweatshirt-select" className="flex-1">
-                  {SWEATSHIRT_SIZES.map((d) => (
-                    <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
-                  ))}
-                </select>
-                <button
-                  className="border border-ink/30 px-3 text-sm"
-                  onClick={() => {
-                    const el = document.getElementById("sweatshirt-select") as HTMLSelectElement;
-                    setSweatshirtOrders([...sweatshirtOrders, el.value]);
-                  }}
-                >
-                  Add
-                </button>
-              </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {students.map((s) => {
+                const gi = GI_SIZES.find((g) => g.id === s.giSizeId);
+                return (
+                  <div key={`gi-review-${s.id}`} className="bg-card border border-ink/10 p-4">
+                    <p className="font-semibold">{s.firstName} {s.lastName}</p>
+                    {gi ? (
+                      <>
+                        <p className="text-sm text-ink/65 mt-1">{gi.label}</p>
+                        <p className="text-belt font-display text-xl mt-1">${gi.price}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-ink/50 mt-1">No gi selected</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-          {(dummyOrders.length > 0 || duffleOrders.length > 0 || tshirtOrders.length > 0 || sweatshirtOrders.length > 0) && (
-            <ul className="text-sm space-y-1">
-              {dummyOrders.map((id, i) => (
-                <li key={`d${i}`} className="flex justify-between">
-                  <span>Practice Dummy — {DUMMY_SIZES.find((d) => d.id === id)?.label}</span>
-                  <span className="flex items-center gap-2">
-                    ${DUMMY_SIZES.find((d) => d.id === id)?.price}
-                    <button onClick={() => setDummyOrders(dummyOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                  </span>
-                </li>
-              ))}
-              {duffleOrders.map((id, i) => (
-                <li key={`b${i}`} className="flex justify-between">
-                  <span>Duffle Bag — {DUFFLE_SIZES.find((d) => d.id === id)?.label}</span>
-                  <span className="flex items-center gap-2">
-                    ${DUFFLE_SIZES.find((d) => d.id === id)?.price}
-                    <button onClick={() => setDuffleOrders(duffleOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                  </span>
-                </li>
-              ))}
-              {tshirtOrders.map((id, i) => (
-                <li key={`t${i}`} className="flex justify-between">
-                  <span>T-Shirt — {TSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
-                  <span className="flex items-center gap-2">
-                    ${TSHIRT_SIZES.find((d) => d.id === id)?.price}
-                    <button onClick={() => setTshirtOrders(tshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                  </span>
-                </li>
-              ))}
-              {sweatshirtOrders.map((id, i) => (
-                <li key={`w${i}`} className="flex justify-between">
-                  <span>Sweatshirt — {SWEATSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
-                  <span className="flex items-center gap-2">
-                    ${SWEATSHIRT_SIZES.find((d) => d.id === id)?.price}
-                    <button onClick={() => setSweatshirtOrders(sweatshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+
+          <div className="mb-8">
+            <h3 className="font-display text-3xl mb-4">Practice Dummies</h3>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {DUMMY_SIZES.map((item) => {
+                const qty = dummyOrders.filter((id) => id === item.id).length;
+                return (
+                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{item.label}</p>
+                      <p className="text-belt font-display text-xl">${item.price}</p>
+                    </div>
+                    <label className="text-sm text-right">
+                      <span className="block mb-1 text-ink/60">Qty</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={qty}
+                        onChange={(e) => {
+                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
+                          setDummyOrders([
+                            ...dummyOrders.filter((id) => id !== item.id),
+                            ...Array(count).fill(item.id),
+                          ]);
+                        }}
+                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="font-display text-3xl mb-4">Judo Duffle Bags</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {DUFFLE_SIZES.map((item) => {
+                const qty = duffleOrders.filter((id) => id === item.id).length;
+                return (
+                  <div key={item.id} className="bg-card border border-ink/10 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{item.label}</p>
+                      <p className="text-belt font-display text-xl">${item.price}</p>
+                    </div>
+                    <label className="text-sm text-right">
+                      <span className="block mb-1 text-ink/60">Qty</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={qty}
+                        onChange={(e) => {
+                          const count = Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0)));
+                          setDuffleOrders([
+                            ...duffleOrders.filter((id) => id !== item.id),
+                            ...Array(count).fill(item.id),
+                          ]);
+                        }}
+                        className="w-20 border border-ink/20 bg-white px-2 py-2 text-center"
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <details className="mb-8 border border-ink/15 bg-card">
+            <summary className="cursor-pointer p-4 font-display text-xl">Additional apparel</summary>
+            <div className="border-t border-ink/10 p-4 grid sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold mb-2">T-Shirt</p>
+                <div className="flex gap-2">
+                  <select id="tshirt-select" className="flex-1">
+                    {TSHIRT_SIZES.map((d) => (
+                      <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="border border-ink/30 px-3 text-sm"
+                    onClick={() => {
+                      const el = document.getElementById("tshirt-select") as HTMLSelectElement;
+                      setTshirtOrders([...tshirtOrders, el.value]);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold mb-2">Sweatshirt</p>
+                <div className="flex gap-2">
+                  <select id="sweatshirt-select" className="flex-1">
+                    {SWEATSHIRT_SIZES.map((d) => (
+                      <option key={d.id} value={d.id}>{d.label} — ${d.price}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="border border-ink/30 px-3 text-sm"
+                    onClick={() => {
+                      const el = document.getElementById("sweatshirt-select") as HTMLSelectElement;
+                      setSweatshirtOrders([...sweatshirtOrders, el.value]);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              {(tshirtOrders.length > 0 || sweatshirtOrders.length > 0) && (
+                <ul className="sm:col-span-2 text-sm space-y-2 border-t border-ink/10 pt-4">
+                  {tshirtOrders.map((id, i) => (
+                    <li key={`t${i}`} className="flex justify-between gap-4">
+                      <span>T-Shirt — {TSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
+                      <span className="flex items-center gap-2">
+                        ${TSHIRT_SIZES.find((d) => d.id === id)?.price}
+                        <button type="button" onClick={() => setTshirtOrders(tshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
+                      </span>
+                    </li>
+                  ))}
+                  {sweatshirtOrders.map((id, i) => (
+                    <li key={`w${i}`} className="flex justify-between gap-4">
+                      <span>Sweatshirt — {SWEATSHIRT_SIZES.find((d) => d.id === id)?.label}</span>
+                      <span className="flex items-center gap-2">
+                        ${SWEATSHIRT_SIZES.find((d) => d.id === id)?.price}
+                        <button type="button" onClick={() => setSweatshirtOrders(sweatshirtOrders.filter((_, idx) => idx !== i))} className="text-belt underline text-xs">remove</button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </details>
+
+          <div className="bg-card border-t-4 border-belt p-6 sm:p-8">
+            <h3 className="font-display text-3xl mb-2">Other / Special Purchase</h3>
+            <p className="text-sm text-ink/65 mb-5">
+              Use this only if instructed by South Bay Judo. Enter the item description and the agreed-upon amount.
+            </p>
+            <div className="grid sm:grid-cols-[1fr_180px] gap-4">
+              <label className="text-sm">
+                <span className="block mb-1 font-semibold">Item / Description</span>
+                <input
+                  value={customGearDescription}
+                  onChange={(e) => setCustomGearDescription(e.target.value)}
+                  placeholder="Example: Replacement embroidered jacket"
+                  className="w-full border border-ink/20 bg-white px-3 py-2.5"
+                />
+              </label>
+              <label className="text-sm">
+                <span className="block mb-1 font-semibold">Amount</span>
+                <div className="flex border border-ink/20 bg-white">
+                  <span className="px-3 py-2.5 text-ink/50">$</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5000"
+                    step="0.01"
+                    value={customGearAmount}
+                    onChange={(e) => setCustomGearAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-1 py-2.5 outline-none"
+                  />
+                </div>
+              </label>
+            </div>
+          </div>
+        </section>
 
         <div className="bg-ink text-canvas p-5 flex justify-between items-center mb-8">
           <span className="font-display text-xl">Total</span>
