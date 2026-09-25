@@ -11,6 +11,8 @@ async function updateFromCheckoutSession(
   status: "Payment processing" | "Payment failed" | "Paid",
   paid: boolean
 ) {
+  if (session.metadata?.orderType === "shop_order") return;
+
   const receiptNumber = session.metadata?.receiptNumber || session.client_reference_id;
   if (!receiptNumber) throw new Error("Stripe Checkout Session is missing its receipt number.");
 
