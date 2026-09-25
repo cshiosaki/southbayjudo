@@ -487,15 +487,22 @@ export default function RegisterPage() {
                 const gi = GI_SIZES.find((g) => g.id === s.giSizeId);
                 return (
                   <div key={`gi-review-${s.id}`} className="bg-card border border-ink/10 p-4">
-                    <p className="font-semibold">{s.firstName} {s.lastName}</p>
-                    {gi ? (
-                      <>
-                        <p className="text-sm text-ink/65 mt-1">{gi.label}</p>
-                        <p className="text-belt font-display text-xl mt-1">${gi.price}</p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-ink/50 mt-1">No gi selected</p>
-                    )}
+                    <p className="font-semibold mb-2">{s.firstName} {s.lastName}</p>
+                    <select
+                      value={s.giSizeId}
+                      onChange={(e) =>
+                        setStudents(students.map((student) =>
+                          student.id === s.id ? { ...student, giSizeId: e.target.value } : student
+                        ))
+                      }
+                      className="w-full"
+                    >
+                      <option value="">No gi needed</option>
+                      {GI_SIZES.map((g) => (
+                        <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
+                      ))}
+                    </select>
+                    {gi && <p className="text-belt font-display text-xl mt-2">${gi.price}</p>}
                   </div>
                 );
               })}
@@ -909,37 +916,6 @@ export default function RegisterPage() {
               />
             )}
           </div>
-
-          <label className="block text-xs text-ink/60 mb-6 max-w-xs">
-            Need to order a gi? (optional)
-            <select value={draft.giSizeId} onChange={(e) => setDraft({ ...draft, giSizeId: e.target.value })}>
-              <option value="">No gi needed</option>
-              {GI_SIZES.map((g) => (
-                <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
-              ))}
-            </select>
-            <details className="mt-3 border border-ink/15 bg-card p-3">
-              <summary className="cursor-pointer text-sm font-semibold text-belt">View the Hatashita/FUJI judo gi size chart</summary>
-              <Image
-                src="/images/fuji-judo-gi-size-chart.png"
-                alt="FUJI Sports size chart for FUJI judo gi uniforms"
-                width={622}
-                height={1008}
-                className="mt-3 h-auto w-full"
-              />
-              <a
-                href="https://hatashitasports.com/pages/size-charts"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-block text-xs text-ink/55 underline underline-offset-2"
-              >
-                Official Hatashita/FUJI size chart
-              </a>
-            </details>
-            <span className="mt-2 block text-xs leading-relaxed text-ink/60">
-              If the gi does not fit, it may be exchanged. You will only pay the difference if the replacement costs more.
-            </span>
-          </label>
 
           <div className="mb-6">
             <p className="text-sm mb-2">Photo/video consent</p>
