@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { appendRegistrations, sheetsConfigured, type StoredRegistrationOrder } from "@/lib/sheets";
 import { getSiteConfig } from "@/lib/config-store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
-import { DUMMY_SIZES, DUFFLE_SIZES, GI_SIZES, SWEATSHIRT_SIZES, TSHIRT_SIZES } from "@/lib/sessions";
+import { DUMMY_SIZES, DUFFLE_SIZES, GI_PURCHASE_SIZES, GI_SIZES, SWEATSHIRT_SIZES, TSHIRT_SIZES } from "@/lib/sessions";
 
 type RawStudent = Record<string, unknown>;
 
@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     });
 
     const gearItems = [
+      ...selectedGear(familyExtras?.giOrderIds, GI_PURCHASE_SIZES, "Gi"),
       ...selectedGear(familyExtras?.dummyOrderIds, DUMMY_SIZES, "Practice Dummy"),
       ...selectedGear(familyExtras?.duffleOrderIds, DUFFLE_SIZES, "Duffle Bag"),
       ...selectedGear(familyExtras?.tshirtOrderIds, TSHIRT_SIZES, "T-Shirt"),
