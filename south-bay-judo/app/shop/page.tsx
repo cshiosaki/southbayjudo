@@ -27,6 +27,22 @@ const OPTIONS: ShopOption[] = [
   { id: "dummy_6", label: "Practice Dummy — 6 ft", price: 70, group: "Practice Dummy" },
   { id: "duffle_s", label: "Judo Duffle Bag — Small", price: 65, group: "Duffle Bag" },
   { id: "duffle_l", label: "Judo Duffle Bag — Large", price: 75, group: "Duffle Bag" },
+  { id: "tshirt_ys", label: "Youth Small", price: 15, group: "T-Shirt" },
+  { id: "tshirt_ym", label: "Youth Medium", price: 15, group: "T-Shirt" },
+  { id: "tshirt_yl", label: "Youth Large", price: 16, group: "T-Shirt" },
+  { id: "tshirt_as", label: "Adult Small", price: 18, group: "T-Shirt" },
+  { id: "tshirt_am", label: "Adult Medium", price: 18, group: "T-Shirt" },
+  { id: "tshirt_al", label: "Adult Large", price: 19, group: "T-Shirt" },
+  { id: "tshirt_axl", label: "Adult XL", price: 20, group: "T-Shirt" },
+  { id: "tshirt_axxl", label: "Adult XXL", price: 22, group: "T-Shirt" },
+  { id: "sweat_ys", label: "Youth Small", price: 25, group: "Sweatshirt" },
+  { id: "sweat_ym", label: "Youth Medium", price: 25, group: "Sweatshirt" },
+  { id: "sweat_yl", label: "Youth Large", price: 26, group: "Sweatshirt" },
+  { id: "sweat_as", label: "Adult Small", price: 28, group: "Sweatshirt" },
+  { id: "sweat_am", label: "Adult Medium", price: 28, group: "Sweatshirt" },
+  { id: "sweat_al", label: "Adult Large", price: 29, group: "Sweatshirt" },
+  { id: "sweat_axl", label: "Adult XL", price: 30, group: "Sweatshirt" },
+  { id: "sweat_axxl", label: "Adult XXL", price: 32, group: "Sweatshirt" },
 ];
 
 function money(value: number) {
@@ -83,7 +99,7 @@ export default function ShopPage() {
     }
   }
 
-  const groups = ["Judo Gi", "Practice Dummy", "Duffle Bag"];
+  const groups = ["Judo Gi", "Practice Dummy", "Duffle Bag", "T-Shirt", "Sweatshirt"];
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
