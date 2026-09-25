@@ -54,6 +54,8 @@ export default function ShopPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [studentName, setStudentName] = useState("");
+  const [giSizeId, setGiSizeId] = useState("");
+  const [giQuantity, setGiQuantity] = useState(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [customDescription, setCustomDescription] = useState("");
   const [customAmount, setCustomAmount] = useState("");
@@ -61,10 +63,12 @@ export default function ShopPage() {
   const [error, setError] = useState("");
 
   const total = useMemo(() => {
-    const fixed = OPTIONS.reduce((sum, item) => sum + item.price * (quantities[item.id] || 0), 0);
+    const fixed = OPTIONS.filter((item) => item.group !== "Judo Gi").reduce((sum, item) => sum + item.price * (quantities[item.id] || 0), 0);
+    const gi = OPTIONS.find((item) => item.id === giSizeId);
+    const giTotal = gi ? gi.price * giQuantity : 0;
     const custom = Number(customAmount);
-    return fixed + (customDescription.trim() && Number.isFinite(custom) && custom > 0 ? custom : 0);
-  }, [quantities, customAmount, customDescription]);
+    return fixed + giTotal + (customDescription.trim() && Number.isFinite(custom) && custom > 0 ? custom : 0);
+  }, [quantities, giSizeId, giQuantity, customAmount, customDescription]);
 
   function setQty(id: string, value: number) {
     const quantity = Math.max(0, Math.min(20, Math.floor(value || 0)));
@@ -83,7 +87,10 @@ export default function ShopPage() {
           email,
           phone,
           studentName,
-          items: OPTIONS.map((item) => ({ id: item.id, quantity: quantities[item.id] || 0 })).filter((item) => item.quantity > 0),
+          items: [
+            ...(giSizeId && giQuantity > 0 ? [{ id: giSizeId, quantity: giQuantity }] : []),
+            ...OPTIONS.filter((item) => item.group !== "Judo Gi").map((item) => ({ id: item.id, quantity: quantities[item.id] || 0 })).filter((item) => item.quantity > 0),
+          ],
           customDescription,
           customAmount,
         }),
@@ -131,20 +138,52 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {groups.map((group) => (
-        <section key={group} className="mb-8">
-          <div className="flex items-end justify-between gap-4 mb-4">
-            <div>
-              <h2 className="font-display text-3xl">{group}</h2>
-              {group === "Judo Gi" && (
-                <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
-              )}
+      <section className="mb-8">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 className="font-display text-3xl">Judo Gi</h2>
+            <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
+          </div>
+          <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">
+            View size chart
+          </a>
+        </div>
+        <div className="bg-card border border-ink/10 p-4">
+          <div className="grid sm:grid-cols-[1fr_120px_auto] gap-3 items-end">
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Gi size</span>
+              <select value={giSizeId} onChange={(e) => setGiSizeId(e.target.value)} className="w-full">
+                <option value="">Choose a size</option>
+                {OPTIONS.filter((item) => item.group === "Judo Gi").map((item) => (
+                  <option key={item.id} value={item.id}>{item.label} — {money(item.price)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="block mb-1 text-ink/60">Qty</span>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={giQuantity}
+                onChange={(e) => setGiQuantity(Math.max(0, Math.min(20, Math.floor(Number(e.target.value) || 0))))}
+                className="w-full border border-ink/20 bg-white px-2 py-2 text-center"
+              />
+            </label>
+            <div className="sm:text-right min-w-24">
+              <p className="text-xs text-ink/60 mb-1">Price</p>
+              <p className="text-belt font-display text-2xl">
+                {giSizeId ? money(OPTIONS.find((item) => item.id === giSizeId)?.price || 0) : "—"}
+              </p>
             </div>
-            {group === "Judo Gi" && (
-              <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">
-                View size chart
-              </a>
-            )}
+          </div>
+        </div>
+      </section>
+
+      {groups.filter((group) => group !== "Judo Gi").map((group) => (
+        <section key={group} className="mb-8">
+          <div className="mb-4">
+            <h2 className="font-display text-3xl">{group}</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {OPTIONS.filter((item) => item.group === group).map((item) => (
