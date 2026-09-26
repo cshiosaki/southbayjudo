@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendRegistrationConfirmationEmail } from "@/lib/email";
+import { sendGearOrderConfirmationEmail, sendRegistrationConfirmationEmail } from "@/lib/email";
 import { markRegistrationReceiptEmailSent, updateRegistrationPayment } from "@/lib/sheets";
 import { getStripe } from "@/lib/stripe";
 
@@ -11,7 +11,30 @@ async function updateFromCheckoutSession(
   status: "Payment processing" | "Payment failed" | "Paid",
   paid: boolean
 ) {
-  if (session.metadata?.orderType === "shop_order") return;
+  if (session.metadata?.orderType === "shop_order") {
+    if (!paid) return;
+
+    const orderNumber = session.metadata.orderNumber || session.client_reference_id;
+    const buyerEmail = session.metadata.buyerEmail || session.customer_details?.email || session.customer_email;
+    const buyerName = session.metadata.buyerName || session.customer_details?.name || "Customer";
+    if (!orderNumber || !buyerEmail) throw new Error("Shop order is missing order number or buyer email.");
+
+    const lineItems = await getStripe().checkout.sessions.listLineItems(session.id, { limit: 100 });
+    await sendGearOrderConfirmationEmail({
+      to: buyerEmail,
+      buyerName,
+      orderNumber,
+      studentName: session.metadata.studentName || undefined,
+      items: lineItems.data.map((item) => ({
+        label: item.description || "South Bay Judo merchandise",
+        quantity: item.quantity || 1,
+        amount: (item.amount_total || 0) / 100,
+      })),
+      total: (session.amount_total || 0) / 100,
+      idempotencyKey: `gear-order-receipt/${orderNumber}`,
+    });
+    return;
+  }
 
   const receiptNumber = session.metadata?.receiptNumber || session.client_reference_id;
   if (!receiptNumber) throw new Error("Stripe Checkout Session is missing its receipt number.");
