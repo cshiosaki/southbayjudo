@@ -167,6 +167,93 @@ export async function sendRegistrationConfirmationEmail(opts: {
   if (error) throw new Error(error.message || "Failed to send registration confirmation.");
 }
 
+
+export async function sendGearOrderConfirmationEmail(opts: {
+  to: string;
+  buyerName: string;
+  orderNumber: string;
+  studentName?: string;
+  items: Array<{ label: string; quantity: number; amount: number }>;
+  total: number;
+  idempotencyKey?: string;
+}) {
+  const resend = getResend();
+  if (!resend) throw new Error("Email isn't connected yet — set RESEND_API_KEY.");
+
+  const itemRows = opts.items
+    .map(
+      (item) => `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e6e1d8">
+            ${escapeHtml(item.label)}${item.quantity > 1 ? ` × ${item.quantity}` : ""}
+          </td>
+          <td style="padding:10px 0;border-bottom:1px solid #e6e1d8;text-align:right">
+            ${money(item.amount)}
+          </td>
+        </tr>`
+    )
+    .join("");
+
+  const html = `<!doctype html>
+  <html><body style="margin:0;background:#f3f0e9;font-family:Arial,sans-serif;color:#171717">
+    <div style="display:none;max-height:0;overflow:hidden">South Bay Judo gear order confirmed — ${escapeHtml(opts.orderNumber)}</div>
+    <div style="max-width:620px;margin:0 auto;padding:28px 16px">
+      <div style="background:#16191d;color:#fff;padding:28px">
+        <div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#d8b45a">South Bay Judo</div>
+        <h1 style="margin:8px 0 0;font-size:30px;line-height:1.1">Gear order and payment confirmed</h1>
+      </div>
+      <div style="background:#fff;padding:28px">
+        <p style="margin-top:0">Hi ${escapeHtml(opts.buyerName)},</p>
+        <p>We received your South Bay Judo merchandise order and payment.</p>
+        <div style="margin:24px 0;padding:14px 16px;background:#fff8df;border:1px solid #e8cf7b">
+          <strong>Paid</strong><br />
+          <span style="font-size:13px;color:#5f5a52">Your payment was received successfully.</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <tr><td style="padding:0 0 10px;color:#5f5a52">Order</td><td style="padding:0 0 10px;text-align:right">${escapeHtml(opts.orderNumber)}</td></tr>
+          ${opts.studentName ? `<tr><td style="padding:0 0 18px;color:#5f5a52">Student</td><td style="padding:0 0 18px;text-align:right">${escapeHtml(opts.studentName)}</td></tr>` : ""}
+          ${itemRows}
+          <tr><td style="padding:18px 0 0;font-size:18px"><strong>Total paid</strong></td><td style="padding:18px 0 0;text-align:right;font-size:22px"><strong>${money(opts.total)}</strong></td></tr>
+        </table>
+        <p style="margin:26px 0 0;font-size:14px;color:#5f5a52">Questions? Reply to this email or contact South Bay Judo at (424) 392-4732.</p>
+      </div>
+      <p style="text-align:center;color:#777;font-size:12px;margin:18px 0">Wilson Park · Dee Hardison Sports Center · 2400 Jefferson St, Torrance, CA 90501</p>
+    </div>
+  </body></html>`;
+
+  const itemLines = opts.items.map(
+    (item) => `${item.label}${item.quantity > 1 ? ` × ${item.quantity}` : ""}: ${money(item.amount)}`
+  );
+  const text = `Hi ${opts.buyerName},
+
+We received your South Bay Judo merchandise order and payment.
+
+Order: ${opts.orderNumber}
+${opts.studentName ? `Student: ${opts.studentName}\n` : ""}
+${itemLines.join("\n")}
+
+Total paid: ${money(opts.total)}
+
+Questions? Reply to this email or call (424) 392-4732.
+
+South Bay Judo`;
+
+  const { error } = await resend.emails.send(
+    {
+      from: FROM_ADDRESS,
+      to: opts.to,
+      bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
+      replyTo: "info@southbayjudo.com",
+      subject: `South Bay Judo gear order confirmed — ${opts.orderNumber}`,
+      html,
+      text,
+    },
+    opts.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined
+  );
+
+  if (error) throw new Error(error.message || "Failed to send gear order confirmation.");
+}
+
 export type UsjfReminderReason = "missing" | "incomplete" | "expired";
 
 export async function sendUsjfReminderEmail(opts: {
