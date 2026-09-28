@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       student.hasMedicalConditions === "no" ? "No" : student.hasMedicalConditions === "yes" ? "Yes" : "",
       student.medicalNotes, student.membershipStatus, student.membershipOrg, student.memberIdNumber,
       student.membershipExpires, student.gi?.label || "", student.photoConsent, student.signedByName,
-      student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "FALSE",
+      student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "No",
       index === 0 ? extrasNote : "", receiptNumber, "Payment pending", checkout.id,
       index === 0 ? JSON.stringify(storedOrder) : "", "", guardian.emailOptIn === false ? "No" : "Yes",
     ]);
