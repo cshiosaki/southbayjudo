@@ -264,6 +264,7 @@ export async function sendUsjfReminderEmail(opts: {
   studentName: string;
   reason: UsjfReminderReason;
   expiresDate?: string;
+  idempotencyKey?: string;
 }) {
   const resend = getResend();
   if (!resend) throw new Error("Email isn't connected yet — set RESEND_API_KEY.");
@@ -272,26 +273,66 @@ export async function sendUsjfReminderEmail(opts: {
     opts.reason === "expired"
       ? `${opts.studentName}'s USJF membership expired on ${opts.expiresDate}.`
       : opts.reason === "incomplete"
-      ? `We have ${opts.studentName} marked as having a current USJF membership, but we don't have their membership number on file yet.`
+      ? `We have ${opts.studentName} marked as having USJF membership, but the membership information is incomplete.`
       : `We don't have a current USJF membership on file for ${opts.studentName}.`;
+
+  const html = `<!doctype html>
+  <html><body style="margin:0;background:#f3f0e9;font-family:Arial,sans-serif;color:#171717">
+    <div style="max-width:620px;margin:0 auto;padding:28px 16px">
+      <div style="background:#16191d;color:#fff;padding:28px">
+        <div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#d8b45a">South Bay Judo</div>
+        <h1 style="margin:8px 0 0;font-size:30px;line-height:1.1">USJF membership follow-up</h1>
+      </div>
+      <div style="background:#fff;padding:28px">
+        <p style="margin-top:0">Hi ${escapeHtml(opts.guardianName)},</p>
+        <p>${escapeHtml(reasonText)}</p>
+        <p>USJF membership is required before ${escapeHtml(opts.studentName)} can participate in class.</p>
+        <p><strong>How to complete membership:</strong></p>
+        <ol style="padding-left:22px;line-height:1.6">
+          <li>Open the official USJF membership page.</li>
+          <li>Select the appropriate membership option for the participant.</li>
+          <li>Complete the USJF registration and payment directly with USJF.</li>
+          <li>Keep the membership number and expiration date for your records.</li>
+          <li>Reply to this email or provide the membership information to a South Bay Judo instructor so we can update our records.</li>
+        </ol>
+        <a href="https://www.usjf.com/membership-program/" style="display:inline-block;margin-top:10px;padding:10px 14px;background:#9c2f1b;color:#fff;text-decoration:none;font-weight:bold">Open USJF Membership</a>
+        <p style="margin-top:24px;font-size:14px;color:#5f5a52">If the participant already has USA Judo membership, they still need the applicable USJF short-term membership before class.</p>
+      </div>
+      <p style="text-align:center;color:#777;font-size:12px;margin:18px 0">South Bay Judo · Wilson Park · Torrance, California</p>
+    </div>
+  </body></html>`;
 
   const body = `Hi ${opts.guardianName},
 
 ${reasonText}
 
-USJF membership is required for insurance coverage before ${opts.studentName} can participate in class. Membership is purchased directly through usjf.org — it isn't sold through our registration site.
+USJF membership is required before ${opts.studentName} can participate in class.
 
-Once you have a current membership number, just reply to this email or let an instructor know so we can update our records.
+How to complete membership:
+1. Go to the official USJF membership page:
+   https://www.usjf.com/membership-program/
+2. Select the appropriate membership option for the participant.
+3. Complete the registration and payment directly with USJF.
+4. Keep the membership number and expiration date.
+5. Reply to this email or give the membership information to a South Bay Judo instructor so we can update our records.
+
+If the participant already has USA Judo membership, they still need the applicable USJF short-term membership before class.
 
 Thank you,
 South Bay Judo`;
 
-  const { error } = await resend.emails.send({
-    from: FROM_ADDRESS,
-    to: opts.to,
-    subject: `Action needed: USJF membership for ${opts.studentName}`,
-    text: body,
-  });
+  const { error } = await resend.emails.send(
+    {
+      from: FROM_ADDRESS,
+      to: opts.to,
+      bcc: ORDER_BCC,
+      replyTo: "info@southbayjudo.com",
+      subject: `Action needed: USJF membership for ${opts.studentName}`,
+      html,
+      text: body,
+    },
+    opts.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined
+  );
 
-  if (error) throw new Error(error.message || "Failed to send email.");
+  if (error) throw new Error(error.message || "Failed to send USJF follow-up email.");
 }
