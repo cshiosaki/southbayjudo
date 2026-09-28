@@ -36,19 +36,6 @@ export interface SessionConfig {
 
 export const SESSIONS: SessionConfig[] = [
   {
-    id: "sess_4q",
-    label: "4Q — Fall 2026",
-    dates: "Aug 18 – Nov 5",
-    regWindow: "Registration: Jul 27 – Aug 12",
-    note: "No classes Aug 31–Sept 18 (gym & MPR closed for renovation). No classes Oct 22, 27, 29, Nov 3 & 5 (election).",
-    registrationOpen: true,
-    allowNew: true,
-    pricingMode: "family_tier",
-    familyTierFirst: 200,
-    familyTierSecond: 180,
-    familyTierThirdPlus: 160,
-  },
-  {
     id: "sess_5q",
     label: "Holiday Session 2026",
     dates: "Nov 10 – Dec 15",
