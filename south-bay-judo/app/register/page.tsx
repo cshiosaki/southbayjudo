@@ -36,6 +36,13 @@ const MEDICAL_ACK_TEXT = `I acknowledge that judo involves physical contact and 
 
 type MembershipStatus = "none" | "current";
 
+type SpecialPurchase = {
+  id: string;
+  description: string;
+  amount: number;
+  approvedBy: string;
+};
+
 function isExpired(dateStr: string): boolean {
   if (!dateStr) return false;
   const d = new Date(dateStr);
@@ -175,6 +182,8 @@ export default function RegisterPage() {
   const [sweatshirtOrders, setSweatshirtOrders] = useState<string[]>([]);
   const [customGearDescription, setCustomGearDescription] = useState("");
   const [customGearAmount, setCustomGearAmount] = useState("");
+  const [customGearApprovedBy, setCustomGearApprovedBy] = useState("");
+  const [specialPurchases, setSpecialPurchases] = useState<SpecialPurchase[]>([]);
 
   const [usjfQuery, setUsjfQuery] = useState("");
   const [usjfResults, setUsjfResults] = useState<{ name: string; expires: string; id: string }[]>([]);
@@ -234,7 +243,7 @@ export default function RegisterPage() {
     duffleOrders.reduce((sum, id) => sum + (DUFFLE_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     tshirtOrders.reduce((sum, id) => sum + (TSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     sweatshirtOrders.reduce((sum, id) => sum + (SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
-    (customGearDescription.trim() && Number(customGearAmount) > 0 ? Number(customGearAmount) : 0);
+    specialPurchases.reduce((sum, item) => sum + item.amount, 0);
 
   const total = sessionFeeTotal + giTotal + gearTotal;
 
@@ -294,8 +303,7 @@ export default function RegisterPage() {
             duffleOrderIds: duffleOrders,
             tshirtOrderIds: tshirtOrders,
             sweatshirtOrderIds: sweatshirtOrders,
-            customDescription: customGearDescription,
-            customAmount: customGearAmount,
+            specialPurchases: specialPurchases.map(({ description, amount, approvedBy }) => ({ description, amount, approvedBy })),
           },
         }),
       });
@@ -764,11 +772,11 @@ export default function RegisterPage() {
 <div className="bg-card border-t-4 border-belt p-6 sm:p-8">
             <h3 className="font-display text-3xl mb-2">Other / Special Purchase</h3>
             <p className="text-sm text-ink/65 mb-5">
-              Use this only if instructed by South Bay Judo. Enter the item description and the agreed-upon amount.
+              Use this only if instructed by South Bay Judo. The item, amount, and <strong>Approved by</strong> name are required before it can be added to the cart.
             </p>
-            <div className="grid sm:grid-cols-[1fr_180px] gap-4">
-              <label className="text-sm">
-                <span className="block mb-1 font-semibold">Item / Description</span>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <label className="text-sm sm:col-span-2">
+                <span className="block mb-1 font-semibold">Item / Description *</span>
                 <input
                   value={customGearDescription}
                   onChange={(e) => setCustomGearDescription(e.target.value)}
@@ -777,7 +785,7 @@ export default function RegisterPage() {
                 />
               </label>
               <label className="text-sm">
-                <span className="block mb-1 font-semibold">Amount</span>
+                <span className="block mb-1 font-semibold">Amount *</span>
                 <div className="flex border border-ink/20 bg-white">
                   <span className="px-3 py-2.5 text-ink/50">$</span>
                   <input
@@ -792,7 +800,67 @@ export default function RegisterPage() {
                   />
                 </div>
               </label>
+              <label className="text-sm">
+                <span className="block mb-1 font-semibold">Approved by *</span>
+                <input
+                  value={customGearApprovedBy}
+                  onChange={(e) => setCustomGearApprovedBy(e.target.value)}
+                  placeholder="South Bay Judo approver name"
+                  className="w-full border border-ink/20 bg-white px-3 py-2.5"
+                />
+              </label>
             </div>
+            <button
+              type="button"
+              disabled={
+                !customGearDescription.trim() ||
+                !customGearApprovedBy.trim() ||
+                !Number.isFinite(Number(customGearAmount)) ||
+                Number(customGearAmount) < 1
+              }
+              onClick={() => {
+                const amount = Number(customGearAmount);
+                if (!customGearDescription.trim() || !customGearApprovedBy.trim() || !Number.isFinite(amount) || amount < 1) return;
+                setSpecialPurchases([
+                  ...specialPurchases,
+                  {
+                    id: crypto.randomUUID(),
+                    description: customGearDescription.trim(),
+                    amount,
+                    approvedBy: customGearApprovedBy.trim(),
+                  },
+                ]);
+                setCustomGearDescription("");
+                setCustomGearAmount("");
+                setCustomGearApprovedBy("");
+              }}
+              className="mt-4 bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30"
+            >
+              Add to cart
+            </button>
+
+            {specialPurchases.length > 0 && (
+              <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                {specialPurchases.map((item) => (
+                  <li key={item.id} className="flex items-start justify-between gap-4">
+                    <span>
+                      <strong>{item.description}</strong>
+                      <span className="block text-xs text-ink/55">Approved by: {item.approvedBy}</span>
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <strong>${item.amount.toFixed(2)}</strong>
+                      <button
+                        type="button"
+                        className="text-belt underline text-xs"
+                        onClick={() => setSpecialPurchases(specialPurchases.filter((purchase) => purchase.id !== item.id))}
+                      >
+                        remove
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
 
