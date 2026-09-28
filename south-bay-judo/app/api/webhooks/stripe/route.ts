@@ -28,6 +28,15 @@ function parseGearDescription(label: string) {
   return { item, size: sizePart || "", approvedBy };
 }
 
+function formatGearOrderDate(date = new Date()) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
 function aggregateGearRows(rows: GearOrderRow[]) {
   const grouped = new Map<string, GearOrderRow>();
   for (const row of rows) {
@@ -59,12 +68,7 @@ async function updateFromCheckoutSession(
     if (!orderNumber || !buyerEmail) throw new Error("Shop order is missing order number or buyer email.");
 
     const lineItems = await getStripe().checkout.sessions.listLineItems(session.id, { limit: 100 });
-    const orderDate = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Los_Angeles",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    }).format(new Date());
+    const orderDate = formatGearOrderDate();
 
     const gearRows = lineItems.data.map((lineItem) => {
       const parsed = parseGearDescription(lineItem.description || "South Bay Judo merchandise");
@@ -113,7 +117,7 @@ async function updateFromCheckoutSession(
       if (student.giLabel && (student.giPrice || 0) > 0) {
         const parsed = parseGearDescription(`Gi — ${student.giLabel}`);
         gearRows.push({
-          orderDate: order.receipt.registeredAt,
+          orderDate: formatGearOrderDate(),
           buyerName: order.guardianName,
           studentName: student.name,
           orderNumber: receiptNumber,
@@ -131,7 +135,7 @@ async function updateFromCheckoutSession(
     for (const gearItem of order.receipt.gearItems) {
       const parsed = parseGearDescription(gearItem.label);
       gearRows.push({
-        orderDate: order.receipt.registeredAt,
+        orderDate: formatGearOrderDate(),
         buyerName: order.guardianName,
         studentName: familyStudentNames,
         orderNumber: receiptNumber,
