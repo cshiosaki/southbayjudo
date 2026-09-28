@@ -290,7 +290,7 @@ export async function sendUsjfReminderEmail(opts: {
         <p><strong>How to complete membership:</strong></p>
         <ol style="padding-left:22px;line-height:1.6">
           <li>Open the official USJF membership page.</li>
-          <li>Select the yearly USJF membership for $80.</li>
+          <li>Select the yearly USJF membership.</li>
           <li>Complete the USJF registration and payment directly with USJF.</li>
           <li>Keep the membership number and expiration date for your records.</li>
           <li>Reply to this email or provide the membership information to a South Bay Judo instructor so we can update our records.</li>
@@ -311,7 +311,7 @@ USJF membership is required before ${opts.studentName} can participate in class.
 How to complete membership:
 1. Go to the official USJF membership page:
    https://www.usjf.com/membership-program/
-2. Select the yearly USJF membership for $80.
+2. Select the yearly USJF membership.
 3. Complete the registration and payment directly with USJF.
 4. Keep the membership number and expiration date.
 5. Reply to this email or give the membership information to a South Bay Judo instructor so we can update our records.
