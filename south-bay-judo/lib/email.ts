@@ -23,8 +23,7 @@ export function emailConfigured() {
 }
 
 const FROM_ADDRESS = process.env.EMAIL_FROM || "South Bay Judo <info@southbayjudo.com>";
-const REGISTRATION_CC = "registration@southbayjudo.com";
-const MERCHANDISE_CC = "merchandise@southbayjudo.com";
+const ORDER_CC = ["registration@southbayjudo.com", "merchandise@southbayjudo.com", "info@southbayjudo.com"];
 
 
 export interface RegistrationReceiptStudent {
@@ -158,8 +157,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
     {
       from: FROM_ADDRESS,
       to: opts.to,
-      cc: REGISTRATION_CC,
-      bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
+      cc: ORDER_CC,
       replyTo: "info@southbayjudo.com",
       subject: `South Bay Judo ${isPaid ? "payment" : "registration"} confirmed — ${opts.receipt.receiptNumber}`,
       html,
@@ -246,8 +244,7 @@ South Bay Judo`;
     {
       from: FROM_ADDRESS,
       to: opts.to,
-      cc: MERCHANDISE_CC,
-      bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
+      cc: ORDER_CC,
       replyTo: "info@southbayjudo.com",
       subject: `South Bay Judo gear order confirmed — ${opts.orderNumber}`,
       html,
