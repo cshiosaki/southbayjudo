@@ -3,9 +3,8 @@
 import { useState } from "react";
 
 /**
- * DEMO MODE — visitor/drop-in check-in. Client-side only for the design
- * review; the full version posts to /api/visitor and files the signed
- * waiver to Google Drive (see git history / original scaffold).
+ * Visitor/drop-in check-in. Submissions are saved to the Guest Registrations
+ * tab in the same Google Sheet used by South Bay Judo registration.
  */
 const MEDICAL_ACK_TEXT = `I acknowledge that judo involves physical contact and carries inherent risk of injury. I release South Bay Judo, the City of Torrance, and their instructors and volunteers from liability for injuries sustained during normal participation, except in cases of gross negligence. I consent to emergency medical treatment if I cannot be reached.`;
 
@@ -26,6 +25,8 @@ export default function VisitorPage() {
   const [guardianRelationship, setGuardianRelationship] = useState("");
   const [signedByName, setSignedByName] = useState("");
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const needsOneMonthPass = form.membershipOrg === "USJF_1_MONTH";
   const hasAcceptedMembership =
@@ -33,14 +34,38 @@ export default function VisitorPage() {
     form.membershipOrg === "USA_JUDO" ||
     (needsOneMonthPass && passPurchased);
 
+  async function submitVisitor() {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/visitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          oneMonthPass: needsOneMonthPass && passPurchased,
+          isMinor: isMinor === "yes",
+          guardianRelationship,
+          signedByName,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Guest registration could not be saved.");
+      setDone(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Guest registration could not be saved.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (done) {
     return (
       <main className="max-w-xl mx-auto px-6 py-24 text-center">
-        <p className="font-display text-gold text-lg mb-2">Demo submission received</p>
+        <p className="font-display text-gold text-lg mb-2">Guest registration received</p>
         <h1 className="font-display text-5xl mb-6">You're all set</h1>
         <p className="text-ink/70">
-          In the live version, your waiver would now be filed to Google Drive. Welcome to South Bay
-          Judo — head over to the mat.
+          Your visitor check-in and signed waiver have been recorded. Welcome to South Bay Judo — head over to the mat.
         </p>
       </main>
     );
@@ -271,13 +296,15 @@ export default function VisitorPage() {
           (form.hasMedicalConditions === "yes" && !form.medicalNotes.trim()) ||
           !signedByName.trim() ||
           !isMinor ||
-          (isMinor === "yes" && !guardianRelationship)
+          (isMinor === "yes" && !guardianRelationship) ||
+          submitting
         }
-        onClick={() => setDone(true)}
+        onClick={submitVisitor}
         className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30 mt-8"
       >
-        Sign &amp; check in (demo)
+        {submitting ? "Saving check-in…" : "Sign & check in"}
       </button>
+      {submitError && <p className="mt-4 text-sm font-semibold text-belt">{submitError}</p>}
     </main>
   );
 }
