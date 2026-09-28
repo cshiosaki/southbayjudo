@@ -293,7 +293,7 @@ export async function sendUsjfReminderEmail(opts: {
           <li>Select the yearly USJF membership.</li>
           <li>Complete the USJF registration and payment directly with USJF.</li>
           <li>Keep the membership number and expiration date for your records.</li>
-          <li>Reply to this email or provide the membership information to a South Bay Judo instructor so we can update our records.</li>
+          <li>Send the participant's USJF membership information to <strong>registration@southbayjudo.com</strong> so we can update our records.</li>
         </ol>
         <a href="https://www.usjf.com/membership-program/" style="display:inline-block;margin-top:10px;padding:10px 14px;background:#9c2f1b;color:#fff;text-decoration:none;font-weight:bold">Open USJF Membership</a>
         <p style="margin-top:24px;font-size:14px;color:#5f5a52">If the participant already has USA Judo membership, they still need the applicable USJF short-term membership before class.</p>
@@ -314,7 +314,7 @@ How to complete membership:
 2. Select the yearly USJF membership.
 3. Complete the registration and payment directly with USJF.
 4. Keep the membership number and expiration date.
-5. Reply to this email or give the membership information to a South Bay Judo instructor so we can update our records.
+5. Send the participant's USJF membership information to registration@southbayjudo.com so we can update our records.
 
 If the participant already has USA Judo membership, they still need the applicable USJF short-term membership before class.
 
@@ -325,7 +325,6 @@ South Bay Judo`;
     {
       from: FROM_ADDRESS,
       to: opts.to,
-      bcc: ORDER_BCC,
       replyTo: "info@southbayjudo.com",
       subject: `Action needed: USJF membership for ${opts.studentName}`,
       html,
