@@ -200,23 +200,27 @@ export const DUFFLE_SIZES: GearOption[] = [
 // prices. Placeholder numbers only, flagged so they're easy to find later.
 // Larger sizes cost a bit more, same as real bulk apparel pricing usually works.
 export const TSHIRT_SIZES: GearOption[] = [
-  { id: "tshirt_ys", label: "Youth Small", price: 15 },
-  { id: "tshirt_ym", label: "Youth Medium", price: 15 },
-  { id: "tshirt_yl", label: "Youth Large", price: 16 },
-  { id: "tshirt_as", label: "Adult Small", price: 18 },
-  { id: "tshirt_am", label: "Adult Medium", price: 18 },
-  { id: "tshirt_al", label: "Adult Large", price: 19 },
-  { id: "tshirt_axl", label: "Adult XL", price: 20 },
-  { id: "tshirt_axxl", label: "Adult XXL", price: 22 },
+  { id: "tshirt_ys", label: "Youth Small", price: 20 },
+  { id: "tshirt_ym", label: "Youth Medium", price: 20 },
+  { id: "tshirt_yl", label: "Youth Large", price: 20 },
+  { id: "tshirt_yxl", label: "Youth XL", price: 20 },
+  { id: "tshirt_as", label: "Adult Small", price: 22 },
+  { id: "tshirt_am", label: "Adult Medium", price: 22 },
+  { id: "tshirt_al", label: "Adult Large", price: 22 },
+  { id: "tshirt_axl", label: "Adult XL", price: 22 },
+  { id: "tshirt_axxl", label: "Adult 2XL", price: 24 },
+  { id: "tshirt_axxxl", label: "Adult 3XL", price: 26 },
 ];
 
 export const SWEATSHIRT_SIZES: GearOption[] = [
-  { id: "sweat_ys", label: "Youth Small", price: 25 },
-  { id: "sweat_ym", label: "Youth Medium", price: 25 },
-  { id: "sweat_yl", label: "Youth Large", price: 26 },
-  { id: "sweat_as", label: "Adult Small", price: 28 },
-  { id: "sweat_am", label: "Adult Medium", price: 28 },
-  { id: "sweat_al", label: "Adult Large", price: 29 },
-  { id: "sweat_axl", label: "Adult XL", price: 30 },
-  { id: "sweat_axxl", label: "Adult XXL", price: 32 },
+  { id: "sweat_ys", label: "Youth Small", price: 40 },
+  { id: "sweat_ym", label: "Youth Medium", price: 40 },
+  { id: "sweat_yl", label: "Youth Large", price: 40 },
+  { id: "sweat_yxl", label: "Youth XL", price: 40 },
+  { id: "sweat_as", label: "Adult Small", price: 50 },
+  { id: "sweat_am", label: "Adult Medium", price: 50 },
+  { id: "sweat_al", label: "Adult Large", price: 50 },
+  { id: "sweat_axl", label: "Adult XL", price: 50 },
+  { id: "sweat_axxl", label: "Adult 2XL", price: 55 },
+  { id: "sweat_axxxl", label: "Adult 3XL", price: 60 },
 ];
