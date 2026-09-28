@@ -69,6 +69,26 @@ const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position
 const PAYMENT_STATUS_COLUMN = "AI";
 const RECEIPT_EMAIL_SENT_COLUMN = "AL";
 
+const GUEST_SHEET_NAME = "Guest Registrations";
+const GUEST_HEADERS = [
+  "Check-In Date",
+  "First Name",
+  "Last Name",
+  "Home Dojo / Club",
+  "Membership Org",
+  "Membership ID",
+  "One-Month Pass",
+  "Emergency Contact",
+  "Emergency Phone",
+  "Medical Conditions",
+  "Medical Notes",
+  "Minor",
+  "Guardian Relationship",
+  "Signed By",
+  "Waiver Signed",
+];
+const GUEST_LAST_COLUMN = "O";
+
 const GEAR_SHEET_NAME = "Gear Orders";
 const GEAR_HEADERS = [
   "Order Date",
@@ -232,6 +252,96 @@ export async function appendPaidGearOrderRowsIfMissing(rows: GearOrderRow[]) {
   });
 
   return { appended: true };
+}
+
+
+async function ensureSheetTabExists(title: string) {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  const spreadsheet = await sheets.spreadsheets.get({
+    spreadsheetId: sheetId,
+    fields: "sheets.properties.title",
+  });
+  const exists = (spreadsheet.data.sheets || []).some((sheet) => sheet.properties?.title === title);
+  if (!exists) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: {
+        requests: [{ addSheet: { properties: { title } } }],
+      },
+    });
+  }
+}
+
+async function ensureGuestHeaders() {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) return;
+
+  await ensureSheetTabExists(GUEST_SHEET_NAME);
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `'${GUEST_SHEET_NAME}'!A1:${GUEST_LAST_COLUMN}1`,
+  });
+  const currentHeaders = res.data.values?.[0] || [];
+  if (GUEST_HEADERS.some((header, index) => currentHeaders[index] !== header)) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `'${GUEST_SHEET_NAME}'!A1:${GUEST_LAST_COLUMN}1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [GUEST_HEADERS] },
+    });
+  }
+}
+
+export async function appendGuestRegistration(row: {
+  checkInDate: string;
+  firstName: string;
+  lastName: string;
+  homeDojo: string;
+  membershipOrg: string;
+  membershipId: string;
+  oneMonthPass: boolean;
+  emergencyContact: string;
+  emergencyPhone: string;
+  hasMedicalConditions: string;
+  medicalNotes: string;
+  isMinor: boolean;
+  guardianRelationship: string;
+  signedByName: string;
+}) {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  await ensureGuestHeaders();
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: `'${GUEST_SHEET_NAME}'!A1`,
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: {
+      values: [[
+        row.checkInDate,
+        row.firstName,
+        row.lastName,
+        row.homeDojo,
+        row.membershipOrg,
+        row.membershipId,
+        row.oneMonthPass ? "Yes" : "No",
+        row.emergencyContact,
+        row.emergencyPhone,
+        row.hasMedicalConditions,
+        row.medicalNotes,
+        row.isMinor ? "Yes" : "No",
+        row.guardianRelationship,
+        row.signedByName,
+        "Yes",
+      ]],
+    },
+  });
 }
 
 export interface RosterRow {
