@@ -21,8 +21,8 @@ export default async function HomePage() {
               and respect.
             </h1>
             <p className="text-lg text-canvas/80 max-w-xl leading-relaxed mb-8">
-              Four sessions a year at Wilson Park's Dee Hardison Sports Center — for juniors, youth,
-              and adults, ages 5 and up. Throwing, grappling, and the discipline that comes with them.
+              Five sessions a year at Wilson Park's Dee Hardison Sports Center — four regular sessions
+              for juniors, youth, and adults, plus a Holiday Session for advanced and returning students.
             </p>
             <div className="flex gap-4 flex-wrap">
               <Link href="/register" className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide">
@@ -60,7 +60,7 @@ export default async function HomePage() {
       {/* About */}
       <section className="max-w-5xl mx-auto px-6 py-20 grid md:grid-cols-5 gap-12">
         <div className="md:col-span-2">
-          <h2 className="font-display text-3xl mb-4">A yearlong program, four sessions at a time</h2>
+          <h2 className="font-display text-3xl mb-4">A yearlong program with five sessions</h2>
         </div>
         <div className="md:col-span-3 text-ink/85 leading-relaxed space-y-4">
           <p>
@@ -70,10 +70,10 @@ export default async function HomePage() {
             mental toughness, discipline, and self-control alongside self-defense.
           </p>
           <p>
-            Each session runs about 9–10 weeks (18 classes), twice a week on Tuesdays and Thursdays,
-            at the Dee Hardison Sports Center in Wilson Park. New and returning students are welcome
-            each quarter; the Holiday session in November–December is a conditioning and competition
-            workout open to returning students only.
+            South Bay Judo offers four regular sessions during the year, with classes twice a week on
+            Tuesdays and Thursdays at the Dee Hardison Sports Center in Wilson Park. A fifth Holiday
+            Session is held in November–December for advanced and returning students, with an emphasis
+            on conditioning and competition-focused training.
           </p>
         </div>
       </section>
