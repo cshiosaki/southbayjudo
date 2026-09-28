@@ -211,7 +211,7 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     signedByName: v[28] || "",
     autoRenew: v[29] === "TRUE",
     sessionFeeCharged: v[30] || "",
-    paid: v[31] === "TRUE",
+    paid: v[31] === "Yes" || v[31] === "TRUE",
     familyExtrasNote: v[32] || "",
     emailOptIn: v[38] !== "No",
   }));
@@ -227,7 +227,7 @@ export async function setPaid(rowNumber: number, paid: boolean) {
     spreadsheetId: sheetId,
     range: `${PAID_COLUMN}${rowNumber}`,
     valueInputOption: "RAW",
-    requestBody: { values: [[paid ? "TRUE" : "FALSE"]] },
+    requestBody: { values: [[paid ? "Yes" : "No"]] },
   });
 }
 
@@ -288,7 +288,7 @@ export async function updateRegistrationPayment(
     requestBody: {
       valueInputOption: "RAW",
       data: matchingRows.flatMap(({ rowNumber }) => [
-        { range: `${PAID_COLUMN}${rowNumber}`, values: [[paid ? "TRUE" : "FALSE"]] },
+        { range: `${PAID_COLUMN}${rowNumber}`, values: [[paid ? "Yes" : "No"]] },
         { range: `${PAYMENT_STATUS_COLUMN}${rowNumber}`, values: [[paymentStatus]] },
       ]),
     },
