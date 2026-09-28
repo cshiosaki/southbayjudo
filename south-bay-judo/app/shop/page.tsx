@@ -10,6 +10,13 @@ type ShopOption = {
   group: string;
 };
 
+type SpecialPurchase = {
+  id: string;
+  description: string;
+  amount: number;
+  approvedBy: string;
+};
+
 const OPTIONS: ShopOption[] = [
   { id: "gi_0000", label: "Gi Size 0000", price: 60, group: "Judo Gi" },
   { id: "gi_000", label: "Gi Size 000", price: 60, group: "Judo Gi" },
@@ -67,14 +74,15 @@ export default function ShopPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [customDescription, setCustomDescription] = useState("");
   const [customAmount, setCustomAmount] = useState("");
+  const [customApprovedBy, setCustomApprovedBy] = useState("");
+  const [specialPurchases, setSpecialPurchases] = useState<SpecialPurchase[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const total = useMemo(() => {
     const fixed = OPTIONS.reduce((sum, item) => sum + item.price * (quantities[item.id] || 0), 0);
-    const custom = Number(customAmount);
-    return fixed + (customDescription.trim() && Number.isFinite(custom) && custom > 0 ? custom : 0);
-  }, [quantities, customAmount, customDescription]);
+    return fixed + specialPurchases.reduce((sum, item) => sum + item.amount, 0);
+  }, [quantities, specialPurchases]);
 
   function setQty(id: string, value: number) {
     const quantity = Math.max(0, Math.min(20, Math.floor(value || 0)));
@@ -94,8 +102,7 @@ export default function ShopPage() {
           phone,
           studentName,
           items: OPTIONS.map((item) => ({ id: item.id, quantity: quantities[item.id] || 0 })).filter((item) => item.quantity > 0),
-          customDescription,
-          customAmount,
+          specialPurchases: specialPurchases.map(({ description, amount, approvedBy }) => ({ description, amount, approvedBy })),
         }),
       });
 
@@ -396,14 +403,14 @@ export default function ShopPage() {
         </div>
       </section>
 
-<section className="bg-card border-t-4 border-belt p-6 sm:p-8 mb-8">
+      <section className="bg-card border-t-4 border-belt p-6 sm:p-8 mb-8">
         <h2 className="font-display text-3xl mb-2">Other / Special Purchase</h2>
         <p className="text-sm text-ink/65 mb-5">
-          Use this only if instructed by South Bay Judo. Enter the item description and the agreed-upon amount.
+          Use this only if instructed by South Bay Judo. The item, amount, and <strong>Approved by</strong> name are required before it can be added to the cart.
         </p>
-        <div className="grid sm:grid-cols-[1fr_180px] gap-4">
-          <label className="text-sm">
-            <span className="block mb-1 font-semibold">Item / Description</span>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <label className="text-sm sm:col-span-2">
+            <span className="block mb-1 font-semibold">Item / Description *</span>
             <input
               value={customDescription}
               onChange={(e) => setCustomDescription(e.target.value)}
@@ -412,7 +419,7 @@ export default function ShopPage() {
             />
           </label>
           <label className="text-sm">
-            <span className="block mb-1 font-semibold">Amount</span>
+            <span className="block mb-1 font-semibold">Amount *</span>
             <div className="flex border border-ink/20 bg-white">
               <span className="px-3 py-2.5 text-ink/50">$</span>
               <input
@@ -427,7 +434,67 @@ export default function ShopPage() {
               />
             </div>
           </label>
+          <label className="text-sm">
+            <span className="block mb-1 font-semibold">Approved by *</span>
+            <input
+              value={customApprovedBy}
+              onChange={(e) => setCustomApprovedBy(e.target.value)}
+              placeholder="South Bay Judo approver name"
+              className="w-full border border-ink/20 bg-white px-3 py-2.5"
+            />
+          </label>
         </div>
+        <button
+          type="button"
+          disabled={
+            !customDescription.trim() ||
+            !customApprovedBy.trim() ||
+            !Number.isFinite(Number(customAmount)) ||
+            Number(customAmount) < 1
+          }
+          onClick={() => {
+            const amount = Number(customAmount);
+            if (!customDescription.trim() || !customApprovedBy.trim() || !Number.isFinite(amount) || amount < 1) return;
+            setSpecialPurchases([
+              ...specialPurchases,
+              {
+                id: crypto.randomUUID(),
+                description: customDescription.trim(),
+                amount,
+                approvedBy: customApprovedBy.trim(),
+              },
+            ]);
+            setCustomDescription("");
+            setCustomAmount("");
+            setCustomApprovedBy("");
+          }}
+          className="mt-4 bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30"
+        >
+          Add to cart
+        </button>
+
+        {specialPurchases.length > 0 && (
+          <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+            {specialPurchases.map((item) => (
+              <li key={item.id} className="flex items-start justify-between gap-4">
+                <span>
+                  <strong>{item.description}</strong>
+                  <span className="block text-xs text-ink/55">Approved by: {item.approvedBy}</span>
+                </span>
+                <span className="flex items-center gap-3">
+                  <strong>{money(item.amount)}</strong>
+                  <button
+                    type="button"
+                    className="text-belt underline text-xs"
+                    onClick={() => setSpecialPurchases(specialPurchases.filter((purchase) => purchase.id !== item.id))}
+                  >
+                    remove
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="border border-ink/15 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
