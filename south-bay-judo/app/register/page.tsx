@@ -328,6 +328,9 @@ export default function RegisterPage() {
   if (step === "guardian") {
     return (
       <main className="max-w-2xl mx-auto px-6 py-16">
+        <div className="mb-6 border border-gold/50 bg-gold/15 p-4 text-sm font-semibold text-ink">
+          Online registration is currently available for testing purposes only. Please do not use this form for an official registration yet.
+        </div>
         <h1 className="font-display text-5xl mb-2">Session Registration</h1>
         <p className="text-ink/60 mb-10">
           Enter the primary contact below. If you are an adult registering yourself, use your own information.
