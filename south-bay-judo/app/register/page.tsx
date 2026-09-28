@@ -1150,8 +1150,8 @@ export default function RegisterPage() {
             All participants must carry a current USJF membership for insurance coverage. A primary
             12-month USJF membership is ${MEMBERSHIP_FEE}. If the participant currently has USA Judo,
             they must also obtain a USJF short-term membership (${SHORT_TERM_MEMBERSHIP_FEE} monthly).
-            Memberships are purchased directly through{" "}
-            <a href="https://www.usjf.com/membership-program/" target="_blank" rel="noreferrer" className="underline">usjf.org</a>.
+            Membership is handled separately through USJF. If membership is still needed, complete this
+            registration first and we’ll email the signup instructions afterward.
           </p>
 
           {draft.isNewStudent && (
@@ -1187,17 +1187,11 @@ export default function RegisterPage() {
             </button>
             {needsMembershipSelected && (
               <div className="mt-4 border-t border-belt/25 pt-4 text-sm">
-                <p className="mb-3">
-                  Selecting this option does not enroll the participant. You must visit the official USJF website and complete the membership signup there before the first class.
+                <p>
+                  That’s okay — continue with this registration. After registration is complete, we’ll
+                  send a separate email with instructions for obtaining the required USJF membership
+                  before the first class.
                 </p>
-                <a
-                  href="https://www.usjf.com/membership-program/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block bg-belt px-4 py-2 font-display text-card"
-                >
-                  Go to USJF website to sign up — ${MEMBERSHIP_FEE}
-                </a>
               </div>
             )}
           </div>
@@ -1291,7 +1285,7 @@ export default function RegisterPage() {
             isExpired(draft.membershipExpires) ? (
               <div className="bg-belt/10 border border-belt p-3 mb-6 text-sm text-belt">
                 This membership expired on {draft.membershipExpires} — {draft.firstName || "the participant"} will
-                need to renew directly at usjf.org before their first class.
+                need to renew before the first class. We’ll send the USJF renewal instructions after registration.
               </div>
             ) : (
               <div className="bg-mat/15 p-3 mb-6 text-sm text-mat">
@@ -1323,9 +1317,8 @@ export default function RegisterPage() {
 
           {draft.membershipStatus === "none" && !usjfManualEntry && usjfQuery.length >= 2 && usjfResults.length === 0 && !usjfSearching && (
             <p className="text-xs text-belt mb-6">
-              No match found. They can enter their number manually, or if they don't have a
-              membership yet, they'll need to register directly at usjf.org before their first
-              class.
+              No match found. They can enter their number manually, or select “I don’t have a USJF
+              membership yet” and continue. We’ll email the USJF signup instructions after registration.
             </p>
           )}
 
