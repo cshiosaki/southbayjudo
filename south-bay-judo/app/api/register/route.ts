@@ -236,7 +236,16 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join(" · ");
 
     const rows = students.map((student, index) => [
-      new Date().toISOString(), student.sessionId, student.sessionLabel, student.classTimeLabel,
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short",
+      }).format(new Date()), student.sessionId, student.sessionLabel, student.classTimeLabel,
       student.isNewStudent ? "Yes" : "No", student.isLateOrTransfer ? "Yes" : "No",
       student.firstName, student.lastName, student.dateOfBirth, student.beltRank,
       text(guardian.firstName), text(guardian.lastName), text(guardian.email), text(guardian.phone),
