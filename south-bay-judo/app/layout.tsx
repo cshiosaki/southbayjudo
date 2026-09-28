@@ -66,18 +66,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
 
         <footer className="bg-ink text-canvas mt-24">
-          <div className="max-w-5xl mx-auto px-6 py-12 grid sm:grid-cols-3 gap-8 text-sm">
-            <div>
+          <div className="max-w-4xl mx-auto px-6 py-12 grid sm:grid-cols-3 gap-10 text-sm">
+            <div className="sm:text-center">
               <p className="font-display text-lg mb-1">Location</p>
               <p>Wilson Park — Dee Hardison Sports Center</p>
               <p>2400 Jefferson St, Torrance, CA 90501</p>
             </div>
-            <div>
+            <div className="sm:text-center">
               <p className="font-display text-lg mb-1">Hours</p>
               <p>Tuesday &amp; Thursday</p>
               <p>4:45pm – 9:15pm</p>
             </div>
-            <div>
+            <div className="sm:text-center">
               <p className="font-display text-lg mb-1">Contact</p>
               <p>info@southbayjudo.com</p>
               <p>(424) 392-4732</p>
