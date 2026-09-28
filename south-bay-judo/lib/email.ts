@@ -23,6 +23,8 @@ export function emailConfigured() {
 }
 
 const FROM_ADDRESS = process.env.EMAIL_FROM || "South Bay Judo <info@southbayjudo.com>";
+const REGISTRATION_CC = "registration@southbayjudo.com";
+
 
 export interface RegistrationReceiptStudent {
   name: string;
@@ -155,6 +157,7 @@ export async function sendRegistrationConfirmationEmail(opts: {
     {
       from: FROM_ADDRESS,
       to: opts.to,
+      cc: REGISTRATION_CC,
       bcc: process.env.REGISTRATION_BCC || "info@southbayjudo.com",
       replyTo: "info@southbayjudo.com",
       subject: `South Bay Judo ${isPaid ? "payment" : "registration"} confirmed — ${opts.receipt.receiptNumber}`,
