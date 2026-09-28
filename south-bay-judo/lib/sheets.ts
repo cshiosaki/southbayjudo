@@ -69,6 +69,39 @@ const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position
 const PAYMENT_STATUS_COLUMN = "AI";
 const RECEIPT_EMAIL_SENT_COLUMN = "AL";
 
+const GEAR_SHEET_NAME = "Gear Orders";
+const GEAR_HEADERS = [
+  "Order Date",
+  "Buyer / Guardian",
+  "Student Name",
+  "Receipt / Order #",
+  "Item",
+  "Size",
+  "Quantity",
+  "Amount",
+  "Paid",
+  "Approved By",
+  "Distributed",
+  "Distributed Date",
+  "Notes",
+];
+const GEAR_LAST_COLUMN = "M";
+
+export interface GearOrderRow {
+  orderDate: string;
+  buyerName: string;
+  studentName: string;
+  orderNumber: string;
+  item: string;
+  size: string;
+  quantity: number;
+  amount: number;
+  paid: boolean;
+  approvedBy?: string;
+  notes?: string;
+}
+
+
 function getAuth() {
   const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
   if (!keyJson) return null;
@@ -130,6 +163,75 @@ export async function appendRegistrations(rows: string[][]) {
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: rows },
   });
+}
+
+
+async function ensureGearHeaders() {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) return;
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `'${GEAR_SHEET_NAME}'!A1:${GEAR_LAST_COLUMN}1`,
+  });
+  const currentHeaders = res.data.values?.[0] || [];
+  if (GEAR_HEADERS.some((header, index) => currentHeaders[index] !== header)) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `'${GEAR_SHEET_NAME}'!A1:${GEAR_LAST_COLUMN}1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [GEAR_HEADERS] },
+    });
+  }
+}
+
+/**
+ * Writes a paid merchandise order to the Gear Orders tab exactly once.
+ * Stripe may retry webhooks, so the order number is checked before appending.
+ */
+export async function appendPaidGearOrderRowsIfMissing(rows: GearOrderRow[]) {
+  if (!rows.length) return { appended: false };
+
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  await ensureGearHeaders();
+
+  const orderNumber = rows[0].orderNumber;
+  const existing = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `'${GEAR_SHEET_NAME}'!D2:D`,
+  });
+  const alreadyExists = (existing.data.values || []).some((row) => row[0] === orderNumber);
+  if (alreadyExists) return { appended: false };
+
+  const values = rows.map((row) => [
+    row.orderDate,
+    row.buyerName,
+    row.studentName,
+    row.orderNumber,
+    row.item,
+    row.size,
+    String(row.quantity),
+    row.amount.toFixed(2),
+    row.paid ? "Yes" : "No",
+    row.approvedBy || "",
+    "No",
+    "",
+    row.notes || "",
+  ]);
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: `'${GEAR_SHEET_NAME}'!A1`,
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values },
+  });
+
+  return { appended: true };
 }
 
 export interface RosterRow {
