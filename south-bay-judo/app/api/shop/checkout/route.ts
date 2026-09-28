@@ -81,23 +81,29 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const customDescription = clean(body.customDescription);
-    const customAmount = Number(body.customAmount);
-    if (customDescription || customAmount) {
-      if (!customDescription) throw new Error("Enter a description for the Other / Special Purchase.");
-      if (!Number.isFinite(customAmount) || customAmount < 1 || customAmount > 5000) {
-        throw new Error("Other / Special Purchase amount must be between $1 and $5,000.");
+    const specialPurchases = Array.isArray(body.specialPurchases) ? body.specialPurchases : [];
+    specialPurchases.forEach((purchase: Record<string, unknown>, index: number) => {
+      const description = clean(purchase.description);
+      const approvedBy = clean(purchase.approvedBy);
+      const amount = Number(purchase.amount);
+
+      if (!description) throw new Error(`Special purchase #${index + 1} needs a description.`);
+      if (!approvedBy) throw new Error(`Special purchase #${index + 1} needs an Approved by name.`);
+      if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
+        throw new Error(`Special purchase #${index + 1} amount must be between $1 and $5,000.`);
       }
 
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: `Other / Special Purchase — ${customDescription.slice(0, 150)}` },
-          unit_amount: Math.round(customAmount * 100),
+          product_data: {
+            name: `Other / Special Purchase — ${description.slice(0, 120)} — Approved by: ${approvedBy.slice(0, 80)}`,
+          },
+          unit_amount: Math.round(amount * 100),
         },
         quantity: 1,
       });
-    }
+    });
 
     if (!lineItems.length) {
       return NextResponse.json({ error: "Add at least one item to your order." }, { status: 400 });
