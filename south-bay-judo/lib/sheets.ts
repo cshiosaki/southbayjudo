@@ -50,7 +50,6 @@ const HEADERS = [
   "Membership Org",
   "Membership ID#",
   "Membership Expires",
-  "Gi Size",
   "Photo Consent",
   "Signed By",
   "Auto-Renew",
@@ -64,10 +63,10 @@ const HEADERS = [
   "Receipt Email Sent",
   "Email Opt-In",
 ];
-const LAST_COLUMN = "AM"; // matches HEADERS.length (39 columns, A..AM)
-const PAID_COLUMN = "AF"; // index 31 (0-based) — must match "Paid"'s position in HEADERS
-const PAYMENT_STATUS_COLUMN = "AI";
-const RECEIPT_EMAIL_SENT_COLUMN = "AL";
+const LAST_COLUMN = "AL"; // matches HEADERS.length (38 columns, A..AL)
+const PAID_COLUMN = "AE"; // index 30 (0-based) — must match "Paid"'s position in HEADERS
+const PAYMENT_STATUS_COLUMN = "AH";
+const RECEIPT_EMAIL_SENT_COLUMN = "AK";
 
 const GUEST_SHEET_NAME = "Guest Registrations";
 const GUEST_HEADERS = [
@@ -154,6 +153,35 @@ async function ensureHeaders() {
   const sheets = await getSheetsClient();
   const sheetId = getSheetId();
   if (!sheets || !sheetId) return;
+
+  // Migrate the legacy registration sheet by physically removing the old "Gi Size"
+  // column so all existing data stays aligned with the current schema.
+  const headerProbe = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: "A1:AM1" });
+  const existingHeaders = headerProbe.data.values?.[0] || [];
+  if (existingHeaders[26] === "Gi Size") {
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+      fields: "sheets.properties(sheetId,index)",
+    });
+    const firstSheetId = spreadsheet.data.sheets?.find((sheet) => sheet.properties?.index === 0)?.properties?.sheetId;
+    if (typeof firstSheetId === "number") {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: sheetId,
+        requestBody: {
+          requests: [{
+            deleteDimension: {
+              range: {
+                sheetId: firstSheetId,
+                dimension: "COLUMNS",
+                startIndex: 26,
+                endIndex: 27,
+              },
+            },
+          }],
+        },
+      });
+    }
+  }
 
   const res = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: `A1:${LAST_COLUMN}1` });
   const currentHeaders = res.data.values?.[0] || [];
@@ -372,7 +400,6 @@ export interface RosterRow {
   membershipOrg: string;
   membershipIdNumber: string;
   membershipExpires: string;
-  giSize: string;
   photoConsent: string;
   signedByName: string;
   autoRenew: boolean;
@@ -418,14 +445,13 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     membershipOrg: v[23] || "",
     membershipIdNumber: v[24] || "",
     membershipExpires: v[25] || "",
-    giSize: v[26] || "",
-    photoConsent: v[27] || "",
-    signedByName: v[28] || "",
-    autoRenew: v[29] === "Yes" || v[29] === "TRUE",
-    sessionFeeCharged: v[30] || "",
-    paid: v[31] === "Yes" || v[31] === "TRUE",
-    familyExtrasNote: v[32] || "",
-    emailOptIn: v[38] !== "No",
+    photoConsent: v[26] || "",
+    signedByName: v[27] || "",
+    autoRenew: v[28] === "Yes" || v[28] === "TRUE",
+    sessionFeeCharged: v[29] || "",
+    paid: v[30] === "Yes" || v[30] === "TRUE",
+    familyExtrasNote: v[31] || "",
+    emailOptIn: v[37] !== "No",
   }));
 
   return sessionId ? rows.filter((r) => r.sessionId === sessionId) : rows;
@@ -488,13 +514,13 @@ export async function updateRegistrationPayment(
   const values = res.data.values || [];
   const matchingRows = values
     .map((row, index) => ({ row, rowNumber: index + 2 }))
-    .filter(({ row }) => row[33] === receiptNumber);
+    .filter(({ row }) => row[32] === receiptNumber);
 
   if (matchingRows.length === 0) {
     throw new Error(`Registration ${receiptNumber} was not found.`);
   }
 
-  const receiptEmailAlreadySent = matchingRows.every(({ row }) => row[37] === "Yes" || row[37] === "TRUE");
+  const receiptEmailAlreadySent = matchingRows.every(({ row }) => row[36] === "Yes" || row[36] === "TRUE");
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: sheetId,
     requestBody: {
@@ -506,7 +532,7 @@ export async function updateRegistrationPayment(
     },
   });
 
-  const storedJson = matchingRows[0].row[36];
+  const storedJson = matchingRows[0].row[35];
   if (!storedJson) throw new Error(`Registration ${receiptNumber} is missing its receipt data.`);
   const order = JSON.parse(storedJson) as StoredRegistrationOrder;
   order.receipt.paymentStatus = paymentStatus;
@@ -525,7 +551,7 @@ export async function markRegistrationReceiptEmailSent(receiptNumber: string) {
   });
   const rowNumbers = (res.data.values || [])
     .map((row, index) => ({ row, rowNumber: index + 2 }))
-    .filter(({ row }) => row[33] === receiptNumber)
+    .filter(({ row }) => row[32] === receiptNumber)
     .map(({ rowNumber }) => rowNumber);
 
   if (rowNumbers.length === 0) throw new Error(`Registration ${receiptNumber} was not found.`);
