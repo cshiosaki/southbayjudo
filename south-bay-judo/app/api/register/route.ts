@@ -114,19 +114,22 @@ export async function POST(req: NextRequest) {
       ...selectedGear(familyExtras?.sweatshirtOrderIds, SWEATSHIRT_SIZES, "Sweatshirt"),
     ];
 
-    const customDescription = text(familyExtras?.customDescription);
-    const customAmount = Number(familyExtras?.customAmount);
-    if (customDescription || customAmount) {
-      if (!customDescription) throw new Error("Enter a description for the Other / Special Purchase.");
-      if (!Number.isFinite(customAmount) || customAmount < 1 || customAmount > 5000) {
-        throw new Error("Other / Special Purchase amount must be between $1 and $5,000.");
+    const specialPurchases = Array.isArray(familyExtras?.specialPurchases) ? familyExtras.specialPurchases : [];
+    specialPurchases.forEach((purchase: Record<string, unknown>, index: number) => {
+      const description = text(purchase.description);
+      const approvedBy = text(purchase.approvedBy);
+      const amount = Number(purchase.amount);
+      if (!description) throw new Error(`Special purchase #${index + 1} needs a description.`);
+      if (!approvedBy) throw new Error(`Special purchase #${index + 1} needs an Approved by name.`);
+      if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
+        throw new Error(`Special purchase #${index + 1} amount must be between $1 and $5,000.`);
       }
       gearItems.push({
-        id: "custom",
-        label: `Other / Special Purchase — ${customDescription.slice(0, 150)}`,
-        price: customAmount,
+        id: `custom_${index + 1}`,
+        label: `Other / Special Purchase — ${description.slice(0, 120)} — Approved by: ${approvedBy.slice(0, 80)}`,
+        price: amount,
       });
-    }
+    });
 
     const registeredAt = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Los_Angeles",
