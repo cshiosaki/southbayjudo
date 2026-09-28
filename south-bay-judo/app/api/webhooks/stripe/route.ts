@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 function parseGearDescription(label: string) {
   const approvedMatch = label.match(/\s+—\s+Approved by:\s*(.+)$/i);
   const approvedBy = approvedMatch?.[1]?.trim() || "";
-  const cleaned = approvedMatch ? label.slice(0, approvedMatch.index).trim() : label.trim();
+  const cleaned = approvedMatch && typeof approvedMatch.index === "number" ? label.slice(0, approvedMatch.index).trim() : label.trim();
 
   if (/^Other \/ Special Purchase/i.test(cleaned)) {
     return { item: cleaned, size: "", approvedBy };
@@ -52,9 +52,10 @@ async function updateFromCheckoutSession(
   if (session.metadata?.orderType === "shop_order") {
     if (!paid) return;
 
-    const orderNumber = session.metadata.orderNumber || session.client_reference_id;
-    const buyerEmail = session.metadata.buyerEmail || session.customer_details?.email || session.customer_email;
-    const buyerName = session.metadata.buyerName || session.customer_details?.name || "Customer";
+    const metadata = session.metadata || {};
+    const orderNumber = metadata.orderNumber || session.client_reference_id;
+    const buyerEmail = metadata.buyerEmail || session.customer_details?.email || session.customer_email;
+    const buyerName = metadata.buyerName || session.customer_details?.name || "Customer";
     if (!orderNumber || !buyerEmail) throw new Error("Shop order is missing order number or buyer email.");
 
     const lineItems = await getStripe().checkout.sessions.listLineItems(session.id, { limit: 100 });
@@ -70,7 +71,7 @@ async function updateFromCheckoutSession(
       return {
         orderDate,
         buyerName,
-        studentName: session.metadata.studentName || "",
+        studentName: metadata.studentName || "",
         orderNumber,
         item: parsed.item,
         size: parsed.size,
@@ -87,7 +88,7 @@ async function updateFromCheckoutSession(
       to: buyerEmail,
       buyerName,
       orderNumber,
-      studentName: session.metadata.studentName || undefined,
+      studentName: metadata.studentName || undefined,
       items: lineItems.data.map((item) => ({
         label: item.description || "South Bay Judo merchandise",
         quantity: item.quantity || 1,
