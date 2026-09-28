@@ -154,7 +154,7 @@ export default function ShopPage() {
             <h2 className="font-display text-3xl">Judo Gi</h2>
             <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
           </div>
-          <a href="/images/fuji-judo-gi-size-chart.png" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">View size chart</a>
+          <a href="/gi-size-chart" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">View size chart</a>
         </div>
         <div className="bg-card border border-ink/10 p-4">
           <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
