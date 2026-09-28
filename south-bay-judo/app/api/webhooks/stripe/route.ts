@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendGearOrderConfirmationEmail, sendRegistrationConfirmationEmail } from "@/lib/email";
+import { sendGearOrderConfirmationEmail, sendRegistrationConfirmationEmail, sendUsjfReminderEmail } from "@/lib/email";
 import { appendPaidGearOrderRowsIfMissing, markRegistrationReceiptEmailSent, updateRegistrationPayment, type GearOrderRow } from "@/lib/sheets";
 import { getStripe } from "@/lib/stripe";
 
@@ -159,6 +159,17 @@ async function updateFromCheckoutSession(
       receipt: order.receipt,
       idempotencyKey: `registration-receipt/${receiptNumber}`,
     });
+
+    for (const student of order.receipt.students.filter((item) => item.needsUsjfMembership)) {
+      await sendUsjfReminderEmail({
+        to: order.recipients[0],
+        guardianName: order.guardianName,
+        studentName: student.name,
+        reason: "missing",
+        idempotencyKey: `usjf-follow-up/${receiptNumber}/${student.name}`,
+      });
+    }
+
     await markRegistrationReceiptEmailSent(receiptNumber);
   }
 }
