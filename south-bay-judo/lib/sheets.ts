@@ -184,8 +184,8 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     sessionId: v[1] || "",
     sessionLabel: v[2] || "",
     classTime: v[3] || "",
-    isNewStudent: v[4] === "TRUE",
-    isLateOrTransfer: v[5] === "TRUE",
+    isNewStudent: v[4] === "Yes" || v[4] === "TRUE",
+    isLateOrTransfer: v[5] === "Yes" || v[5] === "TRUE",
     firstName: v[6] || "",
     lastName: v[7] || "",
     dateOfBirth: v[8] || "",
@@ -209,7 +209,7 @@ export async function readRoster(sessionId?: string): Promise<RosterRow[]> {
     giSize: v[26] || "",
     photoConsent: v[27] || "",
     signedByName: v[28] || "",
-    autoRenew: v[29] === "TRUE",
+    autoRenew: v[29] === "Yes" || v[29] === "TRUE",
     sessionFeeCharged: v[30] || "",
     paid: v[31] === "Yes" || v[31] === "TRUE",
     familyExtrasNote: v[32] || "",
@@ -282,7 +282,7 @@ export async function updateRegistrationPayment(
     throw new Error(`Registration ${receiptNumber} was not found.`);
   }
 
-  const receiptEmailAlreadySent = matchingRows.every(({ row }) => row[37] === "TRUE");
+  const receiptEmailAlreadySent = matchingRows.every(({ row }) => row[37] === "Yes" || row[37] === "TRUE");
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: sheetId,
     requestBody: {
@@ -324,7 +324,7 @@ export async function markRegistrationReceiptEmailSent(receiptNumber: string) {
       valueInputOption: "RAW",
       data: rowNumbers.map((rowNumber) => ({
         range: `${RECEIPT_EMAIL_SENT_COLUMN}${rowNumber}`,
-        values: [["TRUE"]],
+        values: [["Yes"]],
       })),
     },
   });
