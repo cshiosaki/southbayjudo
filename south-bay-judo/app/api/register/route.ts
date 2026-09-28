@@ -237,7 +237,7 @@ export async function POST(req: NextRequest) {
 
     const rows = students.map((student, index) => [
       new Date().toISOString(), student.sessionId, student.sessionLabel, student.classTimeLabel,
-      student.isNewStudent ? "TRUE" : "FALSE", student.isLateOrTransfer ? "TRUE" : "FALSE",
+      student.isNewStudent ? "Yes" : "No", student.isLateOrTransfer ? "Yes" : "No",
       student.firstName, student.lastName, student.dateOfBirth, student.beltRank,
       text(guardian.firstName), text(guardian.lastName), text(guardian.email), text(guardian.phone),
       text(guardian2?.firstName), text(guardian2?.lastName), text(guardian2?.email), text(guardian2?.phone),
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       student.hasMedicalConditions === "no" ? "No" : student.hasMedicalConditions === "yes" ? "Yes" : "",
       student.medicalNotes, student.membershipStatus, student.membershipOrg, student.memberIdNumber,
       student.membershipExpires, student.gi?.label || "", student.photoConsent, student.signedByName,
-      student.autoRenew ? "TRUE" : "FALSE", String(student.sessionFee), "No",
+      student.autoRenew ? "Yes" : "No", String(student.sessionFee), "No",
       index === 0 ? extrasNote : "", receiptNumber, "Payment pending", checkout.id,
       index === 0 ? JSON.stringify(storedOrder) : "", "", guardian.emailOptIn === false ? "No" : "Yes",
     ]);
