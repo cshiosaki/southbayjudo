@@ -48,7 +48,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       (value.sessions as SessionConfig[]).map((session) => [session.id, session])
     );
     return {
-      sessions: DEFAULT_SESSIONS.map((session) => {
+      sessions: DEFAULT_SESSIONS.filter((session) => session.id !== "sess_4q").map((session) => {
         const storedSession = storedSessions.get(session.id);
         const isHolidaySession = session.id === "sess_5q" || session.id === "sess_2027_5q";
         const hasLegacyFamilyPricing =
