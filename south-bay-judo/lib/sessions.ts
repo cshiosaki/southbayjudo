@@ -37,7 +37,7 @@ export interface SessionConfig {
 export const SESSIONS: SessionConfig[] = [
   {
     id: "sess_5q",
-    label: "Holiday Session 2026",
+    label: "Holiday — 2026",
     dates: "Nov 10 – Dec 15",
     regWindow: "Registration: Oct 12 – Oct 30",
     note: "Holiday workout schedule: Class 1 (Juniors) check-in/setup 5:45–6:00pm, workout 6:00–7:30pm. Class 2 (Older Youth & Seniors) workout 7:45–9:15pm, mat cleanup/takedown 9:15–9:30pm. No class Nov 26. Returning students only.",
@@ -50,7 +50,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_1q",
-    label: "1Q — Winter 2027",
+    label: "Q1 — Winter 2027",
     dates: "Jan 12 – Mar 11",
     regWindow: "Registration dates to be announced",
     note: "18 classes. Session break Mar 16 & 18.",
@@ -64,7 +64,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_2q",
-    label: "2Q — Spring 2027",
+    label: "Q2 — Spring 2027",
     dates: "Mar 23 – May 20",
     regWindow: "Registration dates to be announced",
     note: "18 classes. Session break May 25 & 27 and Jun 1 & 3.",
@@ -78,7 +78,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_3q",
-    label: "3Q — Summer 2027",
+    label: "Q3 — Summer 2027",
     dates: "Jun 8 – Aug 10",
     regWindow: "Registration dates to be announced",
     note: "18 classes. No class Jul 6. Session break Aug 17 & 19.",
@@ -92,7 +92,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_4q",
-    label: "4Q — Fall 2027",
+    label: "Q4 — Fall 2027",
     dates: "Aug 24 – Oct 26",
     regWindow: "Registration dates to be announced",
     note: "18 classes. No class Sept 7. Session break Oct 28.",
@@ -106,7 +106,7 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_5q",
-    label: "Holiday Session 2027",
+    label: "Holiday — 2027",
     dates: "Nov 2 – Dec 16",
     regWindow: "Registration dates to be announced",
     note: "Holiday workout schedule: Class 1 (Juniors) check-in/setup 5:45–6:00pm, workout 6:00–7:30pm. Class 2 (Older Youth & Seniors) workout 7:45–9:15pm, mat cleanup/takedown 9:15–9:30pm. Holiday Session meets Nov 2 & 4, then Nov 9–Dec 16; no class Nov 11 or Nov 25. Returning students only.",
