@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { appendGuestRegistration, sheetsConfigured } from "@/lib/sheets";
+import { sendGuestRegistrationNotificationEmail } from "@/lib/email";
 
 function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -61,6 +62,14 @@ export async function POST(req: NextRequest) {
       isMinor,
       guardianRelationship,
       signedByName,
+    });
+
+    await sendGuestRegistrationNotificationEmail({
+      checkInDate,
+      firstName,
+      lastName,
+      homeDojo,
+      membershipOrg,
     });
 
     return NextResponse.json({ ok: true });
