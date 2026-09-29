@@ -6,8 +6,6 @@ import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
 import {
   GI_SIZES,
   GI_PURCHASE_SIZES,
-  DUMMY_SIZES,
-  DUFFLE_SIZES,
   TSHIRT_SIZES,
   SWEATSHIRT_SIZES,
   MEMBERSHIP_FEE,
@@ -172,12 +170,6 @@ export default function RegisterPage() {
   const [tshirtPickerQty, setTshirtPickerQty] = useState(1);
   const [sweatshirtPicker, setSweatshirtPicker] = useState("");
   const [sweatshirtPickerQty, setSweatshirtPickerQty] = useState(1);
-  const [dufflePicker, setDufflePicker] = useState("");
-  const [dufflePickerQty, setDufflePickerQty] = useState(1);
-  const [dummyPicker, setDummyPicker] = useState("");
-  const [dummyPickerQty, setDummyPickerQty] = useState(1);
-  const [dummyOrders, setDummyOrders] = useState<string[]>([]); // sizeIds, one per unit ordered
-  const [duffleOrders, setDuffleOrders] = useState<string[]>([]);
   const [tshirtOrders, setTshirtOrders] = useState<string[]>([]);
   const [sweatshirtOrders, setSweatshirtOrders] = useState<string[]>([]);
   const [customGearDescription, setCustomGearDescription] = useState("");
@@ -239,8 +231,6 @@ export default function RegisterPage() {
   const noMembershipCount = students.filter(needsUsjfMembership).length;
 
   const gearTotal =
-    dummyOrders.reduce((sum, id) => sum + (DUMMY_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
-    duffleOrders.reduce((sum, id) => sum + (DUFFLE_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     tshirtOrders.reduce((sum, id) => sum + (TSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     sweatshirtOrders.reduce((sum, id) => sum + (SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
     specialPurchases.reduce((sum, item) => sum + item.amount, 0);
@@ -299,8 +289,6 @@ export default function RegisterPage() {
           }),
           familyExtras: {
             giOrderIds: giOrders,
-            dummyOrderIds: dummyOrders,
-            duffleOrderIds: duffleOrders,
             tshirtOrderIds: tshirtOrders,
             sweatshirtOrderIds: sweatshirtOrders,
             specialPurchases: specialPurchases.map(({ description, amount, approvedBy }) => ({ description, amount, approvedBy })),
@@ -701,101 +689,9 @@ export default function RegisterPage() {
             </div>
           </section>
 
-                    <section className="mb-8">
-            <h3 className="font-display text-3xl mb-4">Duffle Bags</h3>
-            <div className="bg-card border border-ink/10 p-4">
-              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
-                <label className="text-sm">
-                  <span className="block mb-1 text-ink/60">Option</span>
-                  <select value={dufflePicker} onChange={(e) => setDufflePicker(e.target.value)} className="w-full">
-                    <option value="">Choose an option</option>
-                    {DUFFLE_SIZES.map((item) => (
-                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-sm">
-                  <span className="block mb-1 text-ink/60">Qty</span>
-                  <input type="number" min={1} max={20} value={dufflePickerQty}
-                    onChange={(e) => setDufflePickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
-                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
-                </label>
-                <button type="button" disabled={!dufflePicker}
-                  onClick={() => {
-                    if (!dufflePicker) return;
-                    setDuffleOrders([...duffleOrders, ...Array(dufflePickerQty).fill(dufflePicker)]);
-                    setDufflePicker("");
-                    setDufflePickerQty(1);
-                  }}
-                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
-              </div>
-              {duffleOrders.length > 0 && (
-                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
-                  {DUFFLE_SIZES.filter((item) => duffleOrders.includes(item.id)).map((item) => {
-                    const qty = duffleOrders.filter((id) => id === item.id).length;
-                    return (
-                      <li key={item.id} className="flex items-center justify-between gap-4">
-                        <span>{item.label} × {qty}</span>
-                        <span className="flex items-center gap-3">
-                          <strong>${item.price * qty}</strong>
-                          <button type="button" className="text-belt underline text-xs"
-                            onClick={() => setDuffleOrders(duffleOrders.filter((id) => id !== item.id))}>remove</button>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </section>
+          
 
-          <section className="mb-8">
-            <h3 className="font-display text-3xl mb-4">Practice Dummies</h3>
-            <div className="bg-card border border-ink/10 p-4">
-              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
-                <label className="text-sm">
-                  <span className="block mb-1 text-ink/60">Option</span>
-                  <select value={dummyPicker} onChange={(e) => setDummyPicker(e.target.value)} className="w-full">
-                    <option value="">Choose an option</option>
-                    {DUMMY_SIZES.map((item) => (
-                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-sm">
-                  <span className="block mb-1 text-ink/60">Qty</span>
-                  <input type="number" min={1} max={20} value={dummyPickerQty}
-                    onChange={(e) => setDummyPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
-                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
-                </label>
-                <button type="button" disabled={!dummyPicker}
-                  onClick={() => {
-                    if (!dummyPicker) return;
-                    setDummyOrders([...dummyOrders, ...Array(dummyPickerQty).fill(dummyPicker)]);
-                    setDummyPicker("");
-                    setDummyPickerQty(1);
-                  }}
-                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
-              </div>
-              {dummyOrders.length > 0 && (
-                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
-                  {DUMMY_SIZES.filter((item) => dummyOrders.includes(item.id)).map((item) => {
-                    const qty = dummyOrders.filter((id) => id === item.id).length;
-                    return (
-                      <li key={item.id} className="flex items-center justify-between gap-4">
-                        <span>{item.label} × {qty}</span>
-                        <span className="flex items-center gap-3">
-                          <strong>${item.price * qty}</strong>
-                          <button type="button" className="text-belt underline text-xs"
-                            onClick={() => setDummyOrders(dummyOrders.filter((id) => id !== item.id))}>remove</button>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </section>
+
 
 <div className="bg-card border-t-4 border-belt p-6 sm:p-8">
             <h3 className="font-display text-3xl mb-2">Other / Special Purchase</h3>
