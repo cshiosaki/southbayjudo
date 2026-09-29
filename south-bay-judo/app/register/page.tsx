@@ -465,8 +465,7 @@ export default function RegisterPage() {
               {noMembershipCount} participant{noMembershipCount !== 1 ? "s don't" : " doesn't"} have a current USJF
               membership on file. USJF membership is required before their first class and must be
               purchased directly through <span className="underline">usjf.org</span>. Primary annual
-              membership is ${MEMBERSHIP_FEE}; a ${SHORT_TERM_MEMBERSHIP_FEE} monthly option is available
-              for participants who currently hold USA Judo membership.
+              membership is ${MEMBERSHIP_FEE}.
             </p>
           </div>
         )}
@@ -1072,9 +1071,8 @@ export default function RegisterPage() {
           <h2 className="font-display text-2xl mb-3">USJF or USA Judo membership</h2>
           <p className="text-sm text-ink/70 mb-5">
             All participants must carry a current USJF membership for insurance coverage. A primary
-            12-month USJF membership is ${MEMBERSHIP_FEE}. If the participant currently has USA Judo,
-            they must also obtain a USJF short-term membership (${SHORT_TERM_MEMBERSHIP_FEE} monthly).
-            Membership is handled separately through USJF. If membership is still needed, complete this
+            12-month USJF membership is ${MEMBERSHIP_FEE}. Membership is handled separately through USJF.
+            If membership is still needed, complete this
             registration first and we’ll email the signup instructions afterward.
           </p>
 
@@ -1195,8 +1193,7 @@ export default function RegisterPage() {
               <p className="text-xs text-ink/60">We'll ask for a photo of the card after this step for admin verification.</p>
               {draft.membershipOrg === "USA_JUDO" && (
                 <p className="border border-belt/35 bg-belt/5 p-3 text-sm text-belt">
-                  USA Judo membership alone does not meet the club requirement. Purchase a USJF short-term membership
-                  (${SHORT_TERM_MEMBERSHIP_FEE} monthly) before the first class.
+                  USA Judo membership alone does not meet the club requirement. A current USJF membership is required before the first class.
                 </p>
               )}
               <button type="button" onClick={() => setUsjfManualEntry(false)} className="text-xs text-ink/50 underline">
