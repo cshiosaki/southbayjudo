@@ -29,11 +29,6 @@ const OPTIONS: ShopOption[] = [
   { id: "gi_5", label: "Gi Size 5", price: 85, group: "Judo Gi" },
   { id: "gi_6", label: "Gi Size 6", price: 85, group: "Judo Gi" },
   { id: "gi_7", label: "Gi Size 7", price: 85, group: "Judo Gi" },
-  { id: "dummy_4", label: "Practice Dummy — 4 ft", price: 50, group: "Practice Dummy" },
-  { id: "dummy_5", label: "Practice Dummy — 5 ft", price: 60, group: "Practice Dummy" },
-  { id: "dummy_6", label: "Practice Dummy — 6 ft", price: 70, group: "Practice Dummy" },
-  { id: "duffle_s", label: "Judo Duffle Bag — Small", price: 65, group: "Duffle Bag" },
-  { id: "duffle_l", label: "Judo Duffle Bag — Large", price: 75, group: "Duffle Bag" },
   { id: "tshirt_ys", label: "Youth Small", price: 15, group: "T-Shirt" },
   { id: "tshirt_ym", label: "Youth Medium", price: 15, group: "T-Shirt" },
   { id: "tshirt_yl", label: "Youth Large", price: 16, group: "T-Shirt" },
@@ -67,10 +62,6 @@ export default function ShopPage() {
   const [tshirtQuantity, setTshirtQuantity] = useState(1);
   const [sweatshirtSizeId, setSweatshirtSizeId] = useState("");
   const [sweatshirtQuantity, setSweatshirtQuantity] = useState(1);
-  const [duffleSizeId, setDuffleSizeId] = useState("");
-  const [duffleQuantity, setDuffleQuantity] = useState(1);
-  const [dummySizeId, setDummySizeId] = useState("");
-  const [dummyQuantity, setDummyQuantity] = useState(1);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [customDescription, setCustomDescription] = useState("");
   const [customAmount, setCustomAmount] = useState("");
@@ -338,107 +329,9 @@ export default function ShopPage() {
         </div>
       </section>
 
-      <section className="mb-8">
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-display text-3xl">Duffle Bags</h2>
-            
-          </div>
-          
-        </div>
-        <div className="bg-card border border-ink/10 p-4">
-          <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
-            <label className="text-sm">
-              <span className="block mb-1 text-ink/60">Size</span>
-              <select value={duffleSizeId} onChange={(e) => setDuffleSizeId(e.target.value)} className="w-full">
-                <option value="">Choose an option</option>
-                {OPTIONS.filter((item) => item.group === "Duffle Bag").map((item) => (
-                  <option key={item.id} value={item.id}>{item.label} — {money(item.price)}</option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="block mb-1 text-ink/60">Qty</span>
-              <input type="number" min={1} max={20} value={duffleQuantity}
-                onChange={(e) => setDuffleQuantity(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
-                className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
-            </label>
-            <button type="button" disabled={!duffleSizeId}
-              onClick={() => {
-                if (!duffleSizeId) return;
-                setQuantities((current) => ({ ...current, [duffleSizeId]: (current[duffleSizeId] || 0) + duffleQuantity }));
-                setDuffleSizeId("");
-                setDuffleQuantity(1);
-              }}
-              className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
-          </div>
-          {OPTIONS.filter((item) => item.group === "Duffle Bag" && (quantities[item.id] || 0) > 0).length > 0 && (
-            <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
-              {OPTIONS.filter((item) => item.group === "Duffle Bag" && (quantities[item.id] || 0) > 0).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-4">
-                  <span>{item.label} × {quantities[item.id]}</span>
-                  <span className="flex items-center gap-3">
-                    <strong>{money(item.price * quantities[item.id])}</strong>
-                    <button type="button" className="text-belt underline text-xs"
-                      onClick={() => setQuantities((current) => ({ ...current, [item.id]: 0 }))}>remove</button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+      
 
-      <section className="mb-8">
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-display text-3xl">Practice Dummies</h2>
-            
-          </div>
-          
-        </div>
-        <div className="bg-card border border-ink/10 p-4">
-          <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
-            <label className="text-sm">
-              <span className="block mb-1 text-ink/60">Size</span>
-              <select value={dummySizeId} onChange={(e) => setDummySizeId(e.target.value)} className="w-full">
-                <option value="">Choose an option</option>
-                {OPTIONS.filter((item) => item.group === "Practice Dummy").map((item) => (
-                  <option key={item.id} value={item.id}>{item.label} — {money(item.price)}</option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="block mb-1 text-ink/60">Qty</span>
-              <input type="number" min={1} max={20} value={dummyQuantity}
-                onChange={(e) => setDummyQuantity(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
-                className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
-            </label>
-            <button type="button" disabled={!dummySizeId}
-              onClick={() => {
-                if (!dummySizeId) return;
-                setQuantities((current) => ({ ...current, [dummySizeId]: (current[dummySizeId] || 0) + dummyQuantity }));
-                setDummySizeId("");
-                setDummyQuantity(1);
-              }}
-              className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
-          </div>
-          {OPTIONS.filter((item) => item.group === "Practice Dummy" && (quantities[item.id] || 0) > 0).length > 0 && (
-            <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
-              {OPTIONS.filter((item) => item.group === "Practice Dummy" && (quantities[item.id] || 0) > 0).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-4">
-                  <span>{item.label} × {quantities[item.id]}</span>
-                  <span className="flex items-center gap-3">
-                    <strong>{money(item.price * quantities[item.id])}</strong>
-                    <button type="button" className="text-belt underline text-xs"
-                      onClick={() => setQuantities((current) => ({ ...current, [item.id]: 0 }))}>remove</button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+      
 
       <section className="bg-card border-t-4 border-belt p-6 sm:p-8 mb-8">
         <h2 className="font-display text-3xl mb-2">Other / Special Purchase</h2>
