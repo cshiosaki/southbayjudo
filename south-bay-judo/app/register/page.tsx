@@ -533,10 +533,12 @@ export default function RegisterPage() {
               </a>
             </div>
             <div className="bg-card border border-ink/10 p-4">
-              <div className="mb-5 overflow-hidden border border-ink/10 bg-canvas">
-                <Image src="/images/gear/gi-example.webp" alt="South Bay Judo embroidered judo gi" width={520} height={520} className="mx-auto h-auto w-full max-w-xs object-cover" />
-              </div>
-              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <a href="/images/gear/gi-example.webp" target="_blank" rel="noreferrer" className="block">
+                  <Image src="/images/gear/gi-example.webp" alt="South Bay Judo embroidered judo gi" width={120} height={120} className="h-28 w-28 object-cover border border-ink/10" />
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
+                </a>
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
                 <label className="text-sm">
                   <span className="block mb-1 text-ink/60">Gi size</span>
                   <select value={giPicker} onChange={(e) => setGiPicker(e.target.value)} className="w-full">
@@ -562,6 +564,7 @@ export default function RegisterPage() {
                   className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">
                   Add to cart
                 </button>
+                </div>
               </div>
               {giOrders.length > 0 && (
                 <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
@@ -586,15 +589,19 @@ export default function RegisterPage() {
           <section className="mb-8">
             <h3 className="font-display text-3xl mb-4">T-Shirts</h3>
             <div className="bg-card border border-ink/10 p-4">
-              <div className="mb-5 grid grid-cols-2 gap-3">
-                <div className="overflow-hidden border border-ink/10 bg-canvas">
-                  <Image src="/images/gear/tshirt-front.webp" alt="South Bay Judo T-shirt front" width={390} height={520} className="h-full w-full object-cover" />
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <div>
+                  <div className="flex gap-2">
+                    <a href="/images/gear/tshirt-front.webp" target="_blank" rel="noreferrer">
+                      <Image src="/images/gear/tshirt-front.webp" alt="South Bay Judo T-shirt front" width={56} height={72} className="h-24 w-14 object-cover border border-ink/10" />
+                    </a>
+                    <a href="/images/gear/tshirt-back.webp" target="_blank" rel="noreferrer">
+                      <Image src="/images/gear/tshirt-back.webp" alt="South Bay Judo T-shirt back" width={56} height={72} className="h-24 w-14 object-cover border border-ink/10" />
+                    </a>
+                  </div>
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
                 </div>
-                <div className="overflow-hidden border border-ink/10 bg-canvas">
-                  <Image src="/images/gear/tshirt-back.webp" alt="South Bay Judo T-shirt back" width={390} height={520} className="h-full w-full object-cover" />
-                </div>
-              </div>
-              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
                 <label className="text-sm">
                   <span className="block mb-1 text-ink/60">Size</span>
                   <select value={tshirtPicker} onChange={(e) => setTshirtPicker(e.target.value)} className="w-full">
@@ -618,6 +625,7 @@ export default function RegisterPage() {
                     setTshirtPickerQty(1);
                   }}
                   className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+                </div>
               </div>
               {tshirtOrders.length > 0 && (
                 <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
@@ -642,10 +650,12 @@ export default function RegisterPage() {
           <section className="mb-8">
             <h3 className="font-display text-3xl mb-4">Sweatshirts</h3>
             <div className="bg-card border border-ink/10 p-4">
-              <div className="mb-5 overflow-hidden border border-ink/10 bg-canvas">
-                <Image src="/images/gear/sweatshirt-example.webp" alt="South Bay Judo sweatshirt" width={360} height={640} className="mx-auto h-auto w-full max-w-xs object-cover" />
-              </div>
-              <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <a href="/images/gear/sweatshirt-example.webp" target="_blank" rel="noreferrer" className="block">
+                  <Image src="/images/gear/sweatshirt-example.webp" alt="South Bay Judo sweatshirt" width={120} height={150} className="h-28 w-28 object-cover border border-ink/10" />
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
+                </a>
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
                 <label className="text-sm">
                   <span className="block mb-1 text-ink/60">Size</span>
                   <select value={sweatshirtPicker} onChange={(e) => setSweatshirtPicker(e.target.value)} className="w-full">
@@ -669,6 +679,7 @@ export default function RegisterPage() {
                     setSweatshirtPickerQty(1);
                   }}
                   className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+                </div>
               </div>
               {sweatshirtOrders.length > 0 && (
                 <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
