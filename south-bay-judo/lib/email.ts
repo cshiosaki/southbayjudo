@@ -333,3 +333,73 @@ South Bay Judo`;
 
   if (error) throw new Error(error.message || "Failed to send USJF follow-up email.");
 }
+
+
+export async function sendGuestRegistrationNotificationEmail(opts: {
+  checkInDate: string;
+  firstName: string;
+  lastName: string;
+  homeDojo: string;
+  membershipOrg: string;
+  membershipId: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  hasMedicalConditions: string;
+  medicalNotes?: string;
+  isMinor: boolean;
+  guardianRelationship?: string;
+  signedByName: string;
+}) {
+  const resend = getResend();
+  if (!resend) throw new Error("Email isn't connected yet — set RESEND_API_KEY.");
+
+  const recipients = [
+    "registration@southbayjudo.com",
+    "info@southbayjudo.com",
+    "southbayjudo1999@gmail.com",
+  ];
+
+  const guestName = `${opts.firstName} ${opts.lastName}`;
+  const html = `<!doctype html>
+  <html><body style="margin:0;background:#f3f0e9;font-family:Arial,sans-serif;color:#171717">
+    <div style="max-width:620px;margin:0 auto;padding:28px 16px">
+      <div style="background:#16191d;color:#fff;padding:28px">
+        <div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#d8b45a">South Bay Judo</div>
+        <h1 style="margin:8px 0 0;font-size:30px;line-height:1.1">Guest registration received</h1>
+      </div>
+      <div style="background:#fff;padding:28px">
+        <p><strong>Guest:</strong> ${escapeHtml(guestName)}</p>
+        <p><strong>Check-in date:</strong> ${escapeHtml(opts.checkInDate)}</p>
+        <p><strong>Home dojo / club:</strong> ${escapeHtml(opts.homeDojo)}</p>
+        <p><strong>Membership:</strong> ${escapeHtml(opts.membershipOrg)} — ${escapeHtml(opts.membershipId)}</p>
+        <p><strong>Student status:</strong> ${opts.isMinor ? "Minor" : "Adult"}${opts.guardianRelationship ? ` — ${escapeHtml(opts.guardianRelationship)}` : ""}</p>
+        <p><strong>Medical conditions:</strong> ${escapeHtml(opts.hasMedicalConditions)}${opts.medicalNotes ? `<br /><span style="color:#5f5a52">${escapeHtml(opts.medicalNotes)}</span>` : ""}</p>
+        ${opts.emergencyContact ? `<p><strong>Emergency contact:</strong> ${escapeHtml(opts.emergencyContact)}${opts.emergencyPhone ? ` — ${escapeHtml(opts.emergencyPhone)}` : ""}</p>` : ""}
+        <p><strong>Waiver signed by:</strong> ${escapeHtml(opts.signedByName)}</p>
+      </div>
+    </div>
+  </body></html>`;
+
+  const text = `Guest registration received
+
+Guest: ${guestName}
+Check-in date: ${opts.checkInDate}
+Home dojo / club: ${opts.homeDojo}
+Membership: ${opts.membershipOrg} — ${opts.membershipId}
+Student status: ${opts.isMinor ? "Minor" : "Adult"}${opts.guardianRelationship ? ` — ${opts.guardianRelationship}` : ""}
+Medical conditions: ${opts.hasMedicalConditions}${opts.medicalNotes ? ` — ${opts.medicalNotes}` : ""}
+${opts.emergencyContact ? `Emergency contact: ${opts.emergencyContact}${opts.emergencyPhone ? ` — ${opts.emergencyPhone}` : ""}\n` : ""}Waiver signed by: ${opts.signedByName}
+
+South Bay Judo`;
+
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: recipients,
+    replyTo: "registration@southbayjudo.com",
+    subject: `Guest registration: ${guestName}`,
+    html,
+    text,
+  });
+
+  if (error) throw new Error(error.message || "Failed to send guest registration notification.");
+}
