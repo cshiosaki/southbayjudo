@@ -56,19 +56,9 @@ export default async function SchedulePage() {
         </Link>
       </div>
 
-      <div className="mt-12 pt-8 mat-seam border-ink/15 text-sm text-ink/70 max-w-2xl space-y-2">
+      <div className="mt-12 pt-8 mat-seam border-ink/15 text-sm text-ink/70 max-w-2xl">
         <p>
-          Session fees are per family: the tiered price above applies to the 1st, 2nd, and 3rd+
-          student from the same family registering for a session.
-        </p>
-        <p>
-          Returning students joining after a session has started, transferring from another club,
-          or coming back after a break are prorated at $10/class instead, up to the 1st-student
-          price.
-        </p>
-        <p>
-          All students must carry a current USJF membership for insurance purposes — $70/year
-          individually, with discounted family plans for 3+ household members.
+          All South Bay Judo members must maintain a yearly membership with the United States Judo Federation (USJF).
         </p>
       </div>
     </main>
