@@ -157,6 +157,15 @@ export default function ShopPage() {
           <a href="/gi-size-chart" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">View size chart</a>
         </div>
         <div className="bg-card border border-ink/10 p-4">
+          <div className="mb-5 overflow-hidden border border-ink/10 bg-canvas">
+            <Image
+              src="/images/gear/gi-example.webp"
+              alt="South Bay Judo embroidered judo gi"
+              width={520}
+              height={520}
+              className="mx-auto h-auto w-full max-w-sm object-cover"
+            />
+          </div>
           <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
             <label className="text-sm">
               <span className="block mb-1 text-ink/60">Size</span>
@@ -208,6 +217,14 @@ export default function ShopPage() {
           
         </div>
         <div className="bg-card border border-ink/10 p-4">
+          <div className="mb-5 grid grid-cols-2 gap-3">
+            <div className="overflow-hidden border border-ink/10 bg-canvas">
+              <Image src="/images/gear/tshirt-front.webp" alt="South Bay Judo T-shirt front" width={390} height={520} className="h-full w-full object-cover" />
+            </div>
+            <div className="overflow-hidden border border-ink/10 bg-canvas">
+              <Image src="/images/gear/tshirt-back.webp" alt="South Bay Judo T-shirt back" width={390} height={520} className="h-full w-full object-cover" />
+            </div>
+          </div>
           <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
             <label className="text-sm">
               <span className="block mb-1 text-ink/60">Size</span>
@@ -259,6 +276,15 @@ export default function ShopPage() {
           
         </div>
         <div className="bg-card border border-ink/10 p-4">
+          <div className="mb-5 overflow-hidden border border-ink/10 bg-canvas">
+            <Image
+              src="/images/gear/sweatshirt-example.webp"
+              alt="South Bay Judo sweatshirt"
+              width={360}
+              height={640}
+              className="mx-auto h-auto w-full max-w-xs object-cover"
+            />
+          </div>
           <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
             <label className="text-sm">
               <span className="block mb-1 text-ink/60">Size</span>
