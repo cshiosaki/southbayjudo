@@ -348,7 +348,6 @@ export async function sendGuestRegistrationNotificationEmail(opts: {
   const recipients = [
     "registration@southbayjudo.com",
     "info@southbayjudo.com",
-    "southbayjudo1999@gmail.com",
   ];
 
   const guestName = `${opts.firstName} ${opts.lastName}`;
