@@ -183,7 +183,7 @@ export default function InstructorPortalPage() {
     if (error) setMessage(error.message);
     else {
       await load();
-      setMessage("Session registration saved.");
+      setMessage(`Registration confirmed for ${session.label} — ${classSelection === "both" ? "Both classes" : classSelection === "class_1" ? "Class 1" : "Class 2"}.`);
     }
   }
 
@@ -209,7 +209,22 @@ export default function InstructorPortalPage() {
         <button onClick={signOut} className="border border-ink/25 px-5 py-2 font-display text-lg">Sign out</button>
       </div>
 
-      {message && <div className="mb-8 border border-belt/30 bg-belt/5 p-4 text-sm">{message}</div>}
+      {message && <div className="mb-4 border border-belt/30 bg-belt/5 p-4 text-sm">{message}</div>}
+
+      {registrations.length > 0 && (
+        <div className="mb-10 border border-ink/15 bg-card p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p className="font-display text-2xl">Current Session Registration</p>
+            <p className="mt-1 text-ink/75">
+              {registrations[0].session_label} · {registrations[0].class_selection === "both" ? "Both classes" : registrations[0].class_selection === "class_1" ? "Class 1" : "Class 2"}
+            </p>
+            <p className="mt-1 text-sm text-ink/55">Status: Registered · No payment required</p>
+          </div>
+          <a href="#session-registration" className="mt-4 inline-block border border-ink/25 px-5 py-2 font-display text-lg sm:mt-0">
+            View / Update
+          </a>
+        </div>
+      )}
 
       <section className="mb-12">
         <h2 className="mb-5 font-display text-3xl">My Profile</h2>
@@ -287,7 +302,7 @@ export default function InstructorPortalPage() {
         </div>
       </section>
 
-      <section>
+      <section id="session-registration">
         <h2 className="mb-5 font-display text-3xl">Session Registration</h2>
         <div className="grid gap-6 border border-ink/15 bg-mat/10 p-6 md:grid-cols-[1fr_1fr_auto] md:items-end">
           <label className="text-sm">Session<select value={selectedSession} onChange={e=>setSelectedSession(e.target.value)}>{sessions.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
