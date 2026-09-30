@@ -21,6 +21,7 @@ const NAV = [
   { href: "/history", label: "History" },
   { href: "/instructors", label: "Instructors" },
   { href: "/events", label: "Events" },
+  { href: "/awards", label: "Awards" },
   { href: "/schedule", label: "Schedule" },
   { href: "/register", label: "Register" },
   { href: "/shop", label: "Order Gear" },
