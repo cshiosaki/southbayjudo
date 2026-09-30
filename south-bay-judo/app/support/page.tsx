@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { sponsors, type SponsorTier } from "@/lib/sponsors";
+import { getSponsors, type SponsorTier } from "@/lib/sponsors";
 
 const tiers = [
   {
@@ -44,7 +44,9 @@ const tiers = [
 
 const tierOrder: SponsorTier[] = ["Platinum", "Gold", "Silver", "Bronze"];
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const sponsors = await getSponsors();
+
   return (
     <main>
       <section className="bg-ink text-canvas">
@@ -129,8 +131,19 @@ export default function SupportPage() {
                   <h3 className="font-display text-2xl mb-4">{tier} Sponsors</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {tierSponsors.map((sponsor) => (
-                      <div key={sponsor.name} className="bg-card border border-ink/10 p-4 min-h-32 flex items-center justify-center text-center">
-                        <span className="font-display text-lg">{sponsor.name}</span>
+                      <div
+                        key={sponsor.id}
+                        className="bg-card border border-ink/10 p-5 min-h-36 flex flex-col items-center justify-center gap-3 text-center"
+                      >
+                        <div className="h-20 w-full flex items-center justify-center">
+                          <img
+                            src={sponsor.logo}
+                            alt={sponsor.name}
+                            className="max-h-full max-w-full object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                        <span className="font-display text-base">{sponsor.name}</span>
                       </div>
                     ))}
                   </div>
@@ -141,7 +154,9 @@ export default function SupportPage() {
         ) : (
           <div className="bg-card border border-dashed border-ink/20 p-10 text-center">
             <p className="font-display text-2xl mb-2">Sponsor logos coming soon</p>
-            <p className="text-sm text-ink/70">We are preparing our current sponsor recognition listings.</p>
+            <p className="text-sm text-ink/70">
+              Logos will populate automatically from the Platinum, Gold, Silver, and Bronze Google Drive folders.
+            </p>
           </div>
         )}
       </section>
