@@ -7,6 +7,8 @@ const tiers = [
   {
     name: "Platinum Sponsor",
     amount: "$2,500",
+    paymentLink: "https://donate.stripe.com/6oUbJ228Z0dh4hvbnugQE01",
+    tier: "platinum",
     benefits: [
       "Prominent logo placement on our sponsor banner and website",
       "Business advertising displayed at the judo club",
@@ -17,6 +19,8 @@ const tiers = [
   {
     name: "Gold Sponsor",
     amount: "$1,000",
+    paymentLink: "",
+    tier: "gold",
     benefits: [
       "Logo placement on our sponsor banner and website",
       "Business advertising displayed at the judo club",
@@ -27,6 +31,8 @@ const tiers = [
   {
     name: "Silver Sponsor",
     amount: "$500",
+    paymentLink: "",
+    tier: "silver",
     benefits: [
       "Listing on our sponsor banner and website",
       "Business advertising displayed at the judo club",
@@ -37,6 +43,8 @@ const tiers = [
   {
     name: "Bronze Sponsor",
     amount: "$250",
+    paymentLink: "",
+    tier: "bronze",
     benefits: [
       "Business listing on our sponsor banner and website",
       "South Bay Judo recognition certificate",
@@ -105,7 +113,7 @@ export default async function SupportPage() {
                   <h3 className="font-display text-2xl">{tier.name}</h3>
                   <p className="font-display text-2xl text-belt">{tier.amount}</p>
                 </div>
-                <ul className="space-y-2 text-sm text-ink/75">
+                <ul className="space-y-2 text-sm text-ink/75 mb-6">
                   {tier.benefits.map((benefit) => (
                     <li key={benefit} className="flex gap-2">
                       <span aria-hidden="true">•</span>
@@ -113,6 +121,18 @@ export default async function SupportPage() {
                     </li>
                   ))}
                 </ul>
+                {tier.paymentLink ? (
+                  <a
+                    href={tier.paymentLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block bg-belt text-card px-5 py-3 font-display text-lg"
+                  >
+                    Become a {tier.name.replace(" Sponsor", "")} Sponsor
+                  </a>
+                ) : (
+                  <p className="text-sm text-ink/50">Online sponsorship payment link coming soon.</p>
+                )}
               </article>
             ))}
           </div>
