@@ -33,24 +33,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${barlow.variable} ${karla.variable}`}>
       <body className="font-body">
         <header className="bg-ink text-canvas">
-          <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+          <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between flex-wrap gap-5">
             <Link href="/" className="flex items-center gap-3" aria-label="South Bay Judo home">
               <Image
                 src="/images/south-bay-judo-logo.webp"
                 alt=""
-                width={58}
-                height={58}
-                className="h-14 w-14 rounded-full bg-white object-cover"
+                width={64}
+                height={64}
+                className="h-16 w-16 rounded-full bg-white object-cover"
                 priority
               />
               <span>
-                <span className="block font-display text-2xl tracking-tight leading-none">South Bay Judo</span>
-                <span className="mt-1 block text-[11px] uppercase tracking-[0.18em] text-canvas/60">
+                <span className="block font-display text-3xl tracking-tight leading-none">South Bay Judo</span>
+                <span className="mt-1 block text-xs uppercase tracking-[0.18em] text-canvas/60">
                   Torrance · Since 1999
                 </span>
               </span>
             </Link>
-            <nav className="flex flex-wrap justify-end gap-x-6 gap-y-2 text-sm">
+            <nav className="flex flex-wrap justify-end gap-x-7 gap-y-2 text-base">
               {NAV.map((item) => (
                 <Link key={item.href} href={item.href} className="hover:text-gold transition-colors">
                   {item.label}
