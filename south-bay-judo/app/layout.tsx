@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="max-w-4xl mx-auto px-6 py-12 grid sm:grid-cols-3 gap-10 text-sm">
             <div className="sm:text-center">
               <p className="font-display text-lg mb-1">Location</p>
-              <p>Wilson Park — Dee Hardison Sports Center</p>
+              <p>Wilson Park — Dee Hardison Center</p>
               <p>2400 Jefferson St, Torrance, CA 90501</p>
             </div>
             <div className="sm:text-center">
