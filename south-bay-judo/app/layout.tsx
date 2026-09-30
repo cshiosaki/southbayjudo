@@ -25,6 +25,7 @@ const NAV = [
   { href: "/register", label: "Register" },
   { href: "/shop", label: "Order Gear" },
   { href: "/visitor", label: "Visitor Check-In" },
+  { href: "/support", label: "Support SBJ" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
