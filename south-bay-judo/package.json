@@ -15,7 +15,8 @@
     "react-dom": "^18.3.0",
     "react-signature-canvas": "^1.0.6",
     "resend": "^4.0.0",
-    "stripe": "^22.6.1"
+    "stripe": "^22.6.1",
+    "@supabase/supabase-js": "^2.57.4"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
