@@ -69,9 +69,14 @@ export default async function SupportPage() {
             <p className="text-ink/75 leading-relaxed mb-6">
               Contributions of any amount are appreciated and help support the continued operation and growth of South Bay Judo.
             </p>
-            <p className="text-sm text-ink/65">
-              Online donation checkout can be added here when the payment link is ready.
-            </p>
+            <a
+              href="https://donate.stripe.com/6oUeVe9Br4tx7tH77egQE00"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block bg-belt text-card px-6 py-3 font-display text-lg"
+            >
+              Donate Now
+            </a>
           </div>
 
           <div className="bg-card border-t-4 border-gold p-8">
