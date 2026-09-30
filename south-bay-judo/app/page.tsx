@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getSiteConfig } from "@/lib/config-store";
 import SponsorStrip from "@/components/SponsorStrip";
 
+export const revalidate = 600;
+
 export default async function HomePage() {
   const { sessions } = await getSiteConfig();
   return (
