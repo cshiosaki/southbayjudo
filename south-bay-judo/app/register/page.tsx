@@ -359,11 +359,11 @@ export default function RegisterPage() {
         <div className="mt-12 border border-ink/15 bg-card p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
             <p className="font-display text-xl">Instructor or volunteer?</p>
-            <p className="mt-1 text-sm text-ink/60">Use the Instructor Portal to manage your profile and register for a session at no charge.</p>
+            <p className="mt-1 text-sm text-ink/60">Instructor registration is temporarily unavailable while we update the instructor credential system.</p>
           </div>
-          <a href="/instructor-login" className="mt-4 inline-block shrink-0 bg-ink px-5 py-3 font-display text-lg text-canvas sm:mt-0">
-            Instructor Portal
-          </a>
+          <span className="mt-4 inline-block shrink-0 cursor-not-allowed border border-ink/20 bg-ink/10 px-5 py-3 font-display text-lg text-ink/50 sm:mt-0">
+            Temporarily Unavailable
+          </span>
         </div>
       </main>
     );
