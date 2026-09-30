@@ -318,15 +318,7 @@ export default function RegisterPage() {
         <p className="text-ink/60 mb-6">
           Enter the primary contact below. If you are an adult registering yourself, use your own information.
         </p>
-        <div className="mb-10 border border-ink/15 bg-card p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="font-display text-xl">Instructor or volunteer?</p>
-            <p className="mt-1 text-sm text-ink/60">Use the Instructor Portal to manage your profile and register for a session at no charge.</p>
-          </div>
-          <a href="/instructor-login" className="mt-4 inline-block shrink-0 bg-ink px-5 py-3 font-display text-lg text-canvas sm:mt-0">
-            Instructor Portal
-          </a>
-        </div>
+
         <fieldset>
           <legend className="font-display text-lg mb-1">Primary contact or adult registrant</legend>
           <p className="mb-3 text-sm text-ink/60">This person will receive registration confirmations and receipts.</p>
@@ -363,6 +355,16 @@ export default function RegisterPage() {
         >
           Add first participant
         </button>
+
+        <div className="mt-12 border border-ink/15 bg-card p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p className="font-display text-xl">Instructor or volunteer?</p>
+            <p className="mt-1 text-sm text-ink/60">Use the Instructor Portal to manage your profile and register for a session at no charge.</p>
+          </div>
+          <a href="/instructor-login" className="mt-4 inline-block shrink-0 bg-ink px-5 py-3 font-display text-lg text-canvas sm:mt-0">
+            Instructor Portal
+          </a>
+        </div>
       </main>
     );
   }
