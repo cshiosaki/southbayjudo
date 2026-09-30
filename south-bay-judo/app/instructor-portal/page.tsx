@@ -88,6 +88,7 @@ export default function InstructorPortalPage() {
   const [classSelection, setClassSelection] = useState<"class_1"|"class_2"|"both">("both");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"home" | "profile" | "certifications" | "sessions">("home");
   const [newCert, setNewCert] = useState({ certification_type: CERT_TYPES[0], certification_number: "", issued_date: "", expires_date: "", notes: "" });
 
   async function load() {
@@ -198,6 +199,14 @@ export default function InstructorPortalPage() {
 
   const update = (key: keyof Profile, value: any) => setProfile({ ...profile, [key]: value });
 
+  function certStatus(cert: Certification) {
+    if (!cert.expires_date) return "No expiration entered";
+    const expires = new Date(cert.expires_date + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return expires < today ? `Expired ${cert.expires_date}` : `Expires ${cert.expires_date}`;
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
       <div className="mb-10 flex flex-col justify-between gap-4 border-b border-ink/15 pb-6 sm:flex-row sm:items-end">
@@ -211,7 +220,25 @@ export default function InstructorPortalPage() {
 
       {message && <div className="mb-4 border border-belt/30 bg-belt/5 p-4 text-sm">{message}</div>}
 
-      {registrations.length > 0 && (
+      <nav className="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Instructor portal sections">
+        {[
+          ["home", "Home"],
+          ["profile", "Update Profile"],
+          ["certifications", "Certifications"],
+          ["sessions", "Session Registration"],
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveTab(id as "home" | "profile" | "certifications" | "sessions")}
+            className={`px-4 py-3 font-display text-lg ${activeTab === id ? "bg-ink text-canvas" : "border border-ink/20 bg-card text-ink"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {activeTab === "home" && registrations.length > 0 && (
         <div className="mb-10 border border-ink/15 bg-card p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
             <p className="font-display text-2xl">Current Session Registration</p>
@@ -226,8 +253,49 @@ export default function InstructorPortalPage() {
         </div>
       )}
 
+      {activeTab === "home" && (
+        <section className="mb-12">
+          <h2 className="mb-5 font-display text-3xl">Membership & Certification Status</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <article className="border border-ink/15 bg-card p-5">
+              <p className="font-display text-xl">Judo Membership</p>
+              <p className="mt-2 text-sm text-ink/70">
+                {profile.membership_org || "Membership organization not entered"}
+              </p>
+              <p className="mt-1 text-sm text-ink/60">
+                {profile.membership_number ? `#${profile.membership_number}` : "Membership number not entered"}
+              </p>
+              <p className="mt-1 text-sm text-ink/60">
+                {profile.membership_expires ? `Expires ${profile.membership_expires}` : "Expiration not entered"}
+              </p>
+              <button type="button" onClick={() => setActiveTab("profile")} className="mt-4 text-sm font-semibold text-belt underline">
+                Update profile
+              </button>
+            </article>
+
+            {certs.map((cert) => (
+              <article key={cert.id} className="border border-ink/15 bg-card p-5">
+                <p className="font-display text-xl">{cert.certification_type}</p>
+                <p className="mt-2 text-sm text-ink/60">{certStatus(cert)}</p>
+                {cert.certification_number && <p className="mt-1 text-xs text-ink/50">#{cert.certification_number}</p>}
+              </article>
+            ))}
+
+            {certs.length === 0 && (
+              <article className="border border-belt/30 bg-belt/5 p-5 md:col-span-2">
+                <p className="font-display text-xl">No certifications entered yet</p>
+                <button type="button" onClick={() => setActiveTab("certifications")} className="mt-3 text-sm font-semibold text-belt underline">
+                  Add certifications
+                </button>
+              </article>
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === "profile" && (
       <section className="mb-12">
-        <h2 className="mb-5 font-display text-3xl">My Profile</h2>
+        <h2 className="mb-5 font-display text-3xl">Update Profile</h2>
         <form onSubmit={saveProfile} className="grid gap-5 border border-ink/15 bg-card p-6 md:grid-cols-2">
           <label className="text-sm">First name<input value={profile.first_name || ""} onChange={e=>update("first_name",e.target.value)} /></label>
           <label className="text-sm">Last name<input value={profile.last_name || ""} onChange={e=>update("last_name",e.target.value)} /></label>
@@ -266,7 +334,9 @@ export default function InstructorPortalPage() {
           </div>
         </form>
       </section>
+      )}
 
+      {activeTab === "certifications" && (
       <section className="mb-12">
         <h2 className="mb-5 font-display text-3xl">Certifications</h2>
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -301,7 +371,9 @@ export default function InstructorPortalPage() {
           </form>
         </div>
       </section>
+      )}
 
+      {activeTab === "sessions" && (
       <section id="session-registration">
         <h2 className="mb-5 font-display text-3xl">Session Registration</h2>
         <div className="grid gap-6 border border-ink/15 bg-mat/10 p-6 md:grid-cols-[1fr_1fr_auto] md:items-end">
@@ -326,6 +398,7 @@ export default function InstructorPortalPage() {
           </div>
         )}
       </section>
+      )}
     </main>
   );
 }
