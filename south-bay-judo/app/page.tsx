@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSiteConfig } from "@/lib/config-store";
+import SponsorStrip from "@/components/SponsorStrip";
 
 export default async function HomePage() {
   const { sessions } = await getSiteConfig();
@@ -129,6 +130,8 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+
+      <SponsorStrip />
     </main>
   );
 }
