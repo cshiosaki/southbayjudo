@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getSponsors, type SponsorTier } from "@/lib/sponsors";
 
+export const revalidate = 600;
+
 const tiers = [
   {
     name: "Platinum Sponsor",
