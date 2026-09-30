@@ -31,10 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${barlow.variable} ${karla.variable}`}>
       <body className="font-body">
-        <div className="bg-belt text-card text-center text-sm py-1.5 px-4">
-          Stripe test mode — sandbox checkout only. No real charges will be made.
-        </div>
-
         <header className="bg-ink text-canvas">
           <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-4">
             <Link href="/" className="flex items-center gap-3" aria-label="South Bay Judo home">
