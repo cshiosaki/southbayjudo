@@ -25,6 +25,11 @@ type Profile = {
   membership_number: string | null;
   membership_expires: string | null;
   membership_auto_renew: "yes" | "no" | "not_sure";
+  usjf_membership_number: string | null;
+  usjf_expires: string | null;
+  usjf_auto_renew: "yes" | "no" | "not_sure";
+  usa_membership_number: string | null;
+  usa_expires: string | null;
 };
 
 type Certification = {
@@ -44,13 +49,25 @@ type SessionRegistration = {
   status: string;
 };
 
-const CERT_TYPES = [
-  "USA Judo Coach",
+const REQUIRED_CERT_TYPES = [
   "SafeSport",
   "CDC Concussion",
   "Background Screening",
   "First Aid / CPR / AED",
-];
+] as const;
+
+const OPTIONAL_CERT_TYPES = ["USA Judo Coach"] as const;
+const CERT_TYPES = [...REQUIRED_CERT_TYPES, ...OPTIONAL_CERT_TYPES];
+
+const RENEWAL_LINKS: Record<string, string> = {
+  "USJF Membership": "https://www.usjf.com/member-portal/",
+  "USA Judo Membership": "https://www.usajudo.com/membership",
+  "SafeSport": "https://www.usajudo.com/safe-sport",
+  "CDC Concussion": "https://www.cdc.gov/heads-up/training/youth-sports.html",
+  "Background Screening": "https://www.usajudo.com/forms/coach-forms",
+  "First Aid / CPR / AED": "https://production.redcross.org/take-a-class/aed/aed-training/aed-renewal",
+  "USA Judo Coach": "https://www.usajudo.com/coach-resources",
+};
 
 function emptyProfile(userId: string, email: string, metadata?: Record<string, any>): Profile {
   return {
@@ -74,6 +91,11 @@ function emptyProfile(userId: string, email: string, metadata?: Record<string, a
     membership_number: "",
     membership_expires: "",
     membership_auto_renew: "not_sure",
+    usjf_membership_number: "",
+    usjf_expires: "",
+    usjf_auto_renew: "not_sure",
+    usa_membership_number: "",
+    usa_expires: "",
   };
 }
 
@@ -199,12 +221,25 @@ export default function InstructorPortalPage() {
 
   const update = (key: keyof Profile, value: any) => setProfile({ ...profile, [key]: value });
 
-  function certStatus(cert: Certification) {
-    if (!cert.expires_date) return "No expiration entered";
-    const expires = new Date(cert.expires_date + "T00:00:00");
+  function dateStatus(expiresDate: string | null | undefined) {
+    if (!expiresDate) return { label: "Needed", needsAttention: true };
+    const expires = new Date(expiresDate + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return expires < today ? `Expired ${cert.expires_date}` : `Expires ${cert.expires_date}`;
+    if (Number.isNaN(expires.getTime())) return { label: "Needed", needsAttention: true };
+    return expires < today
+      ? { label: `Expired ${expiresDate}`, needsAttention: true }
+      : { label: `Expires ${expiresDate}`, needsAttention: false };
+  }
+
+  function certFor(type: string) {
+    return certs.find((cert) => cert.certification_type === type);
+  }
+
+  function certStatus(cert: Certification | undefined, required = true) {
+    if (!cert) return required ? { label: "Needed", needsAttention: true } : { label: "Optional", needsAttention: false };
+    if (!cert.expires_date) return required ? { label: "Needed", needsAttention: true } : { label: "No expiration entered", needsAttention: false };
+    return dateStatus(cert.expires_date);
   }
 
   return (
@@ -255,40 +290,87 @@ export default function InstructorPortalPage() {
 
       {activeTab === "home" && (
         <section className="mb-12">
-          <h2 className="mb-5 font-display text-3xl">Membership & Certification Status</h2>
+          <h2 className="mb-2 font-display text-3xl">Membership &amp; Certification Status</h2>
+          <p className="mb-5 text-sm text-ink/60">
+            Missing or expired items are marked <strong>Needed</strong>. They do not prevent session registration.
+          </p>
+
           <div className="grid gap-4 md:grid-cols-2">
-            <article className="border border-ink/15 bg-card p-5">
-              <p className="font-display text-xl">Judo Membership</p>
-              <p className="mt-2 text-sm text-ink/70">
-                {profile.membership_org || "Membership organization not entered"}
-              </p>
-              <p className="mt-1 text-sm text-ink/60">
-                {profile.membership_number ? `#${profile.membership_number}` : "Membership number not entered"}
-              </p>
-              <p className="mt-1 text-sm text-ink/60">
-                {profile.membership_expires ? `Expires ${profile.membership_expires}` : "Expiration not entered"}
-              </p>
-              <button type="button" onClick={() => setActiveTab("profile")} className="mt-4 text-sm font-semibold text-belt underline">
-                Update profile
-              </button>
-            </article>
+            {[
+              {
+                title: "USJF Membership",
+                number: profile.usjf_membership_number || profile.membership_number,
+                expires: profile.usjf_expires || profile.membership_expires,
+              },
+              {
+                title: "USA Judo Membership",
+                number: profile.usa_membership_number,
+                expires: profile.usa_expires,
+              },
+            ].map((item) => {
+              const status = item.number ? dateStatus(item.expires) : { label: "Needed", needsAttention: true };
+              return (
+                <article key={item.title} className={`border p-5 ${status.needsAttention ? "border-belt/40 bg-belt/5" : "border-ink/15 bg-card"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="font-display text-xl">{item.title}</p>
+                    <span className={`text-xs font-semibold uppercase tracking-wide ${status.needsAttention ? "text-belt" : "text-mat"}`}>
+                      {status.needsAttention ? "Needed" : "Current"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-ink/60">{item.number ? `#${item.number}` : "Membership number not entered"}</p>
+                  <p className={`mt-1 text-sm ${status.needsAttention ? "text-belt" : "text-ink/60"}`}>{status.label}</p>
+                  <a href={RENEWAL_LINKS[item.title]} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-semibold text-belt underline">
+                    Renew / Update
+                  </a>
+                </article>
+              );
+            })}
 
-            {certs.map((cert) => (
-              <article key={cert.id} className="border border-ink/15 bg-card p-5">
-                <p className="font-display text-xl">{cert.certification_type}</p>
-                <p className="mt-2 text-sm text-ink/60">{certStatus(cert)}</p>
-                {cert.certification_number && <p className="mt-1 text-xs text-ink/50">#{cert.certification_number}</p>}
-              </article>
-            ))}
+            {REQUIRED_CERT_TYPES.map((type) => {
+              const cert = certFor(type);
+              const status = certStatus(cert, true);
+              return (
+                <article key={type} className={`border p-5 ${status.needsAttention ? "border-belt/40 bg-belt/5" : "border-ink/15 bg-card"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="font-display text-xl">{type}</p>
+                    <span className={`text-xs font-semibold uppercase tracking-wide ${status.needsAttention ? "text-belt" : "text-mat"}`}>
+                      {status.needsAttention ? "Needed" : "Current"}
+                    </span>
+                  </div>
+                  <p className={`mt-2 text-sm ${status.needsAttention ? "text-belt" : "text-ink/60"}`}>{status.label}</p>
+                  {cert?.certification_number && <p className="mt-1 text-xs text-ink/50">#{cert.certification_number}</p>}
+                  <a href={RENEWAL_LINKS[type]} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-semibold text-belt underline">
+                    Renew / Complete
+                  </a>
+                </article>
+              );
+            })}
 
-            {certs.length === 0 && (
-              <article className="border border-belt/30 bg-belt/5 p-5 md:col-span-2">
-                <p className="font-display text-xl">No certifications entered yet</p>
-                <button type="button" onClick={() => setActiveTab("certifications")} className="mt-3 text-sm font-semibold text-belt underline">
-                  Add certifications
-                </button>
-              </article>
-            )}
+            {OPTIONAL_CERT_TYPES.map((type) => {
+              const cert = certFor(type);
+              const status = certStatus(cert, false);
+              return (
+                <article key={type} className="border border-ink/15 bg-card p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="font-display text-xl">{type}</p>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-ink/45">Optional</span>
+                  </div>
+                  <p className="mt-2 text-sm text-ink/60">{status.label}</p>
+                  <a href={RENEWAL_LINKS[type]} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-semibold text-belt underline">
+                    View USA Judo Coach Info
+                  </a>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button type="button" onClick={() => setActiveTab("profile")} className="border border-ink/25 px-5 py-2 font-display text-lg">
+              Update Profile
+            </button>
+            <button type="button" onClick={() => setActiveTab("certifications")} className="bg-belt px-5 py-2 font-display text-lg text-card">
+              Update Certifications
+            </button>
           </div>
         </section>
       )}
