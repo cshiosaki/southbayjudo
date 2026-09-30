@@ -49,9 +49,7 @@ const CERT_TYPES = [
   "SafeSport",
   "CDC Concussion",
   "Background Screening",
-  "CPR",
-  "First Aid",
-  "AED",
+  "First Aid / CPR / AED",
 ];
 
 function emptyProfile(userId: string, email: string, metadata?: Record<string, any>): Profile {
