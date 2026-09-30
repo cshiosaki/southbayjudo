@@ -22,7 +22,7 @@ function getDriveAuth() {
     const key = JSON.parse(keyJson);
     return new google.auth.GoogleAuth({
       credentials: key,
-      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+      scopes: ["https://www.googleapis.com/auth/drive"],
     });
   } catch (error) {
     console.error("Unable to parse Google service account credentials", error);
