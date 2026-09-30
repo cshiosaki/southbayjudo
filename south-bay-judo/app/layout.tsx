@@ -24,7 +24,7 @@ const NAV = [
   { href: "/schedule", label: "Schedule" },
   { href: "/register", label: "Register" },
   { href: "/shop", label: "Order Gear" },
-  { href: "/support", label: "Support SBJ" },
+  { href: "/support", label: "Support" },
   { href: "/visitor", label: "Visitor Check-In" },
 ];
 
