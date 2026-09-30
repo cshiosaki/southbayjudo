@@ -43,7 +43,7 @@ const tiers = [
   {
     name: "Bronze Sponsor",
     amount: "$250",
-    paymentLink: "",
+    paymentLink: "https://donate.stripe.com/00w5kE8xn2lp5lzajqgQE05",
     tier: "bronze",
     benefits: [
       "Business listing on our sponsor banner and website",
