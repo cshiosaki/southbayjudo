@@ -166,10 +166,13 @@ export default function InstructorsPage() {
             <p className="mt-2 text-ink/70">We’re happy to help you choose the right class.</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-4">
+            <Link href="/instructor-login" className="bg-belt px-6 py-3 font-display text-lg tracking-wide text-card">
+              Instructor Portal
+            </Link>
             <a href="mailto:instructors@southbayjudo.com" className="border border-ink/30 px-6 py-3 font-display text-lg tracking-wide">
               Email instructors
             </a>
-            <Link href="/schedule" className="bg-belt px-6 py-3 font-display text-lg tracking-wide text-card">
+            <Link href="/schedule" className="border border-ink/30 px-6 py-3 font-display text-lg tracking-wide">
               View schedule
             </Link>
           </div>
