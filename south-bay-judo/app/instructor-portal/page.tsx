@@ -20,6 +20,10 @@ type Profile = {
   emergency_contact_phone: string | null;
   medical_conditions: boolean;
   medical_notes: string | null;
+  insurance_company: string | null;
+  insurance_member_id: string | null;
+  insurance_group_number: string | null;
+  insurance_phone: string | null;
   belt_rank: string | null;
   membership_org: string | null;
   membership_number: string | null;
@@ -86,6 +90,10 @@ function emptyProfile(userId: string, email: string, metadata?: Record<string, a
     emergency_contact_phone: "",
     medical_conditions: false,
     medical_notes: "",
+    insurance_company: "",
+    insurance_member_id: "",
+    insurance_group_number: "",
+    insurance_phone: "",
     belt_rank: "",
     membership_org: "USJF",
     membership_number: "",
@@ -400,6 +408,15 @@ export default function InstructorPortalPage() {
             I have medical conditions, allergies, medications, or limitations instructors should know about.
           </label>
           <label className="text-sm md:col-span-2">Medical notes<textarea rows={3} value={profile.medical_notes || ""} onChange={e=>update("medical_notes",e.target.value)} /></label>
+
+          <div className="md:col-span-2 mt-2 border-t border-ink/10 pt-5">
+            <h3 className="font-display text-xl">Medical Insurance (optional)</h3>
+            <p className="mt-1 text-sm text-ink/60">Helpful if emergency care is needed away from your usual provider.</p>
+          </div>
+          <label className="text-sm">Insurance company<input value={profile.insurance_company || ""} onChange={e=>update("insurance_company",e.target.value)} /></label>
+          <label className="text-sm">Member / policy ID<input value={profile.insurance_member_id || ""} onChange={e=>update("insurance_member_id",e.target.value)} /></label>
+          <label className="text-sm">Group number<input value={profile.insurance_group_number || ""} onChange={e=>update("insurance_group_number",e.target.value)} /></label>
+          <label className="text-sm">Insurance phone<input value={profile.insurance_phone || ""} onChange={e=>update("insurance_phone",e.target.value)} /></label>
 
           <div className="md:col-span-2 mt-2 border-t border-ink/10 pt-5">
             <h3 className="font-display text-xl">Judo Membership</h3>
