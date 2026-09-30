@@ -136,7 +136,31 @@ export default function InstructorPortalPage() {
     ]);
 
     if (p) {
-      setProfile(p as Profile);
+      const loaded = p as Profile;
+      const org = (loaded.membership_org || "").toLowerCase();
+      setProfile({
+        ...loaded,
+        usjf_membership_number:
+          loaded.usjf_membership_number ||
+          (org.includes("usjf") || org.includes("both") ? loaded.membership_number : "") ||
+          "",
+        usjf_expires:
+          loaded.usjf_expires ||
+          (org.includes("usjf") || org.includes("both") ? loaded.membership_expires : "") ||
+          "",
+        usjf_auto_renew:
+          loaded.usjf_auto_renew ||
+          (org.includes("usjf") || org.includes("both") ? loaded.membership_auto_renew : "not_sure") ||
+          "not_sure",
+        usa_membership_number:
+          loaded.usa_membership_number ||
+          (org.includes("usa") || org.includes("both") ? loaded.membership_number : "") ||
+          "",
+        usa_expires:
+          loaded.usa_expires ||
+          (org.includes("usa") || org.includes("both") ? loaded.membership_expires : "") ||
+          "",
+      });
     } else {
       const initial = emptyProfile(user.id, user.email || "", user.user_metadata);
       await supabase.from("instructor_profiles").insert(initial);
@@ -387,6 +411,9 @@ export default function InstructorPortalPage() {
       <section className="mb-12">
         <h2 className="mb-5 font-display text-3xl">Update Profile</h2>
         <form onSubmit={saveProfile} className="grid gap-5 border border-ink/15 bg-card p-6 md:grid-cols-2">
+          <label className="text-sm md:col-span-2">Email (account login)
+            <input value={profile.email || ""} readOnly className="bg-ink/5 text-ink/70" />
+          </label>
           <label className="text-sm">First name<input value={profile.first_name || ""} onChange={e=>update("first_name",e.target.value)} /></label>
           <label className="text-sm">Last name<input value={profile.last_name || ""} onChange={e=>update("last_name",e.target.value)} /></label>
           <label className="text-sm">Date of birth<input type="date" value={profile.date_of_birth || ""} onChange={e=>update("date_of_birth",e.target.value)} /></label>
@@ -419,12 +446,18 @@ export default function InstructorPortalPage() {
           <label className="text-sm">Insurance phone<input value={profile.insurance_phone || ""} onChange={e=>update("insurance_phone",e.target.value)} /></label>
 
           <div className="md:col-span-2 mt-2 border-t border-ink/10 pt-5">
-            <h3 className="font-display text-xl">Judo Membership</h3>
+            <h3 className="font-display text-xl">USJF Membership</h3>
+            <p className="mt-1 text-sm text-ink/60">Your current information is shown below. Update only what has changed.</p>
           </div>
-          <label className="text-sm">Organization<select value={profile.membership_org || "USJF"} onChange={e=>update("membership_org",e.target.value)}><option>USJF</option><option>USA Judo</option><option>Both</option></select></label>
-          <label className="text-sm">Membership number<input value={profile.membership_number || ""} onChange={e=>update("membership_number",e.target.value)} /></label>
-          <label className="text-sm">Expiration date<input type="date" value={profile.membership_expires || ""} onChange={e=>update("membership_expires",e.target.value)} /></label>
-          <label className="text-sm">Auto-renew<select value={profile.membership_auto_renew} onChange={e=>update("membership_auto_renew",e.target.value)}><option value="yes">Yes</option><option value="no">No</option><option value="not_sure">Not sure</option></select></label>
+          <label className="text-sm">USJF membership #<input value={profile.usjf_membership_number || ""} onChange={e=>update("usjf_membership_number",e.target.value)} /></label>
+          <label className="text-sm">USJF expiration<input type="date" value={profile.usjf_expires || ""} onChange={e=>update("usjf_expires",e.target.value)} /></label>
+          <label className="text-sm">USJF auto-renew<select value={profile.usjf_auto_renew || "not_sure"} onChange={e=>update("usjf_auto_renew",e.target.value)}><option value="yes">Yes</option><option value="no">No</option><option value="not_sure">Not sure</option></select></label>
+
+          <div className="md:col-span-2 mt-2 border-t border-ink/10 pt-5">
+            <h3 className="font-display text-xl">USA Judo Membership</h3>
+          </div>
+          <label className="text-sm">USA Judo membership #<input value={profile.usa_membership_number || ""} onChange={e=>update("usa_membership_number",e.target.value)} /></label>
+          <label className="text-sm">USA Judo expiration<input type="date" value={profile.usa_expires || ""} onChange={e=>update("usa_expires",e.target.value)} /></label>
 
           <div className="md:col-span-2">
             <button disabled={saving} className="bg-belt px-6 py-3 font-display text-lg tracking-wide text-card disabled:opacity-50">
