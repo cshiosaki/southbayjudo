@@ -78,7 +78,7 @@ export default async function SupportPage() {
               Contributions of any amount are appreciated and help support the continued operation and growth of South Bay Judo.
             </p>
             <a
-              href="https://donate.stripe.com/6oUeVe9Br4tx7tH77egQE00"
+              href="https://donate.stripe.com/fZu00k5lbf8b8xLbnugQE06"
               target="_blank"
               rel="noreferrer"
               className="inline-block bg-belt text-card px-6 py-3 font-display text-lg"
