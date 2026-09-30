@@ -6,11 +6,6 @@ export default async function HomePage() {
   const { sessions } = await getSiteConfig();
   return (
     <main>
-      <div className="bg-gold/20 border-b border-gold/50 text-ink">
-        <div className="max-w-6xl mx-auto px-6 py-3 text-center text-sm font-semibold">
-          Online registration is currently available for testing purposes only.
-        </div>
-      </div>
       {/* Hero */}
       <section className="bg-ink text-canvas">
         <div className="max-w-6xl mx-auto px-6 py-12 sm:py-16 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">

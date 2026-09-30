@@ -13,8 +13,6 @@ import {
 } from "@/lib/sessions";
 
 /**
- * TEST MODE — Stripe Checkout uses sandbox credentials until launch.
- *
  * PRICING (per the club's real fee schedule):
  * - Regular sessions charge per family, tiered by how many kids from the
  *   same family are in that session (1st/2nd/3rd+ — see sessionFeeFor).
@@ -316,9 +314,6 @@ export default function RegisterPage() {
   if (step === "guardian") {
     return (
       <main className="max-w-2xl mx-auto px-6 py-16">
-        <div className="mb-6 border border-gold/50 bg-gold/15 p-4 text-sm font-semibold text-ink">
-          Online registration is currently available for testing purposes only. Please do not use this form for an official registration yet.
-        </div>
         <h1 className="font-display text-5xl mb-2">Session Registration</h1>
         <p className="text-ink/60 mb-10">
           Enter the primary contact below. If you are an adult registering yourself, use your own information.
