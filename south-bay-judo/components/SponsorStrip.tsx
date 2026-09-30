@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
-import { sponsors } from "@/lib/sponsors";
+import { getSponsors } from "@/lib/sponsors";
 
-export default function SponsorStrip() {
+export default async function SponsorStrip() {
+  const sponsors = await getSponsors();
   const displaySponsors = sponsors.length > 0 ? [...sponsors, ...sponsors] : [];
 
   return (
@@ -26,43 +26,27 @@ export default function SponsorStrip() {
         {displaySponsors.length > 0 ? (
           <div className="sponsor-marquee overflow-hidden" aria-label="South Bay Judo sponsors">
             <div className="sponsor-track flex items-center gap-12 sm:gap-16 w-max">
-              {displaySponsors.map((sponsor, index) => {
-                const logo = (
-                  <div className="h-20 w-40 sm:h-24 sm:w-48 relative flex-shrink-0">
-                    <Image
-                      src={sponsor.logo}
-                      alt={sponsor.name}
-                      fill
-                      sizes="192px"
-                      className="object-contain"
-                    />
-                  </div>
-                );
-
-                return sponsor.website ? (
-                  <a
-                    key={`${sponsor.name}-${index}`}
-                    href={sponsor.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`${sponsor.name} website`}
-                    className="opacity-80 hover:opacity-100 transition-opacity"
-                  >
-                    {logo}
-                  </a>
-                ) : (
-                  <div key={`${sponsor.name}-${index}`} className="opacity-80">
-                    {logo}
-                  </div>
-                );
-              })}
+              {displaySponsors.map((sponsor, index) => (
+                <div
+                  key={`${sponsor.id}-${index}`}
+                  className="h-20 w-40 sm:h-24 sm:w-48 flex-shrink-0 flex items-center justify-center opacity-85"
+                  title={`${sponsor.name} — ${sponsor.tier} Sponsor`}
+                >
+                  <img
+                    src={sponsor.logo}
+                    alt={sponsor.name}
+                    className="max-h-full max-w-full object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         ) : (
           <div className="border border-dashed border-ink/20 bg-canvas px-6 py-8 text-center">
             <p className="font-display text-xl mb-2">Sponsor recognition area ready</p>
             <p className="text-sm text-ink/70 max-w-2xl mx-auto">
-              Current sponsor logos will appear here as they are added. Each logo can link directly to the sponsor's website.
+              Sponsor logos will appear here automatically from the South Bay Judo Google Drive sponsor folders.
             </p>
           </div>
         )}
