@@ -28,10 +28,10 @@ export default async function HomePage() {
               for juniors, youth, and adults, plus a Holiday Session for advanced and returning students.
             </p>
             <div className="flex gap-4 flex-wrap">
-              <Link href="/register" className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide">
+              <Link href="/register" className="bg-belt text-card px-7 py-4 font-display text-xl tracking-wide">
                 Register for a session
               </Link>
-              <Link href="/schedule" className="border border-canvas/40 px-6 py-3 font-display text-lg tracking-wide">
+              <Link href="/schedule" className="border border-canvas/40 px-7 py-4 font-display text-xl tracking-wide">
                 View schedule
               </Link>
             </div>
@@ -52,10 +52,10 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="border-t border-canvas/15">
-          <div className="max-w-6xl mx-auto px-6 py-5 grid sm:grid-cols-3 gap-4 sm:gap-0 text-sm text-canvas/85">
-            <p className="sm:pr-6"><strong className="font-display text-gold text-lg block">Class 1</strong>5:00–6:15pm · Juniors, 5–12</p>
-            <p className="sm:border-l sm:border-canvas/15 sm:px-6"><strong className="font-display text-gold text-lg block">Class 2</strong>6:30–7:45pm · Juniors, 5–14</p>
-            <p className="sm:border-l sm:border-canvas/15 sm:pl-6"><strong className="font-display text-gold text-lg block">Class 3</strong>8:00–9:15pm · Youth &amp; adults, 13+</p>
+          <div className="max-w-6xl mx-auto px-6 py-5 grid sm:grid-cols-3 gap-4 sm:gap-0 text-base text-canvas/85">
+            <p className="sm:pr-6"><strong className="font-display text-gold text-xl block">Class 1</strong>5:00–6:15pm · Juniors, 5–12</p>
+            <p className="sm:border-l sm:border-canvas/15 sm:px-6"><strong className="font-display text-gold text-xl block">Class 2</strong>6:30–7:45pm · Juniors, 5–14</p>
+            <p className="sm:border-l sm:border-canvas/15 sm:pl-6"><strong className="font-display text-gold text-xl block">Class 3</strong>8:00–9:15pm · Youth &amp; adults, 13+</p>
           </div>
         </div>
       </section>
