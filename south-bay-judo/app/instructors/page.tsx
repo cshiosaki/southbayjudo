@@ -19,7 +19,7 @@ const assistantInstructors = [
   },
   {
     rank: "Nidan · 2nd degree black belt",
-    names: ["Myles Honda", "Ken Nagata", "Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani"],
+    names: ["Myles Honda", "Ken Nagata", "Yuko Felde", "Machiko Matsutani", "Maria Matsutani", "Marina Matsutani", "Jacob Hoshino"],
   },
   {
     rank: "Shodan · 1st degree black belt",
