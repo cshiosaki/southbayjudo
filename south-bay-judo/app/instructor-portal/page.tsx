@@ -492,7 +492,7 @@ export default function InstructorPortalPage() {
 
           <form onSubmit={addCertification} className="border border-ink/15 bg-card p-5">
             <h3 className="mb-4 font-display text-2xl">Add Certification</h3>
-            <select value={newCert.certification_type} onChange={e=>setNewCert({...newCert, certification_type:e.target.value})}>
+            <select value={newCert.certification_type} onChange={e=>setNewCert({...newCert, certification_type:e.target.value as (typeof CERT_TYPES)[number]})}>
               {CERT_TYPES.map(type=><option key={type}>{type}</option>)}
             </select>
             <input placeholder="Certificate / ID number (optional)" value={newCert.certification_number} onChange={e=>setNewCert({...newCert,certification_number:e.target.value})}/>
