@@ -94,20 +94,16 @@ export async function downloadNewsletterPdf(fileId: string, download: boolean) {
   if (!auth) return null;
 
   try {
+    const { current, past } = await getNewsletterFolders();
+    if (![current, ...past].some((newsletter) => newsletter?.id === fileId)) return null;
+
     const drive = google.drive({ version: "v3", auth });
     const metadata = await drive.files.get({
       fileId,
-      fields: "id,name,mimeType,parents",
+      fields: "id,name,mimeType",
     });
     const file = metadata.data;
-    const allowedParents = [CURRENT_FOLDER_ID, HISTORY_FOLDER_ID];
-    if (
-      file.mimeType !== "application/pdf" ||
-      !file.name ||
-      !(file.parents ?? []).some((parent) => allowedParents.includes(parent))
-    ) {
-      return null;
-    }
+    if (file.mimeType !== "application/pdf" || !file.name) return null;
 
     const token = await auth.getAccessToken();
     if (!token) return null;
