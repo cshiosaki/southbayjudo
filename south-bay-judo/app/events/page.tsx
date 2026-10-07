@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { DEFAULT_EVENT_DOCUMENT, getEventDocument } from "@/lib/events-store";
 
 export const metadata: Metadata = {
   title: "Events | South Bay Judo",
@@ -11,16 +10,12 @@ export const dynamic = "force-dynamic";
 const CALENDAR_URL =
   "https://calendar.google.com/calendar/embed?src=events%40southbayjudo.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showCalendars=0";
 
+const CURRENT_NEWSLETTER_URL =
+  "https://drive.google.com/drive/folders/1EwojE2KomShDWrzSYWHHMYtUp1vyaIJa";
 const NEWSLETTER_ARCHIVE_URL =
-  "https://drive.google.com/drive/folders/18E_ztIqbbS1HXj9GlnOUreF6KQWsAnk2";
+  "https://drive.google.com/drive/folders/12UTntGH4RQmtXr-ifpfVrG0upVngR7Ur";
 
-export default async function EventsPage() {
-  const savedNewsletter = await getEventDocument();
-  const newsletter =
-    savedNewsletter && new Date(savedNewsletter.uploadedAt) > new Date(DEFAULT_EVENT_DOCUMENT.uploadedAt)
-      ? savedNewsletter
-      : DEFAULT_EVENT_DOCUMENT;
-
+export default function EventsPage() {
   return (
     <main className="mx-auto max-w-[1500px] px-4 py-10 sm:px-6 sm:py-16">
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -32,14 +27,12 @@ export default async function EventsPage() {
             return to today, or change the calendar view.
           </p>
         </div>
-        {newsletter && (
-          <a
-            href="#newsletters"
-            className="self-start border border-ink/30 px-5 py-2.5 font-display text-lg sm:self-auto"
-          >
-            View newsletters
-          </a>
-        )}
+        <a
+          href="#newsletters"
+          className="self-start border border-ink/30 px-5 py-2.5 font-display text-lg sm:self-auto"
+        >
+          View newsletters
+        </a>
       </div>
 
       <section aria-label="South Bay Judo Google Calendar">
@@ -56,35 +49,28 @@ export default async function EventsPage() {
 
       <section id="newsletters" className="mt-14 scroll-mt-8 border-t border-ink/15 pt-10">
         <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-belt">Club updates</p>
-        <h2 className="mb-5 font-display text-4xl">Newsletters</h2>
-        {newsletter ? (
-          <div className="flex flex-col gap-4 border border-ink/15 bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-display text-2xl">{newsletter.title}</p>
-              <p className="mt-1 text-sm text-ink/60">Read or download the latest South Bay Judo newsletter.</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={newsletter.url}
-                target="_blank"
-                rel="noreferrer"
-                className="border border-ink/30 px-5 py-2.5 font-display text-lg"
-              >
-                Open newsletter
-              </a>
-              <a
-                href={NEWSLETTER_ARCHIVE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-belt px-5 py-2.5 font-display text-lg text-card"
-              >
-                View all newsletters
-              </a>
-            </div>
-          </div>
-        ) : (
-          <p className="border border-ink/15 bg-card p-6 text-ink/65">No newsletter is posted yet.</p>
-        )}
+        <h2 className="mb-3 font-display text-4xl">Newsletters</h2>
+        <p className="mb-6 max-w-2xl text-ink/65">
+          Open the current issue or browse previous South Bay Judo newsletters.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={CURRENT_NEWSLETTER_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-belt px-5 py-2.5 font-display text-lg text-card"
+          >
+            Open current newsletter
+          </a>
+          <a
+            href={NEWSLETTER_ARCHIVE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="border border-ink/30 px-5 py-2.5 font-display text-lg"
+          >
+            View past newsletters
+          </a>
+        </div>
       </section>
     </main>
   );
