@@ -16,7 +16,7 @@ export async function GET(
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": pdf.contentDisposition,
-      "Cache-Control": "public, max-age=300",
+      "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },
   });
