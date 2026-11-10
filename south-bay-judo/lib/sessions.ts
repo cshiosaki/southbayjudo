@@ -39,7 +39,7 @@ export const SESSIONS: SessionConfig[] = [
     id: "sess_5q",
     label: "Holiday — 2026",
     dates: "Nov 10 – Dec 15",
-    regWindow: "Registration: Oct 12 – Nov 24",
+    regWindow: "Registration: Oct 12 – Dec 1",
     note: "Holiday workout schedule: Class 1 (Juniors) check-in/setup 5:45–6:00pm, workout 6:00–7:30pm. Class 2 (Older Youth & Seniors) workout 7:45–9:15pm, mat cleanup/takedown 9:15–9:30pm. No class Nov 26. Returning students only.",
     registrationOpen: true,
     allowNew: false,
