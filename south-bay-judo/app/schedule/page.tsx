@@ -58,7 +58,7 @@ export default async function SchedulePage() {
 
       <div className="mt-12 pt-8 mat-seam border-ink/15 text-sm text-ink/70 max-w-2xl">
         <p>
-          All South Bay Judo members must maintain a yearly membership with the United States Judo Federation (USJF).
+          All South Bay Judo members must maintain a yearly membership with the United States Judo Federation (USJF). Registration closes on each session's published deadline; late registration is not offered.
         </p>
       </div>
     </main>
