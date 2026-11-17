@@ -34,7 +34,7 @@ export default async function SchedulePage() {
               <h3 className="mb-3 font-display text-xl text-belt">{year} sessions</h3>
               <div className="space-y-px bg-ink/10">
                 {yearSessions.map((s) => (
-                  <div key={s.id} className="bg-canvas p-6 grid sm:grid-cols-2 lg:grid-cols-[1fr_2.25fr_1fr_1.25fr] gap-4 items-start">
+                  <div key={s.id} className="bg-canvas p-6 grid sm:grid-cols-2 lg:grid-cols-[1.15fr_1.45fr_1.8fr_2.15fr] gap-4 items-start">
                     <p className="font-display text-xl sm:col-span-1">{s.label}</p>
                     <p className="text-sm sm:col-span-1 lg:whitespace-nowrap">
                       {s.dates}
