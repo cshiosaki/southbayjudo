@@ -73,9 +73,11 @@ export async function POST(req: NextRequest) {
               : session.familyTierThirdPlus || 0;
       const isNewStudent = Boolean(student.isNewStudent);
       if (isNewStudent && !session.allowNew) throw new Error(`${session.label} is open to returning students only.`);
-      const isLateOrTransfer = Boolean(student.isLateOrTransfer);
-      const classesRemaining = Math.max(0, Number(student.classesRemaining) || 0);
-      const sessionFee = !isNewStudent && isLateOrTransfer ? Math.min(tierPrice, classesRemaining * 10) : tierPrice;
+      if (Boolean(student.isLateOrTransfer)) {
+        throw new Error("Late registration and prorated fees are not offered.");
+      }
+      const isLateOrTransfer = false;
+      const sessionFee = tierPrice;
       const gi = student.giSizeId ? GI_SIZES.find((item) => item.id === student.giSizeId) : undefined;
       if (student.giSizeId && !gi) throw new Error("Invalid gi selection.");
 
