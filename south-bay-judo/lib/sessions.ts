@@ -128,7 +128,7 @@ export const SESSIONS: SessionConfig[] = [
 export function sessionPriceLabel(s: SessionConfig): string {
   if (s.priceLabelOverride) return s.priceLabelOverride;
   if (s.pricingMode === "flat") return `$${s.flatPrice}`;
-  return `$${s.familyTierFirst} / $${s.familyTierSecond} / $${s.familyTierThirdPlus}+`;
+  return `${s.familyTierFirst} / ${s.familyTierSecond} / ${s.familyTierThirdPlus}`;
 }
 
 export interface ClassTimeConfig {
