@@ -16,8 +16,7 @@ import {
  * PRICING (per the club's real fee schedule):
  * - Regular sessions charge per family, tiered by how many kids from the
  *   same family are in that session (1st/2nd/3rd+ — see sessionFeeFor).
- * - A returning student joining late / transferring / coming back after a
- *   break is prorated at $10/class instead, capped at the 1st-student price.
+ * - No late registration or prorated fees are offered for 2027 sessions.
  * - USJF is the required federation; $70/yr individually, with a cheaper
  *   family plan once 3+ household members need membership.
  * - Gi is a per-student optional add-on; practice dummies and duffle bags
@@ -143,10 +142,6 @@ function sessionFeeFor(s: StudentEntry, session: SessionConfig | undefined, posi
   const tierPrice =
     position === 1 ? session.familyTierFirst ?? 0 : position === 2 ? session.familyTierSecond ?? 0 : session.familyTierThirdPlus ?? 0;
 
-  if (!s.isNewStudent && s.isLateOrTransfer) {
-    const classes = Number(s.classesRemaining) || 0;
-    return Math.min(tierPrice, 10 * classes);
-  }
   return tierPrice;
 }
 
@@ -265,8 +260,8 @@ export default function RegisterPage() {
               classTimeId: s.classTimeId,
               classTimeLabel: classTimes.find((x) => x.id === s.classTimeId)?.label ?? "",
               isNewStudent: s.isNewStudent,
-              isLateOrTransfer: s.isLateOrTransfer,
-              classesRemaining: s.classesRemaining,
+              isLateOrTransfer: false,
+              classesRemaining: "",
               firstName: s.firstName,
               lastName: s.lastName,
               dateOfBirth: s.dateOfBirth,
@@ -419,10 +414,9 @@ export default function RegisterPage() {
                   <div className="p-3 flex justify-between">
                     <span>
                       Session fee
-                      {session?.pricingMode === "family_tier" && !(!s.isNewStudent && s.isLateOrTransfer) && (
+                      {session?.pricingMode === "family_tier" && (
                         <span className="text-ink/50"> (family position #{positions[s.id]})</span>
                       )}
-                      {!s.isNewStudent && s.isLateOrTransfer && <span className="text-ink/50"> (prorated)</span>}
                     </span>
                     <span>${fee}</span>
                   </div>
@@ -840,35 +834,13 @@ export default function RegisterPage() {
               <input type="radio" checked={draft.isNewStudent} onChange={() => setDraft({ ...draft, isNewStudent: true, isLateOrTransfer: false })} /> New student
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="radio" checked={!draft.isNewStudent} onChange={() => setDraft({ ...draft, isNewStudent: false })} /> Returning student
+              <input type="radio" checked={!draft.isNewStudent} onChange={() => setDraft({ ...draft, isNewStudent: false, isLateOrTransfer: false, classesRemaining: "" })} /> Returning student
             </label>
           </div>
 
-          {!draft.isNewStudent && (
-            <div className="mb-6">
-              <label className="flex items-start gap-3 cursor-pointer bg-card border border-ink/15 p-3">
-                <input
-                  type="checkbox"
-                  checked={draft.isLateOrTransfer}
-                  onChange={(e) => setDraft({ ...draft, isLateOrTransfer: e.target.checked })}
-                  className="mt-1"
-                />
-                <span className="text-sm">
-                  <span className="block">Joining after the session started, transferring from another club, or returning after a break?</span>
-                  <span className="text-ink/50 text-xs">Prorated at $10/class instead of the standard price.</span>
-                </span>
-              </label>
-              {draft.isLateOrTransfer && (
-                <input
-                  type="number"
-                  placeholder="Classes remaining in this session"
-                  value={draft.classesRemaining}
-                  onChange={(e) => setDraft({ ...draft, classesRemaining: e.target.value })}
-                  className="mt-2 max-w-xs"
-                />
-              )}
-            </div>
-          )}
+          <p className="text-sm text-ink/65 mb-6">
+            Registration must be completed during the published window. Late registration is not offered.
+          </p>
 
           <div className="space-y-px bg-ink/10 mb-8">
             {sessions.map((s) => (
@@ -891,7 +863,7 @@ export default function RegisterPage() {
                   <span>
                     <span className="font-display text-lg block leading-tight">{s.label}</span>
                     <span className="text-xs text-ink/60">
-                      {s.dates}
+                      {s.dates} · {s.regWindow}
                       {s.registrationOpen === false
                         ? " · registration not open"
                         : !s.allowNew
