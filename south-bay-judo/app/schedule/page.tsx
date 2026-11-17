@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import { getSiteConfig } from "@/lib/config-store";
 import { sessionPriceLabel } from "@/lib/sessions";
 
@@ -37,7 +39,7 @@ export default async function SchedulePage() {
                     <p className="text-sm sm:col-span-1 lg:whitespace-nowrap">
                       {s.dates} — {sessionPriceLabel(s)}
                       {s.pricingMode === "family_tier" && !s.priceLabelOverride && (
-                        <span className="text-xs text-ink/50"> (1st / 2nd / 3rd+ child)</span>
+                        <span className="text-xs text-ink/50"> (1st / 2nd / 3rd+ family member)</span>
                       )}
                     </p>
                     <p className="text-sm text-ink/70 sm:col-span-1">{s.regWindow}</p>
