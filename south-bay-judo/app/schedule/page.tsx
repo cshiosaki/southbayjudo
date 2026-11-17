@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 import { getSiteConfig } from "@/lib/config-store";
-import { sessionPriceLabel } from "@/lib/sessions";
+
 
 export default async function SchedulePage() {
   const { sessions, classTimes } = await getSiteConfig();
@@ -37,10 +37,7 @@ export default async function SchedulePage() {
                   <div key={s.id} className="bg-canvas p-6 grid sm:grid-cols-2 lg:grid-cols-[1fr_2.25fr_1fr_1.25fr] gap-4 items-start">
                     <p className="font-display text-xl sm:col-span-1">{s.label}</p>
                     <p className="text-sm sm:col-span-1 lg:whitespace-nowrap">
-                      {s.dates} — {sessionPriceLabel(s)}
-                      {s.pricingMode === "family_tier" && !s.priceLabelOverride && (
-                        <span className="text-xs text-ink/50"> (1st / 2nd / 3rd+ family member)</span>
-                      )}
+                      {s.dates}
                     </p>
                     <p className="text-sm text-ink/70 sm:col-span-1">{s.regWindow}</p>
                     <p className="text-xs text-ink/55 sm:col-span-1">{s.note}</p>
@@ -52,7 +49,12 @@ export default async function SchedulePage() {
         })}
       </div>
 
-      <div className="mt-12">
+      <p className="mt-10 text-sm text-ink/75">
+        <strong>Multiple Family Discount:</strong> $200 first family member, $180 second,
+        $160 third and additional family members.
+      </p>
+
+      <div className="mt-8">
         <Link href="/register" className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide inline-block">
           Register for a session
         </Link>
