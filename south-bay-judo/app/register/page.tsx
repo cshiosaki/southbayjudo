@@ -17,7 +17,7 @@ import {
  * - Regular sessions charge per family, tiered by how many kids from the
  *   same family are in that session (1st/2nd/3rd+ — see sessionFeeFor).
  * - No late registration or prorated fees are offered for 2027 sessions.
- * - USJF is the required federation; $70/yr individually, with a cheaper
+ * - USJF is the required federation; $80/yr individually, with a cheaper
  *   family plan once 3+ household members need membership.
  * - Gi is a per-student optional add-on; practice dummies and duffle bags
  *   are family-level add-ons picked once at the end.
