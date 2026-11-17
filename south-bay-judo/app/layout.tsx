@@ -82,9 +82,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <div className="mat-seam border-white/10">
-            <p className="max-w-5xl mx-auto px-6 py-4 text-xs text-canvas/60">
-              Building Character — Honor — Respect. A Torrance Charter Club since 1999.
-            </p>
+            <div className="max-w-5xl mx-auto px-6 py-4 text-xs text-canvas/70 text-center space-y-1">
+              <p>Building Character — Honor — Respect. A Torrance Charter Club since 1999.</p>
+              <p>South Bay Judo is a nonprofit charitable organization recognized under Section 501(c)(3) of the Internal Revenue Code (DLN #17053-063-77700-6).</p>
+            </div>
           </div>
         </footer>
       </body>
