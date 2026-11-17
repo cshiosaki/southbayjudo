@@ -512,8 +512,9 @@ export default function AdminPage() {
                 type="checkbox"
                 checked={s.registrationOpen !== false}
                 onChange={(e) => updateSession(i, { registrationOpen: e.target.checked })}
+                disabled={!!s.registrationStart && !!s.registrationEnd}
               />
-              Registration open
+              Registration open {s.registrationStart && s.registrationEnd ? "(automatically controlled by dates)" : ""}
             </label>
             <label className="flex items-center gap-2 text-sm sm:col-span-2 mt-1">
               <input
