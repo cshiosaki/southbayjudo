@@ -10,9 +10,7 @@
  * - Regular sessions (1Q–4Q) charge per FAMILY, tiered by how many kids
  *   from the same family are enrolling in that session: 1st student full
  *   price, 2nd cheaper, 3rd+ cheapest.
- * - A RETURNING student who is joining late, transferring from another
- *   club, or coming back after a break gets prorated at $10/class instead
- *   of the family-tier price, capped at the 1st-student price.
+ * - Registration closes on the listed deadline; no late fees or proration.
  * - The Holiday session uses the same family-tier pricing as a regular
  *   session, but offers only two age-based class choices and remains
  *   returning-students-only.
@@ -23,6 +21,8 @@ export interface SessionConfig {
   label: string;
   dates: string;
   regWindow: string;
+  registrationStart?: string; // Pacific YYYY-MM-DD
+  registrationEnd?: string;   // inclusive Pacific YYYY-MM-DD
   note?: string;
   registrationOpen?: boolean;
   allowNew: boolean;
@@ -38,9 +38,9 @@ export const SESSIONS: SessionConfig[] = [
   {
     id: "sess_5q",
     label: "Holiday — 2026",
-    dates: "Nov 10 – Dec 15",
-    regWindow: "Registration: Oct 12 – Dec 1",
-    note: "Holiday workout schedule: Class 1 (Juniors) check-in/setup 5:45–6:00pm, workout 6:00–7:30pm. Class 2 (Older Youth & Seniors) workout 7:45–9:15pm, mat cleanup/takedown 9:15–9:30pm. No class Nov 26. Returning students only.",
+    dates: "Nov 10 – Dec 15, 2026",
+    regWindow: "Register Oct 12 – Dec 1, 2026",
+    note: "Holiday workout: Class 1 (Juniors) 6:00–7:30pm; Class 2 (Older Youth & Seniors) 7:45–9:15pm. No class Nov 26. Returning students only.",
     registrationOpen: true,
     allowNew: false,
     pricingMode: "family_tier",
@@ -50,80 +50,85 @@ export const SESSIONS: SessionConfig[] = [
   },
   {
     id: "sess_2027_1q",
-    label: "Q1 — Winter 2027",
-    dates: "Jan 12 – Mar 11",
-    regWindow: "Registration dates to be announced",
-    note: "18 classes. Session break Mar 16 & 18.",
+    label: "1Q — Winter 2027",
+    dates: "Jan 12 – Mar 11, 2027",
+    regWindow: "Register Dec 14, 2026 – Jan 6, 2027",
+    registrationStart: "2026-12-14",
+    registrationEnd: "2027-01-06",
+    note: "18 Tuesday/Thursday classes. New and returning students.",
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
     familyTierFirst: 200,
     familyTierSecond: 180,
     familyTierThirdPlus: 160,
-    priceLabelOverride: "Pricing to be announced",
   },
   {
     id: "sess_2027_2q",
-    label: "Q2 — Spring 2027",
-    dates: "Mar 23 – May 20",
-    regWindow: "Registration dates to be announced",
-    note: "18 classes. Session break May 25 & 27 and Jun 1 & 3.",
+    label: "2Q — Spring 2027",
+    dates: "Mar 23 – May 20, 2027",
+    regWindow: "Register Jan 22 – Mar 17, 2027",
+    registrationStart: "2027-01-22",
+    registrationEnd: "2027-03-17",
+    note: "18 Tuesday/Thursday classes. New and returning students.",
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
     familyTierFirst: 200,
     familyTierSecond: 180,
     familyTierThirdPlus: 160,
-    priceLabelOverride: "Pricing to be announced",
   },
   {
     id: "sess_2027_3q",
-    label: "Q3 — Summer 2027",
-    dates: "Jun 8 – Aug 10",
-    regWindow: "Registration dates to be announced",
-    note: "18 classes. No class Jul 6. Session break Aug 17 & 19.",
+    label: "3Q — Summer 2027",
+    dates: "Jun 8 – Aug 18, 2027",
+    regWindow: "Register May 10 – Jun 2, 2027",
+    registrationStart: "2027-05-10",
+    registrationEnd: "2027-06-02",
+    note: "Tuesdays and Thursdays; no class July 6. New and returning students.",
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
     familyTierFirst: 200,
     familyTierSecond: 180,
     familyTierThirdPlus: 160,
-    priceLabelOverride: "Pricing to be announced",
   },
   {
     id: "sess_2027_4q",
-    label: "Q4 — Fall 2027",
-    dates: "Aug 24 – Oct 26",
-    regWindow: "Registration dates to be announced",
-    note: "18 classes. No class Sept 7. Session break Oct 28.",
+    label: "4Q — Fall 2027",
+    dates: "Aug 24 – Oct 26, 2027",
+    regWindow: "Register Jul 26 – Aug 18, 2027",
+    registrationStart: "2027-07-26",
+    registrationEnd: "2027-08-18",
+    note: "18 Tuesday/Thursday classes. No class Sept 7. New and returning students.",
     registrationOpen: false,
     allowNew: true,
     pricingMode: "family_tier",
     familyTierFirst: 200,
     familyTierSecond: 180,
     familyTierThirdPlus: 160,
-    priceLabelOverride: "Pricing to be announced",
   },
   {
     id: "sess_2027_5q",
-    label: "Holiday — 2027",
-    dates: "Nov 2 – Dec 16",
-    regWindow: "Registration dates to be announced",
-    note: "Holiday workout schedule: Class 1 (Juniors) check-in/setup 5:45–6:00pm, workout 6:00–7:30pm. Class 2 (Older Youth & Seniors) workout 7:45–9:15pm, mat cleanup/takedown 9:15–9:30pm. Holiday Session meets Nov 2 & 4, then Nov 9–Dec 16; no class Nov 11 or Nov 25. Returning students only.",
+    label: "5Q — Holiday 2027",
+    dates: "Nov 9 – Dec 16, 2027",
+    regWindow: "Register Oct 11 – Nov 3, 2027",
+    registrationStart: "2027-10-11",
+    registrationEnd: "2027-11-03",
+    note: "Tuesday/Thursday competition and conditioning workouts. No class Nov 25. Returning students only.",
     registrationOpen: false,
     allowNew: false,
     pricingMode: "family_tier",
     familyTierFirst: 200,
     familyTierSecond: 180,
     familyTierThirdPlus: 160,
-    priceLabelOverride: "Pricing to be announced",
-  },
+  }
 ];
 
 export function sessionPriceLabel(s: SessionConfig): string {
   if (s.priceLabelOverride) return s.priceLabelOverride;
   if (s.pricingMode === "flat") return `$${s.flatPrice}`;
-  return `$${s.familyTierFirst} / $${s.familyTierSecond} / $${s.familyTierThirdPlus}+`;
+  return `${s.familyTierFirst} / ${s.familyTierSecond} / ${s.familyTierThirdPlus}`;
 }
 
 export interface ClassTimeConfig {

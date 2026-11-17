@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSiteConfig } from "@/lib/config-store";
 import SponsorStrip from "@/components/SponsorStrip";
 
-export const revalidate = 600;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const { sessions } = await getSiteConfig();
@@ -124,7 +124,7 @@ export default async function HomePage() {
             ))}
           </div>
           <p className="mt-8 text-ink/70 text-sm max-w-lg">
-            Registration windows open a few weeks before each session — see the{" "}
+            Registration is available only during each published window; late registration is not offered. See the{" "}
             <Link href="/schedule" className="underline decoration-belt decoration-2 underline-offset-2">
               full schedule
             </Link>{" "}
