@@ -525,6 +525,13 @@ export default function RegistrationFlow({
             <span className="text-sm text-ink/70">Enter the responsible adult and student information for a first-time registration.</span>
           </button>
         </div>
+        <div className="mt-6 border-t border-ink/15 pt-5">
+          <p className="text-sm text-ink/70 mb-2">Teaching or volunteering rather than enrolling as a student?</p>
+          <a href={testMode ? "/test-instructor-register" : "/instructor-register"}
+            className="inline-block text-belt underline font-display text-lg">
+            Instructor &amp; Volunteer Registration
+          </a>
+        </div>
         {testMode && <p className="mt-6 text-xs text-ink/65">Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.</p>}
       </main>
     );
