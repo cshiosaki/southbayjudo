@@ -503,36 +503,55 @@ export default function RegistrationFlow({
   }
 
   if (step === "guardian" && entryMode === "choose") {
+    const signupCardClass =
+      "group flex min-h-[190px] h-full flex-col border border-ink/25 bg-card p-6 text-left text-ink transition-colors hover:border-belt hover:bg-belt/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-belt";
+
     return (
-      <main className="max-w-2xl mx-auto px-6 py-16">
+      <main className="max-w-4xl mx-auto px-6 py-16">
         <h1 className="font-display text-5xl mb-3">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
         <p className="text-ink/70 mb-8">Choose how you want to register for South Bay Judo.</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setEntryMode("returning")}
-            className="bg-card border-2 border-belt p-5 text-left hover:bg-belt/5"
-          >
-            <strong className="block font-display text-2xl text-belt mb-2">Returning Student</strong>
-            <span className="text-sm text-ink/70">Search your previous student record, verify the email on file, and reuse your family's saved information.</span>
-          </button>
+        <div className="grid gap-4 sm:grid-cols-3 items-stretch">
           <button
             type="button"
             onClick={() => setEntryMode("new")}
-            className="bg-card border border-ink/20 p-5 text-left hover:bg-ink/5"
+            className={signupCardClass}
           >
-            <strong className="block font-display text-2xl mb-2">New Student</strong>
-            <span className="text-sm text-ink/70">Enter the responsible adult and student information for a first-time registration.</span>
+            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+              New Registrant
+            </strong>
+            <span className="block text-sm leading-relaxed text-ink/70">
+              Enter student and responsible-adult information for your first South Bay Judo registration.
+            </span>
           </button>
-        </div>
-        <div className="mt-6 border-t border-ink/15 pt-5">
-          <p className="text-sm text-ink/70 mb-2">Teaching or volunteering rather than enrolling as a student?</p>
-          <a href={testMode ? "/test-instructor-register" : "/instructor-register"}
-            className="inline-block text-belt underline font-display text-lg">
-            Instructor &amp; Volunteer Registration
+          <button
+            type="button"
+            onClick={() => setEntryMode("returning")}
+            className={signupCardClass}
+          >
+            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+              Returning Student
+            </strong>
+            <span className="block text-sm leading-relaxed text-ink/70">
+              Find your previous student record, verify your email, and reuse saved information.
+            </span>
+          </button>
+          <a
+            href={testMode ? "/test-instructor-register" : "/instructor-register"}
+            className={signupCardClass}
+          >
+            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+              Instructor / Volunteer Sign Up
+            </strong>
+            <span className="block text-sm leading-relaxed text-ink/70">
+              Register to teach or volunteer, choose classes, and update your credentials.
+            </span>
           </a>
         </div>
-        {testMode && <p className="mt-6 text-xs text-ink/65">Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.</p>}
+        {testMode && (
+          <p className="mt-6 text-xs text-ink/65">
+            Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.
+          </p>
+        )}
       </main>
     );
   }
