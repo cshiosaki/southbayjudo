@@ -629,3 +629,139 @@ export async function matchesHistoricalStudent(
     );
   });
 }
+
+
+/**
+ * Data for an email-verified returning-student prefill. Never expose this
+ * function directly as a public API: the caller must first verify that the
+ * recipient controls an email already associated with the prior student.
+ */
+export interface ReturningStudentCandidate {
+  verifiedEmails: string[];
+  student: {
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    beltRank: string;
+    emergencyContact: string;
+    emergencyPhone: string;
+  };
+  historicalContacts: Array<{ email: string; phone: string }>;
+  registrationRows: RosterRow[];
+}
+
+/** Read only the student/contact columns needed to find a verified family. */
+export async function findReturningStudentCandidate(
+  firstName: string,
+  lastName: string,
+  dateOfBirth: string
+): Promise<ReturningStudentCandidate | null> {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  const norm = (v: unknown) =>
+    String(v ?? "").normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+  const normEmail = (v: unknown) => norm(v);
+  const emailParts = (v: unknown) =>
+    String(v ?? "").split(/[,;\s]+/).map(normEmail).filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  const [year, month, day] = dateOfBirth.split("-");
+  const expectedName = norm(lastName + ", " + firstName);
+
+  const [allRows, historical] = await Promise.all([
+    readRoster(),
+    sheets.spreadsheets.values.batchGet({
+      spreadsheetId: sheetId,
+      ranges: [
+        "'5Q-2026-M-ROSTER'!D3:I",
+        "'5Q-2026-M-ROSTER'!DZ3:EF",
+      ],
+    }),
+  ]);
+
+  const registrationRows = allRows
+    .filter((r) =>
+      norm(r.firstName) === norm(firstName) &&
+      norm(r.lastName) === norm(lastName) &&
+      r.dateOfBirth.trim() === dateOfBirth)
+    .sort((a, b) => b.rowNumber - a.rowNumber);
+
+  const identityRows = historical.data.valueRanges?.[0]?.values || [];
+  const contactRows = historical.data.valueRanges?.[1]?.values || [];
+  const historicalContacts: Array<{ email: string; phone: string }> = [];
+  for (let i = 0; i < identityRows.length; i += 1) {
+    const row = identityRows[i];
+    const contact = contactRows[i] || [];
+    if (
+      norm(row[0]) !== expectedName ||
+      Number(row[3]) !== Number(month) ||
+      Number(row[4]) !== Number(day) ||
+      Number(row[5]) !== Number(year) ||
+      norm(contact[0]) !== expectedName
+    ) continue;
+    for (const e of emailParts(contact[4])) historicalContacts.push({ email: e, phone: String(contact[3] || "").trim() });
+    for (const e of emailParts(contact[6])) historicalContacts.push({ email: e, phone: String(contact[5] || "").trim() });
+  }
+
+  // Never trust an email supplied by an abandoned checkout unless the child
+  // also exists in the historical roster. Only PAID online registrations
+  // independently establish returning-student status.
+  const paidRows = registrationRows.filter((r) => r.paid);
+  const verifiedEmails = Array.from(new Set([
+    ...historicalContacts.map((c) => c.email),
+    ...paidRows.flatMap((r) => [...emailParts(r.guardianEmail), ...emailParts(r.guardian2Email)]),
+  ]));
+
+  if (!verifiedEmails.length) return null;
+
+  // Prefer the most recent verified contact record, not an arbitrary pending
+  // registration address that could have been typed by someone else.
+  const verifiedMostRecent = registrationRows.find((r) =>
+    verifiedEmails.includes(normEmail(r.guardianEmail)) ||
+    verifiedEmails.includes(normEmail(r.guardian2Email))
+  );
+  return {
+    verifiedEmails,
+    historicalContacts,
+    registrationRows,
+    student: {
+      firstName,
+      lastName,
+      dateOfBirth,
+      beltRank: verifiedMostRecent?.beltRank || paidRows[0]?.beltRank || "",
+      emergencyContact: verifiedMostRecent?.emergencyContact || "",
+      emergencyPhone: verifiedMostRecent?.emergencyPhone || "",
+    },
+  };
+}
+
+/**
+ * Produce family fields only AFTER the short-lived email token has been
+ * decrypted. The verified recipient's own contact details take priority;
+ * do not reveal a separate guardian's email or phone to that recipient.
+ */
+export function returningPrefillForEmail(
+  candidate: ReturningStudentCandidate,
+  verifiedEmail: string
+) {
+  const email = verifiedEmail.trim().toLowerCase();
+  if (!candidate.verifiedEmails.includes(email)) return null;
+
+  const ownRow = candidate.registrationRows.find((r) =>
+    r.guardianEmail.toLowerCase().trim() === email ||
+    r.guardian2Email.toLowerCase().trim() === email
+  );
+  const secondary = ownRow && ownRow.guardian2Email.toLowerCase().trim() === email &&
+    ownRow.guardianEmail.toLowerCase().trim() !== email;
+  const historic = candidate.historicalContacts.find((r) => r.email === email);
+  return {
+    guardian: {
+      firstName: ownRow ? (secondary ? ownRow.guardian2FirstName : ownRow.guardianFirstName) : "",
+      lastName: ownRow ? (secondary ? ownRow.guardian2LastName : ownRow.guardianLastName) : "",
+      email,
+      phone: (ownRow ? (secondary ? ownRow.guardian2Phone : ownRow.guardianPhone) : "") || historic?.phone || "",
+      emailOptIn: ownRow?.emailOptIn ?? true,
+    },
+    student: candidate.student,
+  };
+}
