@@ -1091,15 +1091,16 @@ export default function RegistrationFlow({
               <div className="mt-3 text-sm" aria-live="polite">
                 {previousLookupState === "found" && (
                   <p className="text-green-800">
-                    Previous registration found. Returning student selected and belt rank filled in if available.
+                    Previous student record verified. Returning student selected and belt rank filled in if available.
                     Please review and update the details below.
                   </p>
                 )}
                 {previousLookupState === "not-found" && (
                   <p className="text-ink/70">
-                    No matching paid online registration was found for this name, date of birth, and email.
-                    New students can continue normally. If you attended before our online registration system,
-                    choose Returning student on the previous step.
+                    We could not verify a previous student record using this name, date of birth, and
+                    contact email. New students can continue normally. If you previously attended South
+                    Bay Judo but your contact email has changed, select Returning student on the
+                    previous step and contact the club to update your record.
                   </p>
                 )}
                 {previousLookupState === "error" && (

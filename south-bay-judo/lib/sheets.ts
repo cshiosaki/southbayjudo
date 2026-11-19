@@ -567,3 +567,65 @@ export async function markRegistrationReceiptEmailSent(receiptNumber: string) {
     },
   });
 }
+
+
+/**
+ * Match a historical South Bay Judo student using the stable 2026 master
+ * roster. This is a READ-ONLY identity check. It never exposes historical
+ * contact details or modifies old roster sheets.
+ *
+ * The 2026 master stores name in D, birth month/day/year in G/H/I, and
+ * the contact record in DZ:EF (emails ED and EF). Require name, DOB,
+ * and one prior contact email to match before confirming a returning
+ * student, including when the new checkout is still pending.
+ */
+export async function matchesHistoricalStudent(
+  firstName: string,
+  lastName: string,
+  dob: string,
+  guardianEmail: string
+): Promise<boolean> {
+  const sheets = await getSheetsClient();
+  const sheetId = getSheetId();
+  if (!sheets || !sheetId) throw new Error("Google Sheets isn't connected yet.");
+
+  const normalize = (value: unknown) =>
+    String(value ?? "").normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+  const [year, month, day] = dob.split("-");
+  if (!year || !month || !day) return false;
+
+  const { data } = await sheets.spreadsheets.values.batchGet({
+    spreadsheetId: sheetId,
+    ranges: [
+      "'5Q-2026-M-ROSTER'!D3:I",
+      "'5Q-2026-M-ROSTER'!DZ3:EF",
+    ],
+  });
+  const identityRows = data.valueRanges?.[0]?.values || [];
+  const contactRows = data.valueRanges?.[1]?.values || [];
+  const expectedName = normalize(lastName + ", " + firstName);
+  const expectedEmail = normalize(guardianEmail);
+
+  return identityRows.some((row, i) => {
+    const rosterName = normalize(row[0]);
+    if (rosterName !== expectedName) return false;
+    const rowMonth = Number(row[3]);
+    const rowDay = Number(row[4]);
+    const rowYear = Number(row[5]);
+    if (
+      rowYear !== Number(year) ||
+      rowMonth !== Number(month) ||
+      rowDay !== Number(day)
+    ) return false;
+    const contactRow = contactRows[i] || [];
+    // Also verify that the contact row belongs to the same person, since
+    // batchGet ranges may have sparse trailing cells.
+    if (normalize(contactRow[0]) !== expectedName) return false;
+    const previousEmails = [contactRow[4], contactRow[6]];
+    return previousEmails.some((value) =>
+      String(value ?? "")
+        .split(/[;,]/)
+        .some((email) => normalize(email) === expectedEmail)
+    );
+  });
+}
