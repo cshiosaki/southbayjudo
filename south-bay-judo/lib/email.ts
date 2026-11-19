@@ -428,3 +428,27 @@ export async function sendReturningStudentLink(opts: {
   if (error && /idempoten/i.test(error.message || "")) return;
   if (error) throw new Error(error.message || "Could not send returning-student verification link.");
 }
+
+
+/** Confirm control of the email before saving an instructor registration. */
+export async function sendInstructorVerificationEmail(opts: {
+  to: string;
+  link: string;
+  idempotencyKey: string;
+}) {
+  const resend = getResend();
+  if (!resend) throw new Error("Instructor email verification is not configured.");
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: opts.to,
+    replyTo: "info@southbayjudo.com",
+    subject: "South Bay Judo instructor registration — verify your email",
+    html: "<p>Verify this email address to register as a South Bay Judo instructor or volunteer.</p>" +
+      '<p><a href="' + escapeHtml(opts.link) + '">Continue instructor registration</a></p>' +
+      "<p>This link expires within 30 minutes. Ignore this message if you did not request it.</p>",
+    text: "Verify your email to continue South Bay Judo instructor registration:\n\n" +
+      opts.link + "\n\nThis link expires within 30 minutes. Ignore this message if you did not request it.",
+  }, { idempotencyKey: opts.idempotencyKey });
+  if (error && /idempoten/i.test(error.message || "")) return;
+  if (error) throw new Error(error.message || "Could not send instructor verification email.");
+}

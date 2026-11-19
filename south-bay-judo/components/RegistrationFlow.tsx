@@ -525,6 +525,13 @@ export default function RegistrationFlow({
             <span className="text-sm text-ink/70">Enter the responsible adult and student information for a first-time registration.</span>
           </button>
         </div>
+        <div className="mt-6 border-t border-ink/15 pt-5">
+          <p className="text-sm text-ink/70 mb-2">Teaching or volunteering rather than enrolling as a student?</p>
+          <a href={testMode ? "/test-instructor-register" : "/instructor-register"}
+            className="inline-block text-belt underline font-display text-lg">
+            Instructor &amp; Volunteer Registration
+          </a>
+        </div>
         {testMode && <p className="mt-6 text-xs text-ink/65">Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.</p>}
       </main>
     );
@@ -665,11 +672,12 @@ export default function RegistrationFlow({
         <div className="mt-12 border border-ink/15 bg-card p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
             <p className="font-display text-xl">Instructor or volunteer?</p>
-            <p className="mt-1 text-sm text-ink/60">Instructor registration is temporarily unavailable while we update the instructor credential system.</p>
+            <p className="mt-1 text-sm text-ink/60">Register your teaching availability, memberships, and certifications separately from student tuition.</p>
           </div>
-          <span className="mt-4 inline-block shrink-0 cursor-not-allowed border border-ink/20 bg-ink/10 px-5 py-3 font-display text-lg text-ink/50 sm:mt-0">
-            Temporarily Unavailable
-          </span>
+          <a href={testMode ? "/test-instructor-register" : "/instructor-register"}
+            className="mt-4 inline-block shrink-0 border border-belt text-belt px-5 py-3 font-display text-lg sm:mt-0">
+            Instructor registration
+          </a>
         </div>
       </main>
     );

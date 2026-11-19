@@ -765,3 +765,72 @@ export function returningPrefillForEmail(
     student: candidate.student,
   };
 }
+
+
+// The Instructors tab remains the master source for the instructor rows in
+// the quarter's grouped registration roster. A single instructor/session
+// registration is updated in place if submitted again.
+const INSTRUCTOR_HEADERS = [
+  "Date","First Name","Last Name","Email","Phone","Session","Class","Belt Rank",
+  "USJF Membership #","USJF Exp","USJF Auto-Renew","USA Membership #","USA Exp",
+  "USA Coach Cert","USA Coach Exp","SafeSport Exp","CDC Exp","Background Exp",
+  "First Aid / CPR / AED Expiration","Emergency Contact","Emergency Phone",
+  "Medical","Med Notes","Reg Status","Needs Attention","Waiver Signed By","Waiver Signed At",
+];
+
+async function verifyInstructorHeader() {
+  const sheets = await getSheetsClient();
+  const spreadsheetId = getSheetId();
+  if (!sheets || !spreadsheetId) throw new Error("Google Sheets is unavailable.");
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId, range: "'Instructors'!A1:AA1",
+  });
+  const headers = res.data.values?.[0] || [];
+  if (INSTRUCTOR_HEADERS.some((expected, i) => headers[i] !== expected)) {
+    throw new Error("Instructors sheet headers do not match the registration form. No data was saved.");
+  }
+  return { sheets, spreadsheetId };
+}
+
+export async function readInstructorRegistration(email: string) {
+  const { sheets, spreadsheetId } = await verifyInstructorHeader();
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId, range: "'Instructors'!A2:AA",
+  });
+  const match = (res.data.values || []).filter((row) =>
+    String(row[3] || "").trim().toLowerCase() === email.trim().toLowerCase()
+  );
+  if (!match.length) return null;
+  return match[match.length - 1];
+}
+
+export async function saveInstructorRegistration(row: string[]) {
+  if (row.length !== INSTRUCTOR_HEADERS.length) {
+    throw new Error("Instructor form contains an unexpected number of fields.");
+  }
+  const { sheets, spreadsheetId } = await verifyInstructorHeader();
+  const existing = await sheets.spreadsheets.values.get({
+    spreadsheetId, range: "'Instructors'!D2:F",
+  });
+  const matchIndex = (existing.data.values || []).findIndex((r) =>
+    String(r[0] || "").trim().toLowerCase() === row[3].trim().toLowerCase() &&
+    String(r[2] || "").trim() === row[5].trim()
+  );
+  if (matchIndex >= 0) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: "'Instructors'!A" + (matchIndex + 2) + ":AA" + (matchIndex + 2),
+      valueInputOption: "RAW",
+      requestBody: { values: [row] },
+    });
+    return "updated";
+  }
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: "'Instructors'!A1:AA",
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values: [row] },
+  });
+  return "registered";
+}
