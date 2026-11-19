@@ -10,18 +10,18 @@ export default function TestRegisterPage() {
   const [error, setError] = useState("");
   const [run, setRun] = useState(0);
 
-  async function verifyAdmin(event: FormEvent<HTMLFormElement>) {
+  async function verifyTestAccess(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/config", {
+      const response = await fetch("/api/admin/test-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, action: "verify" }),
+        body: JSON.stringify({ password }),
       });
       if (!response.ok) {
-        setError("Incorrect admin password or admin verification unavailable.");
+        setError("Incorrect test password or test login unavailable.");
         return;
       }
       setAuthorized(true);
@@ -38,12 +38,12 @@ export default function TestRegisterPage() {
         <p className="text-belt uppercase tracking-widest font-display mb-3">Admin only · dry-run environment</p>
         <h1 className="font-display text-4xl mb-4">Test January 2027 registration</h1>
         <p className="text-ink/70 mb-6">
-          Enter your existing South Bay Judo admin password. This test opens the January
+          Enter your separate South Bay Judo test password. This test opens the January
           session early without changing its public registration dates.
         </p>
-        <form onSubmit={verifyAdmin} className="space-y-4">
+        <form onSubmit={verifyTestAccess} className="space-y-4">
           <label className="block text-sm">
-            <span className="block mb-1">Admin password</span>
+            <span className="block mb-1">Test registration password</span>
             <input
               autoComplete="off"
               type="password"
@@ -83,7 +83,7 @@ export default function TestRegisterPage() {
       <RegistrationFlow
         key={run}
         testMode
-        adminPassword={password}
+        testPassword={password}
         onRestart={() => setRun((count) => count + 1)}
       />
     </>
