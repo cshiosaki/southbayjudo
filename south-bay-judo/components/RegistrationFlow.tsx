@@ -504,19 +504,19 @@ export default function RegistrationFlow({
 
   if (step === "guardian" && entryMode === "choose") {
     const signupCardClass =
-      "group flex min-h-[190px] h-full flex-col border border-ink/25 bg-card p-6 text-left text-ink transition-colors hover:border-belt hover:bg-belt/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-belt";
+      "group flex h-full min-h-[190px] sm:min-h-[215px] flex-col border border-ink/25 bg-card p-6 lg:p-7 text-left text-ink transition-colors duration-150 hover:border-belt hover:bg-belt/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-belt";
 
     return (
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        <h1 className="font-display text-5xl mb-3">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
-        <p className="text-ink/70 mb-8">Choose how you want to register for South Bay Judo.</p>
-        <div className="grid gap-4 sm:grid-cols-3 items-stretch">
+      <main className="max-w-5xl mx-auto px-6 pt-12 pb-0 sm:pt-16 sm:pb-0">
+        <h1 className="font-display text-4xl sm:text-5xl text-center mb-3">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
+        <p className="text-ink/70 text-center max-w-xl mx-auto mb-8 sm:mb-10">Choose how you want to register for South Bay Judo.</p>
+        <div className="grid gap-4 lg:gap-5 sm:grid-cols-3 items-stretch">
           <button
             type="button"
             onClick={() => setEntryMode("new")}
             className={signupCardClass}
           >
-            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+            <strong className="block min-h-[3.5rem] sm:min-h-[4rem] font-display text-2xl leading-tight text-ink group-hover:text-belt mb-3">
               New Registrant
             </strong>
             <span className="block text-sm leading-relaxed text-ink/70">
@@ -528,7 +528,7 @@ export default function RegistrationFlow({
             onClick={() => setEntryMode("returning")}
             className={signupCardClass}
           >
-            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+            <strong className="block min-h-[3.5rem] sm:min-h-[4rem] font-display text-2xl leading-tight text-ink group-hover:text-belt mb-3">
               Returning Student
             </strong>
             <span className="block text-sm leading-relaxed text-ink/70">
@@ -539,7 +539,7 @@ export default function RegistrationFlow({
             href={testMode ? "/test-instructor-register" : "/instructor-register"}
             className={signupCardClass}
           >
-            <strong className="block font-display text-2xl leading-tight text-ink group-hover:text-belt mb-4">
+            <strong className="block min-h-[3.5rem] sm:min-h-[4rem] font-display text-2xl leading-tight text-ink group-hover:text-belt mb-3">
               Instructor / Volunteer Sign Up
             </strong>
             <span className="block text-sm leading-relaxed text-ink/70">
@@ -548,7 +548,7 @@ export default function RegistrationFlow({
           </a>
         </div>
         {testMode && (
-          <p className="mt-6 text-xs text-ink/65">
+          <p className="mt-6 text-center text-xs text-ink/65">
             Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.
           </p>
         )}
