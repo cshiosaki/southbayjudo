@@ -34,8 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${barlow.variable} ${karla.variable}`}>
       <body className="font-body">
         <header className="bg-ink text-canvas">
-          <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between flex-wrap gap-5">
-            <Link href="/" className="flex items-center gap-3" aria-label="South Bay Judo home">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-5 px-6 py-6 sm:gap-6 sm:py-7">
+            <Link href="/" className="flex items-center justify-center gap-3" aria-label="South Bay Judo home">
               <Image
                 src="/images/south-bay-judo-logo.webp"
                 alt=""
@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </span>
               </span>
             </Link>
-            <nav className="flex flex-wrap justify-end gap-x-7 gap-y-2 text-base">
+            <nav aria-label="Main navigation" className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center text-sm sm:gap-x-7 sm:text-base">
               {NAV.map((item) => (
                 <Link key={item.href} href={item.href} className="hover:text-gold transition-colors">
                   {item.label}
