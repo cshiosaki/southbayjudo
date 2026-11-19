@@ -390,3 +390,41 @@ South Bay Judo`;
 
   if (error) throw new Error(error.message || "Failed to send guest registration notification.");
 }
+
+
+/**
+ * Access recovery for an existing student's registration. Never BCC the
+ * club or add registration data to this message: the one-time email link
+ * is the proof of control over the prior guardian contact address.
+ */
+export async function sendReturningStudentLink(opts: {
+  to: string;
+  url: string;
+  idempotencyKey: string;
+}) {
+  const resend = getResend();
+  if (!resend) throw new Error("Returning-student email is not configured.");
+
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: opts.to,
+    replyTo: "info@southbayjudo.com",
+    subject: "South Bay Judo — Continue your returning-student registration",
+    html: [
+      "<p>A request was made to resume registration for a returning South Bay Judo student.</p>",
+      "<p>Use the secure link below to load the responsible adult's information already on file:</p>",
+      '<p><a href="' + escapeHtml(opts.url) + '">Continue registration</a></p>',
+      "<p>This link expires in 20 minutes. If you didn't request it, you can ignore this email.</p>",
+      "<p>South Bay Judo</p>",
+    ].join(""),
+    text: "Someone requested to resume a South Bay Judo returning-student registration.\n\n" +
+      "Use this link to verify your contact email and continue:\n" +
+      opts.url + "\n\nThis link expires in 20 minutes. If you did not request it, ignore this message.",
+  }, { idempotencyKey: opts.idempotencyKey });
+
+  // The same family may click Send again within the 15-minute
+  // idempotency window. Resend rejects a different newly generated link
+  // with the same key; the FIRST valid email has already been queued.
+  if (error && /idempoten/i.test(error.message || "")) return;
+  if (error) throw new Error(error.message || "Could not send returning-student verification link.");
+}

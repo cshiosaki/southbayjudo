@@ -176,6 +176,10 @@ export default function RegistrationFlow({
   onRestart?: () => void;
 }) {
   const [step, setStep] = useState<Step>("guardian");
+  const [entryMode, setEntryMode] = useState<"choose" | "new" | "returning">("choose");
+  const [returningStudent, setReturningStudent] = useState({ firstName: "", lastName: "", dateOfBirth: "" });
+  const [returningStatus, setReturningStatus] = useState<"idle" | "sending" | "sent" | "loading" | "error">("idle");
+  const [returningMessage, setReturningMessage] = useState("");
   const [guardian, setGuardian] = useState({ firstName: "", lastName: "", email: "", phone: "", emailOptIn: true });
   const [guardian2, setGuardian2] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [students, setStudents] = useState<StudentEntry[]>([]);
@@ -236,6 +240,77 @@ export default function RegistrationFlow({
       })
       .finally(() => setConfigLoading(false));
   }, [testMode]);
+
+  // The encrypted token lives in the URL fragment so it is not forwarded
+  // in request URLs or referrer headers. Only the verified email recipient
+  // can retrieve historical responsible-adult contact details.
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    const token = new URLSearchParams(hash).get("returning");
+    if (!token) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setReturningStatus("loading");
+    fetch("/api/returning/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not verify the link.");
+        return data;
+      })
+      .then((data) => {
+        const nextGuardian = data.guardian || {};
+        const nextStudent = data.student || {};
+        setGuardian({
+          firstName: nextGuardian.firstName || "",
+          lastName: nextGuardian.lastName || "",
+          email: nextGuardian.email || "",
+          phone: nextGuardian.phone || "",
+          emailOptIn: nextGuardian.emailOptIn !== false,
+        });
+        setGuardian2({ firstName: "", lastName: "", email: "", phone: "" });
+        setDraft({
+          ...blankStudent(),
+          firstName: nextStudent.firstName || "",
+          lastName: nextStudent.lastName || "",
+          dateOfBirth: nextStudent.dateOfBirth || "",
+          beltRank: nextStudent.beltRank || "",
+          emergencyContact: nextStudent.emergencyContact || "",
+          emergencyPhone: nextStudent.emergencyPhone || "",
+          isNewStudent: false,
+        });
+        setEntryMode("new");
+        setReturningStatus("idle");
+        setReturningMessage("Verified! Previous family and student information has been filled in. Please review it before proceeding.");
+        setStep("guardian");
+      })
+      .catch((error) => {
+        setReturningStatus("error");
+        setReturningMessage(error instanceof Error ? error.message : "Verification failed. Please try again.");
+        setEntryMode("returning");
+      });
+  }, []);
+
+  async function sendReturningEmail() {
+    setReturningStatus("sending");
+    setReturningMessage("");
+    try {
+      const response = await fetch("/api/returning/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...returningStudent, testMode }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to start returning-student lookup.");
+      setReturningStatus("sent");
+      setReturningMessage(data.message || "Check the email address the club has on file.");
+    } catch (error) {
+      setReturningStatus("error");
+      setReturningMessage(error instanceof Error ? error.message : "Returning-student lookup unavailable.");
+    }
+  }
 
   const draftSession = sessions.find((s) => s.id === draft.sessionId);
   const draftMembershipMismatch =
@@ -427,13 +502,128 @@ export default function RegistrationFlow({
     );
   }
 
+  if (step === "guardian" && entryMode === "choose") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <h1 className="font-display text-5xl mb-3">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
+        <p className="text-ink/70 mb-8">Choose how you want to register for South Bay Judo.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setEntryMode("returning")}
+            className="bg-card border-2 border-belt p-5 text-left hover:bg-belt/5"
+          >
+            <strong className="block font-display text-2xl text-belt mb-2">Returning Student</strong>
+            <span className="text-sm text-ink/70">Search your previous student record, verify the email on file, and reuse your family's saved information.</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setEntryMode("new")}
+            className="bg-card border border-ink/20 p-5 text-left hover:bg-ink/5"
+          >
+            <strong className="block font-display text-2xl mb-2">New Student</strong>
+            <span className="text-sm text-ink/70">Enter the responsible adult and student information for a first-time registration.</span>
+          </button>
+        </div>
+        {testMode && <p className="mt-6 text-xs text-ink/65">Test mode sends an email only for returning-student verification. It does not charge cards, create roster rows, or send payment receipts.</p>}
+      </main>
+    );
+  }
+
+  if (step === "guardian" && entryMode === "returning") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <h1 className="font-display text-4xl mb-3">Returning Student</h1>
+        <p className="text-ink/70 mb-6">
+          Start with the student's name and date of birth. We'll send a secure verification link to
+          a parent or responsible adult's email address already on file. You do not need to type the
+          adult's information first.
+        </p>
+        <div className="bg-card border border-ink/15 p-5 space-y-4">
+          <label className="block text-sm">
+            <span className="block mb-1">Student first name</span>
+            <input
+              value={returningStudent.firstName}
+              onChange={(e) => setReturningStudent({ ...returningStudent, firstName: e.target.value })}
+              placeholder="First name"
+              autoComplete="off"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="block mb-1">Student last name</span>
+            <input
+              value={returningStudent.lastName}
+              onChange={(e) => setReturningStudent({ ...returningStudent, lastName: e.target.value })}
+              placeholder="Last name"
+              autoComplete="off"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="block mb-1">Student date of birth</span>
+            <input
+              type="date"
+              value={returningStudent.dateOfBirth}
+              onChange={(e) => setReturningStudent({ ...returningStudent, dateOfBirth: e.target.value })}
+            />
+          </label>
+          <button
+            type="button"
+            disabled={
+              returningStatus === "sending" || returningStatus === "loading" ||
+              !returningStudent.firstName.trim() ||
+              !returningStudent.lastName.trim() ||
+              !returningStudent.dateOfBirth
+            }
+            onClick={sendReturningEmail}
+            className="bg-belt text-white px-5 py-3 font-display disabled:opacity-30"
+          >
+            {returningStatus === "sending" ? "Sending verification link..." : "Find my record and email a verification link"}
+          </button>
+          {returningMessage && (
+            <p role="status" className="text-sm text-ink/75">{returningMessage}</p>
+          )}
+          <p className="text-xs text-ink/55">
+            If no email arrives, check spam and confirm the student's name and birthday. The old
+            email on file may need to be updated by South Bay Judo.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft({ ...blankStudent(),
+              firstName: returningStudent.firstName.trim(),
+              lastName: returningStudent.lastName.trim(),
+              dateOfBirth: returningStudent.dateOfBirth,
+              isNewStudent: false });
+            setEntryMode("new");
+            setReturningMessage("Complete the responsible adult details below. The student is marked as returning.");
+          }}
+          className="mt-6 text-belt underline text-sm"
+        >
+          Can't access the old email? Continue manually as a returning student
+        </button>
+        <button
+          type="button"
+          onClick={() => setEntryMode("choose")}
+          className="ml-5 mt-6 underline text-ink/60 text-sm"
+        >
+          Back
+        </button>
+      </main>
+    );
+  }
+
   if (step === "guardian") {
     return (
       <main className="max-w-2xl mx-auto px-6 py-16">
         <h1 className="font-display text-5xl mb-2">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
-        <p className="text-ink/60 mb-6">
-          Enter the primary contact below. If you are an adult registering yourself, use your own information.
+        <p className="text-ink/60 mb-3">
+          Enter or confirm the responsible adult's details. If you are an adult registering yourself, use your own information.
         </p>
+        {returningMessage && <p role="status" className="mb-5 border border-belt/20 bg-card px-4 py-3 text-sm text-ink/75">{returningMessage}</p>}
+        <button type="button" onClick={() => { setEntryMode("choose"); setReturningMessage(""); }} className="text-xs text-ink/60 underline mb-6">
+          Back to student type
+        </button>
 
         <fieldset>
           <legend className="font-display text-lg mb-1">Primary contact or adult registrant</legend>

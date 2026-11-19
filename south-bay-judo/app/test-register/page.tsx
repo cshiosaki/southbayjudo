@@ -26,7 +26,7 @@ export default function TestRegisterPage() {
       }
       setAuthorized(true);
     } catch {
-      setError("Could not verify admin access. Please try again.");
+      setError("Could not verify test access. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ export default function TestRegisterPage() {
           </button>
         </form>
         <p className="text-ink/55 text-xs mt-6">
-          No charges, real registrations, emails, or auto-renewals are created in test mode.
+          No charges, registration receipts, roster rows, or auto-renewals are created. Returning-student verification links are emailed to contacts on file.
         </p>
       </main>
     );
@@ -76,7 +76,7 @@ export default function TestRegisterPage() {
           <p className="text-sm mt-1">
             Winter 2027 (1Q) is enabled here only for testing. Forms, student lookup,
             USJF lookup, prices, and checkout calculations are exercised; payment, roster
-            writes, emails, and auto-renewal creation are disabled.
+            writes, payment receipts, and auto-renewal creation are disabled. Email verification links are sent when requested.
           </p>
         </div>
       </div>
