@@ -175,6 +175,7 @@ export default function RegisterPage() {
   const [usjfSearching, setUsjfSearching] = useState(false);
   const [usjfManualEntry, setUsjfManualEntry] = useState(false);
   const [needsMembershipSelected, setNeedsMembershipSelected] = useState(false);
+  const [previousLookupState, setPreviousLookupState] = useState<"idle" | "loading" | "found" | "not-found" | "error">("idle");
 
   useEffect(() => {
     if (usjfQuery.trim().length < 2) {
@@ -230,6 +231,36 @@ export default function RegisterPage() {
 
   const total = sessionFeeTotal + giTotal + gearTotal;
 
+  async function lookupPreviousStudent() {
+    setPreviousLookupState("loading");
+    try {
+      const response = await fetch("/api/student-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: draft.firstName,
+          lastName: draft.lastName,
+          dateOfBirth: draft.dateOfBirth,
+          guardianEmail: guardian.email,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Lookup unavailable");
+      if (data.found) {
+        setDraft((current) => ({
+          ...current,
+          isNewStudent: false,
+          beltRank: data.student?.beltRank || current.beltRank,
+        }));
+        setPreviousLookupState("found");
+      } else {
+        setPreviousLookupState("not-found");
+      }
+    } catch {
+      setPreviousLookupState("error");
+    }
+  }
+
   function finishStudent() {
     setStudents([...students, draft]);
     setDraft(blankStudent());
@@ -237,6 +268,7 @@ export default function RegisterPage() {
     setUsjfResults([]);
     setUsjfManualEntry(false);
     setNeedsMembershipSelected(false);
+    setPreviousLookupState("idle");
   }
 
   const [submitting, setSubmitting] = useState(false);
@@ -943,12 +975,48 @@ export default function RegisterPage() {
             </button>
           )}
           <fieldset>
-            <input placeholder="First name" value={draft.firstName} onChange={(e) => setDraft({ ...draft, firstName: e.target.value })} />
-            <input placeholder="Last name" value={draft.lastName} onChange={(e) => setDraft({ ...draft, lastName: e.target.value })} />
+            <input placeholder="First name" value={draft.firstName} onChange={(e) => { setDraft({ ...draft, firstName: e.target.value }); setPreviousLookupState("idle"); }} />
+            <input placeholder="Last name" value={draft.lastName} onChange={(e) => { setDraft({ ...draft, lastName: e.target.value }); setPreviousLookupState("idle"); }} />
             <label className="block text-sm text-ink/70">
               Participant date of birth
-              <input required type="date" value={draft.dateOfBirth} onChange={(e) => setDraft({ ...draft, dateOfBirth: e.target.value })} />
+              <input required type="date" value={draft.dateOfBirth} onChange={(e) => { setDraft({ ...draft, dateOfBirth: e.target.value }); setPreviousLookupState("idle"); }} />
             </label>
+            <div className="mb-5 border border-ink/15 bg-card p-4">
+              <p className="font-display text-lg">Find your previous South Bay Judo registration</p>
+              <p className="mt-1 mb-3 text-sm text-ink/65">
+                Available to all students. Enter the name and date of birth above, then search.
+                For privacy, we'll match the email you entered at the start of registration.
+              </p>
+              <button
+                type="button"
+                disabled={previousLookupState === "loading" || !draft.firstName.trim() || !draft.lastName.trim() || !draft.dateOfBirth || !guardian.email.trim()}
+                onClick={lookupPreviousStudent}
+                className="border border-belt px-4 py-2 text-sm font-semibold text-belt disabled:opacity-30"
+              >
+                {previousLookupState === "loading" ? "Searching..." : "Search student records"}
+              </button>
+              <div className="mt-3 text-sm" aria-live="polite">
+                {previousLookupState === "found" && (
+                  <p className="text-green-800">
+                    Previous registration found. Returning student selected and belt rank filled in if available.
+                    Please review and update the details below.
+                  </p>
+                )}
+                {previousLookupState === "not-found" && (
+                  <p className="text-ink/70">
+                    No matching paid online registration was found for this name, date of birth, and email.
+                    New students can continue normally. If you attended before our online registration system,
+                    choose Returning student on the previous step.
+                  </p>
+                )}
+                {previousLookupState === "error" && (
+                  <p className="text-belt">
+                    Student lookup is unavailable. You can still register manually and select Returning
+                    student if you attended before.
+                  </p>
+                )}
+              </div>
+            </div>
             <input placeholder="Current belt rank, if known (optional)" value={draft.beltRank} onChange={(e) => setDraft({ ...draft, beltRank: e.target.value })} />
             <input placeholder="Emergency contact name" value={draft.emergencyContact} onChange={(e) => setDraft({ ...draft, emergencyContact: e.target.value })} />
             <input placeholder="Emergency contact phone" value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} />
