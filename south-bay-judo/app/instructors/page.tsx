@@ -166,9 +166,9 @@ export default function InstructorsPage() {
             <p className="mt-2 text-ink/70">We’re happy to help you choose the right class.</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-4">
-            <span className="cursor-not-allowed border border-ink/20 bg-ink/10 px-6 py-3 font-display text-lg tracking-wide text-ink/50">
-              Instructor Portal — Temporarily Unavailable
-            </span>
+            <Link href="/instructor-register" className="border border-belt text-belt px-6 py-3 font-display text-lg tracking-wide">
+              Instructor registration
+            </Link>
             <a href="mailto:instructors@southbayjudo.com" className="border border-ink/30 px-6 py-3 font-display text-lg tracking-wide">
               Email instructors
             </a>
