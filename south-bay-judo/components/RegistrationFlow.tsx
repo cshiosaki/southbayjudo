@@ -1,0 +1,1440 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import type { SessionConfig, ClassTimeConfig } from "@/lib/sessions";
+import {
+  GI_SIZES,
+  GI_PURCHASE_SIZES,
+  TSHIRT_SIZES,
+  SWEATSHIRT_SIZES,
+  MEMBERSHIP_FEE,
+  SHORT_TERM_MEMBERSHIP_FEE,
+} from "@/lib/sessions";
+
+/**
+ * PRICING (per the club's real fee schedule):
+ * - Regular sessions charge per family, tiered by how many kids from the
+ *   same family are in that session (1st/2nd/3rd+ — see sessionFeeFor).
+ * - No late registration or prorated fees are offered for 2027 sessions.
+ * - USJF is the required federation; $80/yr individually, with a cheaper
+ *   family plan once 3+ household members need membership.
+ * - Gi is a per-student optional add-on; practice dummies and duffle bags
+ *   are family-level add-ons picked once at the end.
+ *
+ * Session dates/prices/class times are fetched from /api/site-config at
+ * load time — see lib/sessions.ts for fallback defaults and
+ * lib/config-store.ts for how the live values are read.
+ */
+
+const MEDICAL_ACK_TEXT = `I acknowledge that judo involves physical contact and carries inherent risk of injury. I certify that the participant named above is physically fit to participate, and I will disclose any medical conditions, allergies, or physical limitations to South Bay Judo instructors. I release South Bay Judo, the City of Torrance, and their instructors and volunteers from liability for injuries sustained during normal participation, except in cases of gross negligence. I consent to emergency medical treatment for the participant when necessary.`;
+
+type MembershipStatus = "none" | "current";
+
+type SpecialPurchase = {
+  id: string;
+  description: string;
+  amount: number;
+  approvedBy: string;
+};
+
+function isExpired(dateStr: string): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
+  return d.getTime() < Date.now();
+}
+
+function needsUsjfMembership(student: StudentEntry): boolean {
+  return (
+    student.membershipOrg !== "USJF" ||
+    student.membershipStatus !== "current" ||
+    !student.memberIdNumber ||
+    !student.membershipExpires ||
+    isExpired(student.membershipExpires)
+  );
+}
+
+/** Loose check that a picked USJF record's name plausibly matches the student being registered — catches picking a parent's or sibling's record by mistake. Sheet names are "Last, First Middle", so this isn't exact, just a sanity check. */
+function namesLikelyMatch(sheetName: string, firstName: string, lastName: string): boolean {
+  if (!firstName || !lastName || !sheetName) return true;
+  const lower = sheetName.toLowerCase();
+  return lower.includes(firstName.toLowerCase().trim()) && lower.includes(lastName.toLowerCase().trim());
+}
+
+interface StudentEntry {
+  id: string;
+  sessionId: string;
+  classTimeId: string;
+  isNewStudent: boolean;
+  isLateOrTransfer: boolean;
+  classesRemaining: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  beltRank: string;
+  emergencyContact: string;
+  emergencyPhone: string;
+  medicalNotes: string;
+  hasMedicalConditions: "no" | "yes" | "";
+  membershipStatus: MembershipStatus;
+  membershipOrg: string;
+  memberIdNumber: string;
+  membershipExpires: string;
+  membershipMismatchConfirmed: boolean;
+  giSizeId: string;
+  photoConsent: "yes" | "no" | "";
+  signedByName: string;
+  autoRenew: boolean;
+}
+
+function blankStudent(): StudentEntry {
+  return {
+    id: crypto.randomUUID(),
+    sessionId: "",
+    classTimeId: "",
+    isNewStudent: true,
+    isLateOrTransfer: false,
+    classesRemaining: "",
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    beltRank: "",
+    emergencyContact: "",
+    emergencyPhone: "",
+    medicalNotes: "",
+    hasMedicalConditions: "",
+    membershipStatus: "none",
+    membershipOrg: "USJF",
+    memberIdNumber: "",
+    membershipExpires: "",
+    membershipMismatchConfirmed: false,
+    giSizeId: "",
+    photoConsent: "",
+    signedByName: "",
+    autoRenew: false,
+  };
+}
+
+type Step = "guardian" | "session" | "info" | "membership" | "waiver" | "review" | "gear";
+const STUDENT_STEPS: Step[] = ["session", "info", "membership", "waiver"];
+
+const orgLabel: Record<string, string> = {
+  USJF: "USJF",
+  USA_JUDO: "USA Judo",
+};
+
+/** Family position within a session — 1st, 2nd, 3rd+ child registering for that same session. */
+function familyPositions(students: StudentEntry[]): Record<string, number> {
+  const counters: Record<string, number> = {};
+  const map: Record<string, number> = {};
+  for (const s of students) {
+    counters[s.sessionId] = (counters[s.sessionId] || 0) + 1;
+    map[s.id] = counters[s.sessionId];
+  }
+  return map;
+}
+
+function sessionFeeFor(s: StudentEntry, session: SessionConfig | undefined, position: number): number {
+  if (!session) return 0;
+  if (session.pricingMode === "flat") return session.flatPrice ?? 0;
+
+  const tierPrice =
+    position === 1 ? session.familyTierFirst ?? 0 : position === 2 ? session.familyTierSecond ?? 0 : session.familyTierThirdPlus ?? 0;
+
+  return tierPrice;
+}
+
+type TestReceipt = {
+  receiptNumber: string;
+  students: Array<{
+    name: string;
+    registrationStatus: string;
+    session: string;
+    classTime: string;
+    sessionFee: number;
+    giLabel?: string;
+    giPrice?: number;
+    needsUsjfMembership?: boolean;
+    autoRenew?: boolean;
+  }>;
+  gearItems: Array<{ label: string; price: number }>;
+  total: number;
+};
+type TestResult = {
+  testReceipt: TestReceipt;
+  readiness: { sheetsConnected: boolean; stripeConnected: boolean };
+};
+
+export default function RegistrationFlow({
+  testMode = false,
+  adminPassword = "",
+  onRestart,
+}: {
+  testMode?: boolean;
+  adminPassword?: string;
+  onRestart?: () => void;
+}) {
+  const [step, setStep] = useState<Step>("guardian");
+  const [guardian, setGuardian] = useState({ firstName: "", lastName: "", email: "", phone: "", emailOptIn: true });
+  const [guardian2, setGuardian2] = useState({ firstName: "", lastName: "", email: "", phone: "" });
+  const [students, setStudents] = useState<StudentEntry[]>([]);
+  const [draft, setDraft] = useState<StudentEntry>(blankStudent());
+
+  const [sessions, setSessions] = useState<SessionConfig[]>([]);
+  const [classTimes, setClassTimes] = useState<ClassTimeConfig[]>([]);
+  const [configLoading, setConfigLoading] = useState(true);
+
+  const [giOrders, setGiOrders] = useState<string[]>([]);
+  const [giPicker, setGiPicker] = useState("");
+  const [giPickerQty, setGiPickerQty] = useState(1);
+  const [tshirtPicker, setTshirtPicker] = useState("");
+  const [tshirtPickerQty, setTshirtPickerQty] = useState(1);
+  const [sweatshirtPicker, setSweatshirtPicker] = useState("");
+  const [sweatshirtPickerQty, setSweatshirtPickerQty] = useState(1);
+  const [tshirtOrders, setTshirtOrders] = useState<string[]>([]);
+  const [sweatshirtOrders, setSweatshirtOrders] = useState<string[]>([]);
+  const [customGearDescription, setCustomGearDescription] = useState("");
+  const [customGearAmount, setCustomGearAmount] = useState("");
+  const [customGearApprovedBy, setCustomGearApprovedBy] = useState("");
+  const [specialPurchases, setSpecialPurchases] = useState<SpecialPurchase[]>([]);
+
+  const [usjfQuery, setUsjfQuery] = useState("");
+  const [usjfResults, setUsjfResults] = useState<{ name: string; expires: string; id: string }[]>([]);
+  const [usjfSearching, setUsjfSearching] = useState(false);
+  const [usjfManualEntry, setUsjfManualEntry] = useState(false);
+  const [needsMembershipSelected, setNeedsMembershipSelected] = useState(false);
+  const [previousLookupState, setPreviousLookupState] = useState<"idle" | "loading" | "found" | "not-found" | "error">("idle");
+
+  useEffect(() => {
+    if (usjfQuery.trim().length < 2) {
+      setUsjfResults([]);
+      return;
+    }
+    setUsjfSearching(true);
+    const handle = setTimeout(() => {
+      fetch(`/api/usjf-lookup?q=${encodeURIComponent(usjfQuery)}`)
+        .then((r) => r.json())
+        .then((data) => setUsjfResults(data.results || []))
+        .finally(() => setUsjfSearching(false));
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [usjfQuery]);
+
+  useEffect(() => {
+    fetch("/api/site-config")
+      .then((r) => r.json())
+      .then((config) => {
+        setSessions(
+          testMode
+            ? config.sessions
+                .filter((session: SessionConfig) => session.id === "sess_2027_1q")
+                .map((session: SessionConfig) => ({ ...session, registrationOpen: true }))
+            : config.sessions
+        );
+        setClassTimes(config.classTimes);
+      })
+      .finally(() => setConfigLoading(false));
+  }, [testMode]);
+
+  const draftSession = sessions.find((s) => s.id === draft.sessionId);
+  const draftMembershipMismatch =
+    draft.membershipStatus === "current" &&
+    !!usjfQuery &&
+    !usjfManualEntry &&
+    !namesLikelyMatch(usjfQuery, draft.firstName, draft.lastName) &&
+    !draft.membershipMismatchConfirmed;
+  const draftClassTime = classTimes.find((c) => c.id === draft.classTimeId);
+  const isHolidaySession = draft.sessionId === "sess_5q" || draft.sessionId === "sess_2027_5q";
+  const availableClassTimes = isHolidaySession
+    ? classTimes.filter((c) => c.id === "ct1" || c.id === "ct2")
+    : classTimes;
+  const stepIndex = STUDENT_STEPS.indexOf(step);
+
+  const positions = familyPositions(students);
+  const sessionFeeTotal = students.reduce((sum, s) => sum + sessionFeeFor(s, sessions.find((x) => x.id === s.sessionId), positions[s.id]), 0);
+  const giTotal =
+    students.reduce((sum, s) => sum + (GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0), 0) +
+    giOrders.reduce((sum, id) => sum + (GI_PURCHASE_SIZES.find((g) => g.id === id)?.price ?? 0), 0);
+
+  const noMembershipCount = students.filter(needsUsjfMembership).length;
+
+  const gearTotal =
+    tshirtOrders.reduce((sum, id) => sum + (TSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
+    sweatshirtOrders.reduce((sum, id) => sum + (SWEATSHIRT_SIZES.find((d) => d.id === id)?.price ?? 0), 0) +
+    specialPurchases.reduce((sum, item) => sum + item.amount, 0);
+
+  const total = sessionFeeTotal + giTotal + gearTotal;
+
+  async function lookupPreviousStudent() {
+    setPreviousLookupState("loading");
+    try {
+      const response = await fetch("/api/student-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: draft.firstName,
+          lastName: draft.lastName,
+          dateOfBirth: draft.dateOfBirth,
+          guardianEmail: guardian.email,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Lookup unavailable");
+      if (data.found) {
+        setDraft((current) => ({
+          ...current,
+          isNewStudent: false,
+          beltRank: data.student?.beltRank || current.beltRank,
+        }));
+        setPreviousLookupState("found");
+      } else {
+        setPreviousLookupState("not-found");
+      }
+    } catch {
+      setPreviousLookupState("error");
+    }
+  }
+
+  function finishStudent() {
+    setStudents([...students, draft]);
+    setDraft(blankStudent());
+    setUsjfQuery("");
+    setUsjfResults([]);
+    setUsjfManualEntry(false);
+    setNeedsMembershipSelected(false);
+    setPreviousLookupState("idle");
+  }
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+
+  async function submitRegistration() {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res = await fetch(testMode ? "/api/admin/test-register" : "/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(testMode ? { adminPassword } : {}),
+          guardian,
+          guardian2: (guardian2.firstName || guardian2.lastName) ? guardian2 : null,
+          students: students.map((s) => {
+            const session = sessions.find((x) => x.id === s.sessionId);
+            return {
+              sessionId: s.sessionId,
+              sessionLabel: session?.label ?? "",
+              classTimeId: s.classTimeId,
+              classTimeLabel: classTimes.find((x) => x.id === s.classTimeId)?.label ?? "",
+              isNewStudent: s.isNewStudent,
+              isLateOrTransfer: false,
+              classesRemaining: "",
+              firstName: s.firstName,
+              lastName: s.lastName,
+              dateOfBirth: s.dateOfBirth,
+              beltRank: s.beltRank,
+              emergencyContact: s.emergencyContact,
+              emergencyPhone: s.emergencyPhone,
+              hasMedicalConditions: s.hasMedicalConditions,
+              medicalNotes: s.medicalNotes,
+              membershipStatus: s.membershipStatus,
+              membershipOrg: s.membershipOrg,
+              memberIdNumber: s.memberIdNumber,
+              membershipExpires: s.membershipExpires,
+              giSizeId: s.giSizeId,
+              photoConsent: s.photoConsent,
+              signedByName: s.signedByName,
+              autoRenew: s.autoRenew,
+            };
+          }),
+          familyExtras: {
+            giOrderIds: giOrders,
+            tshirtOrderIds: tshirtOrders,
+            sweatshirtOrderIds: sweatshirtOrders,
+            specialPurchases: specialPurchases.map(({ description, amount, approvedBy }) => ({ description, amount, approvedBy })),
+          },
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Checkout could not be created.");
+      } else {
+        const data = await res.json();
+        if (testMode) {
+          if (!data.testMode || !data.testReceipt) throw new Error("Test receipt was not returned.");
+          setTestResult(data as TestResult);
+        } else {
+          if (!data.checkoutUrl) throw new Error("Stripe did not return a checkout link.");
+          window.location.assign(data.checkoutUrl);
+        }
+      }
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Checkout could not be created.");
+      setSubmitting(false);
+    }
+  }
+
+  if (configLoading) {
+    return <main className="max-w-2xl mx-auto px-6 py-24 text-center text-ink/50">Loading current sessions…</main>;
+  }
+
+  if (testMode && testResult) {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <p className="font-display text-belt uppercase tracking-widest mb-2">Safe dry run completed</p>
+        <h1 className="font-display text-4xl mb-3">Test registration validated</h1>
+        <p className="text-sm text-ink/75 mb-6">
+          Test receipt {testResult.testReceipt.receiptNumber}. No payment was requested, no roster records
+          were written, no confirmation emails were sent, and no renewal was activated.
+        </p>
+        <div className="border border-ink/15 bg-card divide-y divide-ink/10 mb-6">
+          {testResult.testReceipt.students.map((student, i) => (
+            <div key={i} className="p-4 text-sm space-y-1">
+              <p className="font-display text-xl">{student.name} — {student.registrationStatus}</p>
+              <p>{student.session} · {student.classTime}</p>
+              <p>Session fee: ${student.sessionFee.toFixed(2)}</p>
+              {student.giLabel && <p>Gi: {student.giLabel} — ${(student.giPrice || 0).toFixed(2)}</p>}
+              <p>USJF follow-up: {student.needsUsjfMembership ? "Required" : "Not indicated"}</p>
+              <p>Auto-renewal selection: {student.autoRenew ? "Yes (not activated)" : "No"}</p>
+            </div>
+          ))}
+          {testResult.testReceipt.gearItems.map((item, i) => (
+            <p key={i} className="p-3 text-sm">{item.label} — ${item.price.toFixed(2)}</p>
+          ))}
+          <div className="p-4 flex justify-between font-display text-2xl">
+            <span>Calculated total</span><span>${testResult.testReceipt.total.toFixed(2)}</span>
+          </div>
+        </div>
+        <div className="border border-ink/15 p-4 mb-6 text-sm">
+          <h2 className="font-display text-xl mb-2">Live integration readiness</h2>
+          <p>Google Sheets configured: {testResult.readiness.sheetsConnected ? "Yes" : "No"}</p>
+          <p>Stripe configured: {testResult.readiness.stripeConnected ? "Yes" : "No"}</p>
+          <p className="text-ink/60 mt-2">
+            These checks verify configuration, not an actual Stripe charge, webhook,
+            email delivery, or permanent Google Sheets write.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="bg-belt text-white px-6 py-3 font-display text-lg"
+          onClick={() => onRestart?.()}
+        >
+          Test another registration
+        </button>
+      </main>
+    );
+  }
+
+  if (step === "guardian") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <h1 className="font-display text-5xl mb-2">{testMode ? "January 2027 — Test Registration" : "Session Registration"}</h1>
+        <p className="text-ink/60 mb-6">
+          Enter the primary contact below. If you are an adult registering yourself, use your own information.
+        </p>
+
+        <fieldset>
+          <legend className="font-display text-lg mb-1">Primary contact or adult registrant</legend>
+          <p className="mb-3 text-sm text-ink/60">This person will receive registration confirmations and receipts.</p>
+          <input placeholder="First name" value={guardian.firstName} onChange={(e) => setGuardian({ ...guardian, firstName: e.target.value })} />
+          <input placeholder="Last name" value={guardian.lastName} onChange={(e) => setGuardian({ ...guardian, lastName: e.target.value })} />
+          <input placeholder="Email" type="email" value={guardian.email} onChange={(e) => setGuardian({ ...guardian, email: e.target.value })} />
+          <label className="flex items-start gap-3 border border-ink/15 bg-card p-3 text-sm leading-relaxed">
+            <input
+              type="checkbox"
+              checked={guardian.emailOptIn}
+              onChange={(e) => setGuardian({ ...guardian, emailOptIn: e.target.checked })}
+            />
+            <span>
+              Keep me informed about South Bay Judo news, events, schedule updates, and registration reminders by email.
+              <span className="block text-xs text-ink/55">You can unsubscribe at any time.</span>
+            </span>
+          </label>
+          <input placeholder="Phone" value={guardian.phone} onChange={(e) => setGuardian({ ...guardian, phone: e.target.value })} />
+        </fieldset>
+
+        <fieldset>
+          <legend className="font-display text-lg mb-1">Additional parent or guardian (optional)</legend>
+          <p className="mb-3 text-sm text-ink/60">For youth or family registrations only.</p>
+          <input placeholder="First name" value={guardian2.firstName} onChange={(e) => setGuardian2({ ...guardian2, firstName: e.target.value })} />
+          <input placeholder="Last name" value={guardian2.lastName} onChange={(e) => setGuardian2({ ...guardian2, lastName: e.target.value })} />
+          <input placeholder="Email" type="email" value={guardian2.email} onChange={(e) => setGuardian2({ ...guardian2, email: e.target.value })} />
+          <input placeholder="Phone" value={guardian2.phone} onChange={(e) => setGuardian2({ ...guardian2, phone: e.target.value })} />
+        </fieldset>
+
+        <button
+          disabled={!guardian.firstName || !guardian.email}
+          onClick={() => setStep("session")}
+          className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+        >
+          Add first participant
+        </button>
+
+        <div className="mt-12 border border-ink/15 bg-card p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p className="font-display text-xl">Instructor or volunteer?</p>
+            <p className="mt-1 text-sm text-ink/60">Instructor registration is temporarily unavailable while we update the instructor credential system.</p>
+          </div>
+          <span className="mt-4 inline-block shrink-0 cursor-not-allowed border border-ink/20 bg-ink/10 px-5 py-3 font-display text-lg text-ink/50 sm:mt-0">
+            Temporarily Unavailable
+          </span>
+        </div>
+      </main>
+    );
+  }
+
+  if (step === "review") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <h1 className="font-display text-5xl mb-2">Review registration</h1>
+        <p className="text-ink/60 mb-10">
+          {guardian.firstName} {guardian.lastName}
+          {(guardian2.firstName || guardian2.lastName) && ` & ${guardian2.firstName} ${guardian2.lastName}`} —{" "}
+          {students.length} participant{students.length !== 1 ? "s" : ""}
+        </p>
+
+        <div className="space-y-6 mb-8">
+          {students.map((s) => {
+            const session = sessions.find((x) => x.id === s.sessionId);
+            const classTime = classTimes.find((x) => x.id === s.classTimeId);
+            const fee = sessionFeeFor(s, session, positions[s.id]);
+            const giPrice = GI_SIZES.find((g) => g.id === s.giSizeId)?.price ?? 0;
+            const needsUsjf = needsUsjfMembership(s);
+            const sessionIndex = sessions.findIndex((item) => item.id === s.sessionId);
+            const nextRegularSession = sessions
+              .slice(sessionIndex + 1)
+              .find((item) => item.pricingMode === "family_tier");
+            const renewalSession = nextRegularSession?.label || "next year's Winter session";
+            return (
+              <div key={s.id} className="bg-card border border-ink/15">
+                <div className="p-4 bg-ink text-canvas flex justify-between items-center">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-display text-lg">{s.firstName} {s.lastName}</span>
+                    {needsUsjf && (
+                      <span className="rounded-sm bg-belt px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                        USJF membership needed
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setStudents(students.filter((x) => x.id !== s.id))}
+                    className="text-xs underline text-canvas/70"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="divide-y divide-ink/10 text-sm">
+                  <div className="p-3 flex justify-between"><span>Session</span><span>{session?.label}</span></div>
+                  <div className="p-3 flex justify-between"><span>Class time</span><span>{classTime?.label} ({classTime?.age})</span></div>
+                  <div className="p-3 flex justify-between">
+                    <span>Student status</span>
+                    <span className="font-semibold text-belt">{s.isNewStudent ? "NEW" : "RET"}</span>
+                  </div>
+                  <div className="p-3 flex justify-between">
+                    <span>
+                      Session fee
+                      {session?.pricingMode === "family_tier" && (
+                        <span className="text-ink/50"> (family position #{positions[s.id]})</span>
+                      )}
+                    </span>
+                    <span>${fee}</span>
+                  </div>
+                  {s.giSizeId && (
+                    <div className="p-3 flex justify-between"><span>Gi ({GI_SIZES.find((g) => g.id === s.giSizeId)?.label})</span><span>${giPrice}</span></div>
+                  )}
+                  {needsUsjf && (
+                    <div className="p-3 text-xs text-belt">No current USJF membership confirmed — must register or renew directly at usjf.org</div>
+                  )}
+                  <label className={`m-3 flex cursor-pointer items-start gap-3 border p-4 transition-colors ${s.autoRenew ? "border-belt bg-belt/5" : "border-ink/15 bg-canvas/40"}`}>
+                    <input
+                      type="checkbox"
+                      checked={s.autoRenew}
+                      onChange={(event) =>
+                        setStudents(students.map((student) =>
+                          student.id === s.id ? { ...student, autoRenew: event.target.checked } : student
+                        ))
+                      }
+                    />
+                    <span>
+                      <strong className="block font-display text-lg leading-tight">
+                        Auto-renew {s.firstName}
+                      </strong>
+                      <span className="mt-1 block text-xs leading-relaxed text-ink/65">
+                        Enroll in {renewalSession || "the next session"}. We’ll email before the renewal charge to confirm the class time, waiver, and current price.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => setStep("session")}
+          className="border border-ink/30 px-5 py-2.5 font-display text-base tracking-wide mb-10"
+        >
+          + Add another participant
+        </button>
+
+        {noMembershipCount > 0 && (
+          <div className="bg-card border border-belt/40 p-4 mb-6">
+            <p className="font-display text-lg mb-2 text-belt">Membership needed</p>
+            <p className="text-sm text-ink/70">
+              {noMembershipCount} participant{noMembershipCount !== 1 ? "s don't" : " doesn't"} have a current USJF
+              membership on file. USJF membership is required before their first class and must be
+              purchased directly through <span className="underline">usjf.org</span>. Primary annual
+              membership is ${MEMBERSHIP_FEE}.
+            </p>
+          </div>
+        )}
+
+                <div className="bg-ink text-canvas p-5 flex justify-between items-center mb-6">
+          <span className="font-display text-xl">Registration subtotal</span>
+          <span className="font-display text-3xl text-gold">${sessionFeeTotal}</span>
+        </div>
+
+        <button
+          disabled={students.length === 0}
+          onClick={() => setStep("gear")}
+          className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+        >
+          Continue to Order Gear
+        </button>
+        <p className="mt-3 text-xs text-ink/55">
+          Gear is optional. On the next page you can add a gi, practice dummy, duffle bag, apparel, or a special purchase — or skip directly to payment.
+        </p>
+      </main>
+    );
+  }
+
+  if (step === "gear") {
+    return (
+      <main className="max-w-2xl mx-auto px-6 py-16">
+        <div className="mb-10">
+          <p className="font-display uppercase tracking-[0.14em] text-belt mb-2">Registration · Optional merchandise</p>
+          <h1 className="font-display text-5xl mb-2">Order Gear</h1>
+          <p className="text-ink/60">
+            Add anything you need, or leave everything blank and continue to payment.
+          </p>
+        </div>
+
+<section className="mb-10">
+          <div className="mb-7">
+            <p className="font-display uppercase tracking-[0.14em] text-belt mb-2">Optional merchandise</p>
+            <h2 className="font-display text-4xl mb-2">Order Gear</h2>
+            <p className="text-sm text-ink/65 max-w-xl">
+              Add any gear you need to this registration and pay for everything together in one Stripe checkout.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex items-end justify-between gap-4 mb-4">
+              <div>
+                <h3 className="font-display text-3xl">Judo Gi</h3>
+                <p className="text-sm text-ink/60 mt-1">White gi with South Bay Judo embroidery included.</p>
+              </div>
+              <a href="/gi-size-chart" target="_blank" className="text-sm underline decoration-belt decoration-2 underline-offset-2">
+                View size chart
+              </a>
+            </div>
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <a href="/images/gear/gi-example.webp" target="_blank" rel="noreferrer" className="block">
+                  <Image src="/images/gear/gi-example.webp" alt="South Bay Judo embroidered judo gi" width={120} height={120} className="h-28 w-28 object-cover border border-ink/10" />
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
+                </a>
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Gi size</span>
+                  <select value={giPicker} onChange={(e) => setGiPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {GI_PURCHASE_SIZES.map((g) => (
+                      <option key={g.id} value={g.id}>{g.label} — ${g.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={giPickerQty}
+                    onChange={(e) => setGiPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!giPicker}
+                  onClick={() => {
+                    if (!giPicker) return;
+                    setGiOrders([...giOrders, ...Array(giPickerQty).fill(giPicker)]);
+                    setGiPicker("");
+                    setGiPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">
+                  Add to cart
+                </button>
+                </div>
+              </div>
+              {giOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {GI_PURCHASE_SIZES.filter((g) => giOrders.includes(g.id)).map((g) => {
+                    const qty = giOrders.filter((id) => id === g.id).length;
+                    return (
+                      <li key={g.id} className="flex items-center justify-between gap-4">
+                        <span>{g.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${g.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setGiOrders(giOrders.filter((id) => id !== g.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <section className="mb-8">
+            <h3 className="font-display text-3xl mb-4">T-Shirts</h3>
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <div>
+                  <div className="flex gap-2">
+                    <a href="/images/gear/tshirt-front.webp" target="_blank" rel="noreferrer">
+                      <Image src="/images/gear/tshirt-front.webp" alt="South Bay Judo T-shirt front" width={56} height={72} className="h-24 w-14 object-cover border border-ink/10" />
+                    </a>
+                    <a href="/images/gear/tshirt-back.webp" target="_blank" rel="noreferrer">
+                      <Image src="/images/gear/tshirt-back.webp" alt="South Bay Judo T-shirt back" width={56} height={72} className="h-24 w-14 object-cover border border-ink/10" />
+                    </a>
+                  </div>
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
+                </div>
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Size</span>
+                  <select value={tshirtPicker} onChange={(e) => setTshirtPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {TSHIRT_SIZES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={tshirtPickerQty}
+                    onChange={(e) => setTshirtPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!tshirtPicker}
+                  onClick={() => {
+                    if (!tshirtPicker) return;
+                    setTshirtOrders([...tshirtOrders, ...Array(tshirtPickerQty).fill(tshirtPicker)]);
+                    setTshirtPicker("");
+                    setTshirtPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+                </div>
+              </div>
+              {tshirtOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {TSHIRT_SIZES.filter((item) => tshirtOrders.includes(item.id)).map((item) => {
+                    const qty = tshirtOrders.filter((id) => id === item.id).length;
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-4">
+                        <span>{item.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${item.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setTshirtOrders(tshirtOrders.filter((id) => id !== item.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h3 className="font-display text-3xl mb-4">Sweatshirts</h3>
+            <div className="bg-card border border-ink/10 p-4">
+              <div className="grid sm:grid-cols-[120px_1fr] gap-5 items-center">
+                <a href="/images/gear/sweatshirt-example.webp" target="_blank" rel="noreferrer" className="block">
+                  <Image src="/images/gear/sweatshirt-example.webp" alt="South Bay Judo sweatshirt" width={120} height={150} className="h-28 w-28 object-cover border border-ink/10" />
+                  <span className="mt-1 block text-[11px] text-ink/50 underline">Click to enlarge</span>
+                </a>
+                <div className="grid sm:grid-cols-[1fr_100px_auto] gap-3 items-end">
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Size</span>
+                  <select value={sweatshirtPicker} onChange={(e) => setSweatshirtPicker(e.target.value)} className="w-full">
+                    <option value="">Choose a size</option>
+                    {SWEATSHIRT_SIZES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.label} — ${item.price}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  <span className="block mb-1 text-ink/60">Qty</span>
+                  <input type="number" min={1} max={20} value={sweatshirtPickerQty}
+                    onChange={(e) => setSweatshirtPickerQty(Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 1))))}
+                    className="w-full border border-ink/20 bg-white px-2 py-2 text-center" />
+                </label>
+                <button type="button" disabled={!sweatshirtPicker}
+                  onClick={() => {
+                    if (!sweatshirtPicker) return;
+                    setSweatshirtOrders([...sweatshirtOrders, ...Array(sweatshirtPickerQty).fill(sweatshirtPicker)]);
+                    setSweatshirtPicker("");
+                    setSweatshirtPickerQty(1);
+                  }}
+                  className="bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30">Add to cart</button>
+                </div>
+              </div>
+              {sweatshirtOrders.length > 0 && (
+                <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                  {SWEATSHIRT_SIZES.filter((item) => sweatshirtOrders.includes(item.id)).map((item) => {
+                    const qty = sweatshirtOrders.filter((id) => id === item.id).length;
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-4">
+                        <span>{item.label} × {qty}</span>
+                        <span className="flex items-center gap-3">
+                          <strong>${item.price * qty}</strong>
+                          <button type="button" className="text-belt underline text-xs"
+                            onClick={() => setSweatshirtOrders(sweatshirtOrders.filter((id) => id !== item.id))}>remove</button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          
+
+
+
+<div className="bg-card border-t-4 border-belt p-6 sm:p-8">
+            <h3 className="font-display text-3xl mb-2">Other / Special Purchase</h3>
+            <p className="text-sm text-ink/65 mb-5">
+              Use this only if instructed by South Bay Judo. The item, amount, and <strong>Approved by</strong> name are required before it can be added to the cart.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <label className="text-sm sm:col-span-2">
+                <span className="block mb-1 font-semibold">Item / Description *</span>
+                <input
+                  value={customGearDescription}
+                  onChange={(e) => setCustomGearDescription(e.target.value)}
+                  placeholder="Example: Replacement embroidered jacket"
+                  className="w-full border border-ink/20 bg-white px-3 py-2.5"
+                />
+              </label>
+              <label className="text-sm">
+                <span className="block mb-1 font-semibold">Amount *</span>
+                <div className="flex border border-ink/20 bg-white">
+                  <span className="px-3 py-2.5 text-ink/50">$</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5000"
+                    step="0.01"
+                    value={customGearAmount}
+                    onChange={(e) => setCustomGearAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-1 py-2.5 outline-none"
+                  />
+                </div>
+              </label>
+              <label className="text-sm">
+                <span className="block mb-1 font-semibold">Approved by *</span>
+                <input
+                  value={customGearApprovedBy}
+                  onChange={(e) => setCustomGearApprovedBy(e.target.value)}
+                  placeholder="South Bay Judo approver name"
+                  className="w-full border border-ink/20 bg-white px-3 py-2.5"
+                />
+              </label>
+            </div>
+            <button
+              type="button"
+              disabled={
+                !customGearDescription.trim() ||
+                !customGearApprovedBy.trim() ||
+                !Number.isFinite(Number(customGearAmount)) ||
+                Number(customGearAmount) < 1
+              }
+              onClick={() => {
+                const amount = Number(customGearAmount);
+                if (!customGearDescription.trim() || !customGearApprovedBy.trim() || !Number.isFinite(amount) || amount < 1) return;
+                setSpecialPurchases([
+                  ...specialPurchases,
+                  {
+                    id: crypto.randomUUID(),
+                    description: customGearDescription.trim(),
+                    amount,
+                    approvedBy: customGearApprovedBy.trim(),
+                  },
+                ]);
+                setCustomGearDescription("");
+                setCustomGearAmount("");
+                setCustomGearApprovedBy("");
+              }}
+              className="mt-4 bg-ink text-canvas px-4 py-2.5 font-display disabled:opacity-30"
+            >
+              Add to cart
+            </button>
+
+            {specialPurchases.length > 0 && (
+              <ul className="mt-4 border-t border-ink/10 pt-3 text-sm space-y-2">
+                {specialPurchases.map((item) => (
+                  <li key={item.id} className="flex items-start justify-between gap-4">
+                    <span>
+                      <strong>{item.description}</strong>
+                      <span className="block text-xs text-ink/55">Approved by: {item.approvedBy}</span>
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <strong>${item.amount.toFixed(2)}</strong>
+                      <button
+                        type="button"
+                        className="text-belt underline text-xs"
+                        onClick={() => setSpecialPurchases(specialPurchases.filter((purchase) => purchase.id !== item.id))}
+                      >
+                        remove
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+
+        <div className="bg-ink text-canvas p-5 flex justify-between items-center mb-8">
+          <span className="font-display text-xl">Total</span>
+          <span className="font-display text-3xl text-gold">${total}</span>
+        </div>
+
+        <button
+          disabled={students.length === 0 || submitting}
+          onClick={submitRegistration}
+          className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+        >
+          {submitting
+            ? (testMode ? "Checking test registration..." : "Opening secure checkout...")
+            : (testMode ? "Complete test — no payment" : "Continue to secure payment")}
+        </button>
+        <p className="mt-3 text-xs leading-relaxed text-ink/55">
+          {testMode
+            ? "Dry run: totals and validations are checked without creating a payment or saving a registration."
+            : "Stripe Checkout supports credit cards, bank payments, Apple Pay, and Google Pay when available on your device."}
+        </p>
+        {submitError && <p className="text-belt text-sm mt-4">{submitError}</p>}
+
+
+        <button
+          type="button"
+          onClick={() => setStep("review")}
+          className="mt-6 text-ink/60 underline font-display text-lg"
+        >
+          Back to registration review
+        </button>
+      </main>
+    );
+  }
+
+  // ---- Per-participant steps: session / info / membership / waiver ----
+  return (
+    <main className="max-w-2xl mx-auto px-6 py-16">
+      <h1 className="font-display text-5xl mb-2">
+        {students.length === 0 ? "First participant" : `Participant ${students.length + 1}`}
+      </h1>
+      <p className="text-ink/60 mb-10">Step {stepIndex + 1} of {STUDENT_STEPS.length} for this participant</p>
+
+      {step === "session" && (
+        <section>
+          <h2 className="font-display text-2xl mb-5">Choose a session &amp; class time</h2>
+          <p className="text-xs text-ink/60 mb-5">Each participant can be in a different session or class time — pick what fits their age group.</p>
+
+          <div className="flex gap-6 mb-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" checked={draft.isNewStudent} onChange={() => setDraft({ ...draft, isNewStudent: true, isLateOrTransfer: false })} /> New student
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" checked={!draft.isNewStudent} onChange={() => setDraft({ ...draft, isNewStudent: false, isLateOrTransfer: false, classesRemaining: "" })} /> Returning student
+            </label>
+          </div>
+
+          <p className="text-sm text-ink/65 mb-6">
+            Registration must be completed during the published window. Late registration is not offered.
+          </p>
+
+          <div className="space-y-px bg-ink/10 mb-8">
+            {sessions.map((s) => (
+              <label
+                key={s.id}
+                className={`flex items-center justify-between gap-4 bg-card p-4 cursor-pointer ${
+                  s.registrationOpen === false || (!s.allowNew && draft.isNewStudent)
+                    ? "opacity-40 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="session"
+                    checked={draft.sessionId === s.id}
+                    onChange={() => setDraft({ ...draft, sessionId: s.id, classTimeId: "" })}
+                    disabled={s.registrationOpen === false || (!s.allowNew && draft.isNewStudent)}
+                  />
+                  <span>
+                    <span className="font-display text-lg block leading-tight">{s.label}</span>
+                    <span className="text-xs text-ink/60">
+                      {s.dates} · {s.regWindow}
+                      {s.registrationOpen === false
+                        ? " · registration not open"
+                        : !s.allowNew
+                          ? " · returning students only"
+                          : ""}
+                    </span>
+                  </span>
+                </span>
+                <span className="font-display text-lg text-belt">
+                  {s.registrationOpen === false
+                    ? "Not open yet"
+                    : s.pricingMode === "flat"
+                      ? `$${s.flatPrice}`
+                      : `$${s.familyTierFirst}+`}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <h3 className="font-display text-xl mb-4">Class time (by age)</h3>
+          <div className="space-y-px bg-ink/10 mb-10">
+            {availableClassTimes.map((c) => {
+              const holidayAge =
+                isHolidaySession && c.id === "ct1"
+                  ? "Juniors"
+                  : isHolidaySession && c.id === "ct2"
+                    ? "Older Youth & Seniors"
+                    : c.age;
+              const displayedTime =
+                isHolidaySession && c.id === "ct1"
+                  ? "5:45–6:00pm check-in/setup · 6:00–7:30pm workout"
+                  : isHolidaySession && c.id === "ct2"
+                    ? "7:45–9:15pm workout · 9:15–9:30pm cleanup/takedown"
+                    : c.time;
+              return (
+                <label key={c.id} className="flex items-center gap-3 bg-card p-4 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="classtime"
+                    checked={draft.classTimeId === c.id}
+                    onChange={() => setDraft({ ...draft, classTimeId: c.id })}
+                  />
+                  <span>
+                    <span className="font-display text-lg block leading-tight">{c.label} — {holidayAge}</span>
+                    <span className="text-xs text-ink/60">{displayedTime}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-4">
+            {students.length > 0 && (
+              <button onClick={() => setStep("review")} className="text-ink/60 underline font-display text-lg">Back to review</button>
+            )}
+            <button
+              disabled={!draft.sessionId || !draft.classTimeId}
+              onClick={() => setStep("info")}
+              className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+      )}
+
+      {step === "info" && (
+        <section>
+          <h2 className="font-display text-2xl mb-2">Participant information</h2>
+          {students.length === 0 && (
+            <button
+              type="button"
+              onClick={() => setDraft({ ...draft, firstName: guardian.firstName, lastName: guardian.lastName })}
+              className="mb-5 text-sm text-belt underline underline-offset-2"
+            >
+              I’m registering myself — use my name
+            </button>
+          )}
+          <fieldset>
+            <input placeholder="First name" value={draft.firstName} onChange={(e) => { setDraft({ ...draft, firstName: e.target.value }); setPreviousLookupState("idle"); }} />
+            <input placeholder="Last name" value={draft.lastName} onChange={(e) => { setDraft({ ...draft, lastName: e.target.value }); setPreviousLookupState("idle"); }} />
+            <label className="block text-sm text-ink/70">
+              Participant date of birth
+              <input required type="date" value={draft.dateOfBirth} onChange={(e) => { setDraft({ ...draft, dateOfBirth: e.target.value }); setPreviousLookupState("idle"); }} />
+            </label>
+            <div className="mb-5 border border-ink/15 bg-card p-4">
+              <p className="font-display text-lg">Find your previous South Bay Judo registration</p>
+              <p className="mt-1 mb-3 text-sm text-ink/65">
+                Available to all students. Enter the name and date of birth above, then search.
+                For privacy, we'll match the email you entered at the start of registration.
+              </p>
+              <button
+                type="button"
+                disabled={previousLookupState === "loading" || !draft.firstName.trim() || !draft.lastName.trim() || !draft.dateOfBirth || !guardian.email.trim()}
+                onClick={lookupPreviousStudent}
+                className="border border-belt px-4 py-2 text-sm font-semibold text-belt disabled:opacity-30"
+              >
+                {previousLookupState === "loading" ? "Searching..." : "Search student records"}
+              </button>
+              <div className="mt-3 text-sm" aria-live="polite">
+                {previousLookupState === "found" && (
+                  <p className="text-green-800">
+                    Previous registration found. Returning student selected and belt rank filled in if available.
+                    Please review and update the details below.
+                  </p>
+                )}
+                {previousLookupState === "not-found" && (
+                  <p className="text-ink/70">
+                    No matching paid online registration was found for this name, date of birth, and email.
+                    New students can continue normally. If you attended before our online registration system,
+                    choose Returning student on the previous step.
+                  </p>
+                )}
+                {previousLookupState === "error" && (
+                  <p className="text-belt">
+                    Student lookup is unavailable. You can still register manually and select Returning
+                    student if you attended before.
+                  </p>
+                )}
+              </div>
+            </div>
+            <input placeholder="Current belt rank, if known (optional)" value={draft.beltRank} onChange={(e) => setDraft({ ...draft, beltRank: e.target.value })} />
+            <input placeholder="Emergency contact name" value={draft.emergencyContact} onChange={(e) => setDraft({ ...draft, emergencyContact: e.target.value })} />
+            <input placeholder="Emergency contact phone" value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} />
+            {(guardian.firstName || guardian2.firstName) && (
+              <div className="flex gap-4 flex-wrap -mt-1">
+                {guardian.firstName && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        emergencyContact: `${guardian.firstName} ${guardian.lastName}`.trim(),
+                        emergencyPhone: guardian.phone,
+                      })
+                    }
+                    className="text-xs text-ink/50 underline"
+                  >
+                    Same as {guardian.firstName}
+                  </button>
+                )}
+                {guardian2.firstName && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        emergencyContact: `${guardian2.firstName} ${guardian2.lastName}`.trim(),
+                        emergencyPhone: guardian2.phone,
+                      })
+                    }
+                    className="text-xs text-ink/50 underline"
+                  >
+                    Same as {guardian2.firstName}
+                  </button>
+                )}
+              </div>
+            )}
+          </fieldset>
+
+          <div className="mb-6">
+            <p className="text-sm mb-2">Medical conditions, allergies, or physical limitations</p>
+            <div className="flex gap-6 mb-3">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  checked={draft.hasMedicalConditions === "no"}
+                  onChange={() => setDraft({ ...draft, hasMedicalConditions: "no", medicalNotes: "" })}
+                />
+                No medical conditions, allergies, or limitations
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  checked={draft.hasMedicalConditions === "yes"}
+                  onChange={() => setDraft({ ...draft, hasMedicalConditions: "yes" })}
+                />
+                Yes — list below
+              </label>
+            </div>
+            {draft.hasMedicalConditions === "yes" && (
+              <textarea
+                placeholder="What should instructors know about?"
+                value={draft.medicalNotes}
+                onChange={(e) => setDraft({ ...draft, medicalNotes: e.target.value })}
+              />
+            )}
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm mb-2">Photo/video consent</p>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" checked={draft.photoConsent === "yes"} onChange={() => setDraft({ ...draft, photoConsent: "yes" })} />
+                Yes, okay to use in club photos/videos
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" checked={draft.photoConsent === "no"} onChange={() => setDraft({ ...draft, photoConsent: "no" })} />
+                No
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <button onClick={() => setStep("session")} className="text-ink/60 underline font-display text-lg">Back</button>
+            <button
+              disabled={!draft.firstName || !draft.lastName || !draft.dateOfBirth || !draft.hasMedicalConditions}
+              onClick={() => setStep("membership")}
+              className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+      )}
+
+      {step === "membership" && (
+        <section>
+          <h2 className="font-display text-2xl mb-3">USJF or USA Judo membership</h2>
+          <p className="text-sm text-ink/70 mb-5">
+            All participants must carry a current USJF membership for insurance coverage. A primary
+            12-month USJF membership is ${MEMBERSHIP_FEE}. Membership is handled separately through USJF.
+            If membership is still needed, complete this
+            registration first and we’ll email the signup instructions afterward.
+          </p>
+
+          {draft.isNewStudent && (
+            <div className="mb-5 border border-belt/35 bg-belt/5 p-3 text-sm text-ink/75">
+              <strong>First time in judo?</strong> If this participant does not already have USJF membership,
+              purchase the ${MEMBERSHIP_FEE} annual membership before the first class.
+            </div>
+          )}
+
+          <div className={`mb-6 border p-4 ${needsMembershipSelected ? "border-belt bg-belt/10" : "border-ink/20 bg-card"}`}>
+            <button
+              type="button"
+              onClick={() => {
+                setNeedsMembershipSelected(true);
+                setUsjfManualEntry(false);
+                setUsjfQuery("");
+                setUsjfResults([]);
+                setDraft({
+                  ...draft,
+                  membershipStatus: "none",
+                  membershipOrg: "USJF",
+                  memberIdNumber: "",
+                  membershipExpires: "",
+                  membershipMismatchConfirmed: false,
+                });
+              }}
+              className="w-full text-left"
+            >
+              <strong className="font-display block text-xl">I don’t have a USJF membership yet</strong>
+              <span className="block text-sm text-ink/65 mt-1">
+                Select this to let South Bay Judo know the participant still needs to obtain membership.
+              </span>
+            </button>
+            {needsMembershipSelected && (
+              <div className="mt-4 border-t border-belt/25 pt-4 text-sm">
+                <p>
+                  That’s okay — continue with this registration. After registration is complete, we’ll
+                  send a separate email with instructions for obtaining the required USJF membership
+                  before the first class.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {!usjfManualEntry && (
+            <div className="mb-6">
+              <p className="text-sm mb-1">Search your USJF membership</p>
+              <p className="mb-2 text-xs text-ink/60">Enter the last name first. If several names appear, select the correct participant.</p>
+              <input
+                placeholder="Last name, First name"
+                value={usjfQuery}
+                onChange={(e) => {
+                  setNeedsMembershipSelected(false);
+                  setUsjfQuery(e.target.value);
+                  setDraft({ ...draft, membershipStatus: "none", memberIdNumber: "", membershipExpires: "", membershipMismatchConfirmed: false });
+                }}
+              />
+              {usjfSearching && <p className="text-xs text-ink/50 mt-2">Searching…</p>}
+              {!usjfSearching && usjfResults.length > 0 && (
+                <div className="mt-2 space-y-px bg-ink/10">
+                  {usjfResults.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setNeedsMembershipSelected(false);
+                        setDraft({
+                          ...draft,
+                          membershipStatus: "current",
+                          membershipOrg: "USJF",
+                          memberIdNumber: m.id,
+                          membershipExpires: m.expires,
+                          membershipMismatchConfirmed: false,
+                        });
+                        setUsjfQuery(m.name);
+                        setUsjfResults([]);
+                      }}
+                      className="w-full text-left bg-card p-3 text-sm hover:bg-mat/15"
+                    >
+                      <span className="font-display block">{m.name}</span>
+                      <span className="text-xs text-ink/60">
+                        USJF #{m.id} · {isExpired(m.expires) ? "expired" : "expires"} {m.expires}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setNeedsMembershipSelected(false);
+                  setUsjfManualEntry(true);
+                }}
+                className="text-xs text-ink/50 underline mt-3"
+              >
+                Can't find your name? Enter it manually, or add a USA Judo membership instead
+              </button>
+            </div>
+          )}
+
+          {usjfManualEntry && (
+            <fieldset className="mb-4">
+              <select value={draft.membershipOrg} onChange={(e) => setDraft({ ...draft, membershipOrg: e.target.value })}>
+                {Object.entries(orgLabel).map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </select>
+              <input placeholder="Member ID #" value={draft.memberIdNumber} onChange={(e) => setDraft({ ...draft, membershipStatus: "current", memberIdNumber: e.target.value })} />
+              <label className="block text-sm text-ink/70">
+                Membership expiration date
+                <input
+                  type="date"
+                  value={draft.membershipExpires}
+                  onChange={(e) => setDraft({ ...draft, membershipExpires: e.target.value })}
+                />
+              </label>
+              <p className="text-xs text-ink/60">We'll ask for a photo of the card after this step for admin verification.</p>
+              {draft.membershipOrg === "USA_JUDO" && (
+                <p className="border border-belt/35 bg-belt/5 p-3 text-sm text-belt">
+                  USA Judo membership alone does not meet the club requirement. A current USJF membership is required before the first class.
+                </p>
+              )}
+              <button type="button" onClick={() => setUsjfManualEntry(false)} className="text-xs text-ink/50 underline">
+                Back to search
+              </button>
+            </fieldset>
+          )}
+
+          {draft.membershipStatus === "current" && draft.membershipExpires && (
+            isExpired(draft.membershipExpires) ? (
+              <div className="bg-belt/10 border border-belt p-3 mb-6 text-sm text-belt">
+                This membership expired on {draft.membershipExpires} — {draft.firstName || "the participant"} will
+                need to renew before the first class. We’ll send the USJF renewal instructions after registration.
+              </div>
+            ) : (
+              <div className="bg-mat/15 p-3 mb-6 text-sm text-mat">
+                Membership is current through {draft.membershipExpires}.
+              </div>
+            )
+          )}
+
+          {draft.membershipStatus === "current" &&
+            usjfQuery &&
+            !usjfManualEntry &&
+            !namesLikelyMatch(usjfQuery, draft.firstName, draft.lastName) && (
+              <div className="bg-belt/10 border border-belt p-3 mb-6 text-sm">
+                <p className="text-belt mb-2">
+                  This membership is registered to <strong>{usjfQuery}</strong> — but you're registering{" "}
+                  <strong>{draft.firstName} {draft.lastName}</strong>. A parent's or sibling's record can
+                  look similar in search.
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer text-belt">
+                  <input
+                    type="checkbox"
+                    checked={draft.membershipMismatchConfirmed}
+                    onChange={(e) => setDraft({ ...draft, membershipMismatchConfirmed: e.target.checked })}
+                  />
+                  Yes, this is the correct membership for {draft.firstName || "this participant"}
+                </label>
+              </div>
+            )}
+
+          {draft.membershipStatus === "none" && !usjfManualEntry && usjfQuery.length >= 2 && usjfResults.length === 0 && !usjfSearching && (
+            <p className="text-xs text-belt mb-6">
+              No match found. They can enter their number manually, or select “I don’t have a USJF
+              membership yet” and continue. We’ll email the USJF signup instructions after registration.
+            </p>
+          )}
+
+          <div className="flex gap-4">
+            <button onClick={() => setStep("info")} className="text-ink/60 underline font-display text-lg">Back</button>
+            <button
+              disabled={draftMembershipMismatch}
+              onClick={() => setStep("waiver")}
+              className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+      )}
+
+      {step === "waiver" && (
+        <section>
+          <h2 className="font-display text-2xl mb-5">Waiver &amp; medical disclaimer</h2>
+          <div className="bg-card border border-ink/15 p-4 text-sm leading-relaxed max-h-40 overflow-auto mb-5">
+            {MEDICAL_ACK_TEXT}
+          </div>
+          <p className="mb-4 text-sm leading-relaxed text-ink/70">
+            The parent/guardian, or the adult participant registering themself, is signing for the entire registration submitted here.
+          </p>
+          <input
+            placeholder="Type your full legal name to sign"
+            value={draft.signedByName}
+            onChange={(e) => setDraft({ ...draft, signedByName: e.target.value })}
+            className="mb-2"
+          />
+          <div className="mb-3 min-h-24 border border-ink/25 bg-card px-5 py-4">
+            <p className={`font-signature text-4xl leading-tight ${draft.signedByName ? "text-ink" : "text-ink/30"}`}>
+              {draft.signedByName || "Your signature appears here"}
+            </p>
+            <div className="mt-2 border-t border-ink/35 pt-1 text-xs text-ink/50">Electronic signature</div>
+          </div>
+          <p className="mb-3 text-xs text-ink/60">
+            By typing your full legal name, you agree that it serves as your electronic signature on this waiver and registration.
+          </p>
+          <p className="text-xs text-ink/50 mb-4">
+            Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+
+          <div className="flex gap-4 mt-8">
+            <button onClick={() => setStep("membership")} className="text-ink/60 underline font-display text-lg">Back</button>
+            <button
+              disabled={!draft.signedByName.trim() || !draft.photoConsent}
+              onClick={() => { finishStudent(); setStep("review"); }}
+              className="bg-belt text-card px-6 py-3 font-display text-lg tracking-wide disabled:opacity-30"
+            >
+              Save participant &amp; review
+            </button>
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
