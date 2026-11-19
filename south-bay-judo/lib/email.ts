@@ -422,5 +422,9 @@ export async function sendReturningStudentLink(opts: {
       opts.url + "\n\nThis link expires in 20 minutes. If you did not request it, ignore this message.",
   }, { idempotencyKey: opts.idempotencyKey });
 
+  // The same family may click Send again within the 15-minute
+  // idempotency window. Resend rejects a different newly generated link
+  // with the same key; the FIRST valid email has already been queued.
+  if (error && /idempoten/i.test(error.message || "")) return;
   if (error) throw new Error(error.message || "Could not send returning-student verification link.");
 }
