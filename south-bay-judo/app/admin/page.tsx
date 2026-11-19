@@ -203,6 +203,12 @@ export default function AdminPage() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-16">
       <h1 className="font-display text-5xl mb-6">Admin</h1>
+      <a
+        href="/test-register"
+        className="mb-8 inline-block border border-belt bg-belt/5 px-5 py-3 font-display text-lg text-belt"
+      >
+        Test January 2027 registration (no payment)
+      </a>
 
       <div className="flex gap-2 mb-10 border-b border-ink/15">
         <button
