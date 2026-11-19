@@ -168,11 +168,11 @@ type TestResult = {
 
 export default function RegistrationFlow({
   testMode = false,
-  adminPassword = "",
+  testPassword = "",
   onRestart,
 }: {
   testMode?: boolean;
-  adminPassword?: string;
+  testPassword?: string;
   onRestart?: () => void;
 }) {
   const [step, setStep] = useState<Step>("guardian");
@@ -318,7 +318,7 @@ export default function RegistrationFlow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...(testMode ? { adminPassword } : {}),
+          ...(testMode ? { testPassword } : {}),
           guardian,
           guardian2: (guardian2.firstName || guardian2.lastName) ? guardian2 : null,
           students: students.map((s) => {
