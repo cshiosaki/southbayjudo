@@ -41,10 +41,14 @@ export async function processRegistration(req: NextRequest, testMode = false) {
   } catch {
     return NextResponse.json({ error: "Invalid registration request." }, { status: 400 });
   }
-  // Test mode is only reachable through the admin endpoint, and must be authorized
-  // before any future-session registration-window override can be applied.
-  if (testMode && (!process.env.ADMIN_PASSWORD || input?.adminPassword !== process.env.ADMIN_PASSWORD)) {
-    return NextResponse.json({ error: "Incorrect admin password." }, { status: 401 });
+  // Only the dedicated test credential may unlock the January dry run.
+  // The production ADMIN_PASSWORD and the public checkout remain untouched.
+  if (
+    testMode &&
+    (!process.env.SBJ_TEST_REGISTRATION_PASSWORD ||
+      input?.testPassword !== process.env.SBJ_TEST_REGISTRATION_PASSWORD)
+  ) {
+    return NextResponse.json({ error: "Incorrect test registration password." }, { status: 401 });
   }
   const { guardian, guardian2, students: rawStudents, familyExtras } = input;
   if (!guardian?.firstName || !guardian?.email || !Array.isArray(rawStudents) || rawStudents.length === 0) {
