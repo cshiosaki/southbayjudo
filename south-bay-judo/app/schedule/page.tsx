@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { getCurrentRegistrationFlyers } from "@/lib/registration-flyers";
 
 export const dynamic = "force-dynamic";
 import { getSiteConfig } from "@/lib/config-store";
 
 
 export default async function SchedulePage() {
-  const { sessions, classTimes } = await getSiteConfig();
+  const [{ sessions, classTimes }, registrationFlyers] = await Promise.all([getSiteConfig(), getCurrentRegistrationFlyers()]);
   return (
     <main className="max-w-6xl mx-auto px-6 py-16">
       <h1 className="font-display text-5xl mb-3">2026–2027 Class Schedule</h1>
@@ -23,6 +24,32 @@ export default async function SchedulePage() {
           </div>
         ))}
       </div>
+
+      <section className="mb-12" aria-labelledby="registration-flyers-heading">
+        <h2 id="registration-flyers-heading" className="font-display text-3xl mb-3">Registration Flyers</h2>
+        <p className="text-ink/70 mb-5">View or download the latest class registration flyers.</p>
+        {registrationFlyers.length ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {registrationFlyers.map((flyer) => (
+              <article key={flyer.id} className="border border-ink/20 bg-card p-6">
+                <h3 className="font-display text-xl mb-4">{flyer.title}</h3>
+                <div className="flex flex-wrap gap-3">
+                  <a href={`/api/registration-flyers/${encodeURIComponent(flyer.id)}`} target="_blank" rel="noopener noreferrer" className="border border-ink/30 px-4 py-2 font-display">
+                    View PDF
+                  </a>
+                  <a href={`/api/registration-flyers/${encodeURIComponent(flyer.id)}?download=1`} className="bg-belt text-card px-4 py-2 font-display">
+                    Download PDF
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="border border-ink/20 bg-card p-5 text-ink/70">
+            Registration flyers are temporarily unavailable. Please check back soon.
+          </p>
+        )}
+      </section>
 
       <h2 className="font-display text-3xl mb-6">Sessions &amp; Registration Windows</h2>
       <div className="space-y-10">
