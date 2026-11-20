@@ -32,6 +32,20 @@ export default async function SchedulePage() {
           <div className="grid gap-4 md:grid-cols-2">
             {registrationFlyers.map((flyer) => (
               <article key={flyer.id} className="border border-ink/20 bg-card p-6">
+                <a
+                  href={`/api/registration-flyers/${encodeURIComponent(flyer.id)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`View ${flyer.title}`}
+                  className="mb-5 flex h-72 items-center justify-center overflow-hidden border border-ink/15 bg-white p-3 transition-colors hover:border-belt sm:h-80"
+                >
+                  <img
+                    src={`/api/registration-flyers/${encodeURIComponent(flyer.id)}/thumbnail`}
+                    alt={`First page preview of ${flyer.title}`}
+                    className="h-full w-full object-contain"
+                    loading="lazy"
+                  />
+                </a>
                 <h3 className="font-display text-xl mb-4">{flyer.title}</h3>
                 <div className="flex flex-wrap gap-3">
                   <a href={`/api/registration-flyers/${encodeURIComponent(flyer.id)}`} target="_blank" rel="noopener noreferrer" className="border border-ink/30 px-4 py-2 font-display">
