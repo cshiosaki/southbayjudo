@@ -540,7 +540,7 @@ export default function RegistrationFlow({
             className={signupCardClass}
           >
             <strong className="block min-h-[3.5rem] sm:min-h-[4rem] font-display text-2xl leading-tight text-ink group-hover:text-belt mb-3">
-              Instructor / Volunteer Sign Up
+              Instructor Signup
             </strong>
             <span className="block text-sm leading-relaxed text-ink/70">
               Register to teach or volunteer, choose classes, and update your credentials.
