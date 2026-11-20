@@ -18,7 +18,7 @@ export default async function EventsPage() {
     year: "numeric",
   }).format(new Date()));
   const newsletterYear = (newsletter: { name: string; title: string }) =>
-    Number(newsletter.name.match(/20\\d{2}/)?.[0] ?? newsletter.title.match(/20\\d{2}/)?.[0] ?? 0);
+    Number(newsletter.name.match(/20\d{2}/)?.[0] ?? newsletter.title.match(/20\d{2}/)?.[0] ?? 0);
   const allNewsletters = [...(current ? [current] : []), ...past].filter(
     (newsletter, index, files) => files.findIndex((file) => file.id === newsletter.id) === index
   );
