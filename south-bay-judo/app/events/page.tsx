@@ -13,6 +13,29 @@ const CALENDAR_URL =
 
 export default async function EventsPage() {
   const { current, past } = await getNewsletterFolders();
+  const thisYear = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+  }).format(new Date()));
+  const newsletterYear = (newsletter: { name: string; title: string }) =>
+    Number(newsletter.name.match(/20\\d{2}/)?.[0] ?? newsletter.title.match(/20\\d{2}/)?.[0] ?? 0);
+  const allNewsletters = [...(current ? [current] : []), ...past].filter(
+    (newsletter, index, files) => files.findIndex((file) => file.id === newsletter.id) === index
+  );
+  const currentYearNewsletters = allNewsletters.filter((newsletter) => newsletterYear(newsletter) === thisYear);
+  const featuredCurrent = current && newsletterYear(current) === thisYear ? current : null;
+  const currentYearPast = currentYearNewsletters.filter((newsletter) => newsletter.id !== featuredCurrent?.id);
+  const archives = Object.entries(
+    allNewsletters.filter((newsletter) => newsletterYear(newsletter) !== thisYear).reduce<Record<string, typeof allNewsletters>>(
+      (groups, newsletter) => {
+        const year = newsletterYear(newsletter);
+        const key = year ? String(year) : "Other";
+        (groups[key] ??= []).push(newsletter);
+        return groups;
+      },
+      {}
+    )
+  ).sort(([a], [b]) => Number(b) - Number(a));
 
   return (
     <main className="mx-auto max-w-[1500px] px-4 py-10 sm:px-6 sm:py-16">
@@ -49,26 +72,26 @@ export default async function EventsPage() {
         <p className="mb-1 font-display text-sm uppercase tracking-[0.14em] text-belt">Club updates</p>
         <h2 className="mb-3 font-display text-4xl">Newsletters</h2>
         <p className="mb-6 max-w-2xl text-ink/65">
-          Read the latest issue here, or download a past issue below.
+          View newsletters from this year below, or expand an older year to browse previous issues.
         </p>
 
-        {current ? (
+        {featuredCurrent ? (
           <article className="overflow-hidden border border-ink/20 bg-card">
             <div className="flex flex-col gap-4 border-b border-ink/15 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-display text-2xl">{current.title}</h3>
+                <h3 className="font-display text-2xl">{featuredCurrent.title}</h3>
                 <p className="text-ink/65">Current newsletter</p>
               </div>
               <a
-                href={`/api/newsletters/${encodeURIComponent(current.id)}?download=1`}
+                href={`/api/newsletters/${encodeURIComponent(featuredCurrent.id)}?download=1`}
                 className="inline-flex w-fit border border-ink/30 px-4 py-2 font-display text-base"
               >
                 Download current issue
               </a>
             </div>
             <iframe
-              src={`/api/newsletters/${encodeURIComponent(current.id)}`}
-              title={`${current.title} South Bay Judo newsletter`}
+              src={`/api/newsletters/${encodeURIComponent(featuredCurrent.id)}`}
+              title={`${featuredCurrent.title} South Bay Judo newsletter`}
               className="h-[85vh] min-h-[680px] w-full bg-white"
               loading="lazy"
             />
@@ -80,10 +103,10 @@ export default async function EventsPage() {
         )}
 
         <div className="mt-10">
-          <h3 className="mb-4 font-display text-3xl">Past newsletters</h3>
-          {past.length ? (
+          <h3 className="mb-4 font-display text-3xl">{thisYear} newsletters</h3>
+          {currentYearPast.length ? (
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {past.map((newsletter) => (
+              {currentYearPast.map((newsletter) => (
                 <li key={newsletter.id}>
                   <a
                     href={`/api/newsletters/${encodeURIComponent(newsletter.id)}?download=1`}
@@ -96,11 +119,40 @@ export default async function EventsPage() {
               ))}
             </ul>
           ) : (
-            <p className="border border-ink/20 bg-card px-5 py-6 text-ink/70">
-              Past newsletters are temporarily unavailable. Please check back soon.
-            </p>
+            <p className="text-ink/65">No additional {thisYear} newsletters yet.</p>
           )}
         </div>
+
+        {archives.length > 0 && (
+          <div className="mt-12 border-t border-ink/15 pt-8">
+            <h3 className="mb-4 font-display text-3xl">Past year archives</h3>
+            <p className="mb-5 text-ink/65">Select a year to view or download its newsletters.</p>
+            <div className="space-y-3">
+              {archives.map(([year, newsletters]) => (
+                <details key={year} className="group border border-ink/20 bg-card">
+                  <summary className="flex cursor-pointer items-center justify-between gap-4 px-5 py-4 font-display text-2xl">
+                    <span>{year} Archive ({newsletters.length})</span>
+                    <span aria-hidden="true" className="text-belt transition-transform group-open:rotate-180">⌄</span>
+                  </summary>
+                  <ul className="grid gap-3 border-t border-ink/15 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {newsletters.map((newsletter) => (
+                      <li key={newsletter.id}>
+                        <a
+                          href={`/api/newsletters/${encodeURIComponent(newsletter.id)}?download=1`}
+                          className="flex h-full items-center justify-between gap-4 border border-ink/20 px-4 py-3 transition-colors hover:border-belt"
+                        >
+                          <span className="font-display text-lg">{newsletter.title}</span>
+                          <span className="shrink-0 text-sm underline underline-offset-4">Download PDF</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
       </section>
     </main>
   );
