@@ -3,6 +3,7 @@ import { Barlow_Condensed, Karla } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
+import MainNavigation from "./main-navigation";
 
 const barlow = Barlow_Condensed({
   subsets: ["latin"],
@@ -15,19 +16,6 @@ export const metadata: Metadata = {
   title: "South Bay Judo",
   description: "Torrance Charter Club — judo for juniors, youth, and adults since 1999.",
 };
-
-const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/history", label: "History" },
-  { href: "/instructors", label: "Instructors" },
-  { href: "/events", label: "Events" },
-  { href: "/awards", label: "Awards" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/register", label: "Register" },
-  { href: "/shop", label: "Order Gear" },
-  { href: "/support", label: "Support" },
-  { href: "/visitor", label: "Visitor Check-In" },
-];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -51,13 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </span>
               </span>
             </Link>
-            <nav aria-label="Main navigation" className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center text-sm sm:gap-x-7 sm:text-base">
-              {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-gold transition-colors">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <MainNavigation />
           </div>
         </header>
 
