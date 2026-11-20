@@ -1,0 +1,74 @@
+import { google } from "googleapis";
+
+const CURRENT_FOLDER_ID = "1gqE_Cmmm10xOp3XcIH9Fo2eHbe7bsw2M";
+
+export interface RegistrationFlyer {
+  id: string;
+  name: string;
+  title: string;
+}
+
+function authForDrive() {
+  const key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!key) return null;
+  try {
+    return new google.auth.GoogleAuth({
+      credentials: JSON.parse(key),
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+    });
+  } catch {
+    return null;
+  }
+}
+
+function flyerTitle(name: string) {
+  const year = name.match(/20\d{2}/)?.[0] ?? "";
+  if (/5Q|5th.?quarter|holiday/i.test(name)) return `${year} Holiday (5Q) Registration Flyer`;
+  if (/1Q.?to.?4Q|1Q.?4Q|sign up to judo/i.test(name)) return `${year} Regular Sessions (1Q–4Q) Registration Flyer`;
+  return name.replace(/\.pdf$/i, "");
+}
+
+export async function getCurrentRegistrationFlyers(): Promise<RegistrationFlyer[]> {
+  const auth = authForDrive();
+  if (!auth) return [];
+  try {
+    const drive = google.drive({ version: "v3", auth });
+    const result = await drive.files.list({
+      q: `'${CURRENT_FOLDER_ID}' in parents and trashed = false and mimeType = 'application/pdf'`,
+      pageSize: 100,
+      fields: "nextPageToken,files(id,name)",
+      orderBy: "name",
+    });
+    return (result.data.files ?? [])
+      .filter((file): file is typeof file & { id: string; name: string } => Boolean(file.id && file.name))
+      .map(({ id, name }) => ({ id, name, title: flyerTitle(name) }))
+      .sort((a, b) => Number(/holiday|5Q/i.test(a.name)) - Number(/holiday|5Q/i.test(b.name)));
+  } catch (error) {
+    console.error("Could not list current registration flyers.", error);
+    return [];
+  }
+}
+
+export async function getRegistrationFlyerPdf(id: string, download: boolean) {
+  const auth = authForDrive();
+  if (!auth) return null;
+  try {
+    const current = await getCurrentRegistrationFlyers();
+    const flyer = current.find((item) => item.id === id);
+    if (!flyer) return null;
+    const token = await auth.getAccessToken();
+    if (!token) return null;
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+    );
+    if (!response.ok) return null;
+    return {
+      bytes: Buffer.from(await response.arrayBuffer()),
+      disposition: `${download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(flyer.name)}`,
+    };
+  } catch (error) {
+    console.error("Could not fetch registration flyer.", error);
+    return null;
+  }
+}
